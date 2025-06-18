@@ -16,28 +16,18 @@ import prestige from "./layers/prestige";
  * @hidden
  */
 export const main = createLayer("main", layer => {
-    const points = createResource<DecimalSource>(10);
-    const best = trackBest(points);
-    const total = trackTotal(points);
-
-    const pointGain = computed(() => {
-        // eslint-disable-next-line prefer-const
-        let gain = new Decimal(1);
-        return gain;
-    });
-    layer.on("update", diff => {
-        points.value = Decimal.add(points.value, Decimal.times(pointGain.value, diff));
-    });
-    const oomps = trackOOMPS(points, pointGain);
+    const planets = createResource<DecimalSource>(1);
+    const best = trackBest(planets);
+    const total = trackTotal(planets);
 
     // Note: Casting as generic tree to avoid recursive type definitions
     const tree = createTree(() => ({
         nodes: noPersist([[prestige.treeNode]]),
         branches: [],
         onReset() {
-            points.value = toRaw(tree.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
-            best.value = points.value;
-            total.value = points.value;
+            planets.value = toRaw(tree.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
+            best.value = planets.value;
+            total.value = planets.value;
         },
         resetPropagation: branchedResetPropagation
     })) as Tree;
@@ -69,24 +59,17 @@ export const main = createLayer("main", layer => {
                     </div>
                 ) : null}
                 <div>
-                    {Decimal.lt(points.value, "1e1000") ? <span>You have </span> : null}
-                    <h2>{format(points.value)}</h2>
-                    {Decimal.lt(points.value, "1e1e6") ? <span> points</span> : null}
+                    {Decimal.lt(planets.value, "1e1000") ? <span>You have </span> : null}
+                    <h2>{format(planets.value)}</h2>
+                    {Decimal.lt(planets.value, "1e1e6") ? <span> planets</span> : null}
                 </div>
-                {Decimal.gt(pointGain.value, 0) ? (
-                    <div>
-                        ({oomps.value})
-                        <Node id="oomps" />
-                    </div>
-                ) : null}
                 <Spacer />
                 {render(tree)}
             </>
         ),
-        points,
+        points: planets,
         best,
         total,
-        oomps,
         tree
     };
 });
