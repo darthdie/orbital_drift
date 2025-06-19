@@ -49,8 +49,6 @@ const layer = createLayer(id, baseLayer => {
         }))
     ]);
 
-
-
     const driftChanceRepeatable = createRepeatable(() => ({
         requirements: createCostRequirement((): CostRequirementOptions => ({
             resource: noPersist(instability),
@@ -81,7 +79,7 @@ const layer = createLayer(id, baseLayer => {
             title: "Sharp, Short, Shove",
             description: "Increase the multiplier of drift",
             effectDisplay: () => {
-                const c: Decimal = Decimal.fromValue(driftMultiplierModifier.apply(1));
+                const c: Decimal = new Decimal(1).add(unref(driftMultiplierRepeatable.amount));
                 return `* ${c}`;
             }
         }
@@ -89,7 +87,7 @@ const layer = createLayer(id, baseLayer => {
 
     const driftMultiplierModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: new Decimal(driftMultiplierRepeatable.amount.value).add(1),
+            multiplier: () => new Decimal(1).add(driftMultiplierRepeatable.amount.value),
             enabled: Decimal.gt(driftMultiplierRepeatable.amount.value, 0)
         }))
     ]);
@@ -108,10 +106,6 @@ const layer = createLayer(id, baseLayer => {
 
     const driftGainMultiplier = computed(() => {
         let gain = new Decimal(1.1).times(driftMultiplierModifier.apply(1));
-        console.log({
-            gain: gain.toString(),
-            mult: driftMultiplierModifier.apply(1).toString()
-        })
         return gain;
     });
 
@@ -141,7 +135,7 @@ const layer = createLayer(id, baseLayer => {
     }));
 
     const conversion = createCumulativeConversion(() => ({
-        formula: x => x.pow(0.3),
+        formula: x => x.log10().pow(1.5),
         baseResource: drift,
         gainResource: instability,
         onConvert: () => drift.value = 1,
