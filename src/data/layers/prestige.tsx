@@ -14,44 +14,115 @@ import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { addTooltip } from "wrappers/tooltips/tooltip";
 import { createLayerTreeNode, createResetButton } from "../common";
-import { computed } from "vue";
+import { computed, unref } from "vue";
 import Decimal, { format } from "util/bignum";
+import { createRepeatable } from "features/clickables/repeatable";
+import { CostRequirementOptions, createCostRequirement } from "game/requirements";
+import Formula from "game/formulas/formulas";
+import { noPersist } from "game/persistence";
+import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 
 const id = "P";
 const layer = createLayer(id, baseLayer => {
     const name = "Prestige";
     const color = "#4BDC13";
 
+    const timerMaxRepeatable = createRepeatable(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+            resource: noPersist(instability),
+            cost: Formula.variable(timerMaxRepeatable.amount).add(1).times(5)
+        })),
+        display: {
+            title: "Time Dilation",
+            description: "Decrease the timer interval",
+            effectDisplay: () => {
+                const c = new Decimal(1).sub(new Decimal(.01).times(timerMaxRepeatable.amount.value));
+                return `/ ${c}`;
+            }
+        }
+    }));
+
+    const timerMaxModifer = createSequentialModifier(() => [
+        // 1 - (.01 * X)
+        createMultiplicativeModifier(() => ({
+            multiplier: () => new Decimal(1).sub(new Decimal(.01).times(timerMaxRepeatable.amount.value))
+        }))
+    ]);
+
+
+
+    const driftChanceRepeatable = createRepeatable(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+            resource: noPersist(instability),
+            cost: Formula.variable(driftChanceRepeatable.amount).add(1).times(5)
+        })),
+        display: {
+            title: "Align the Stars",
+            description: "Increase the chance",
+            effectDisplay: () => {
+                const c: Decimal = Decimal.fromValue(driftChanceRepeatable.amount.value);
+                return `+${c}%`;
+            }
+        }
+    }));
+
+    const driftChanceModifier = createSequentialModifier(() => [
+        createAdditiveModifier(() => ({
+            addend: () => driftChanceRepeatable.amount.value
+        }))
+    ]);
+
+    const driftMultiplierRepeatable = createRepeatable(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+            resource: noPersist(instability),
+            cost: Formula.variable(driftMultiplierRepeatable.amount).add(1).times(5)
+        })),
+        display: {
+            title: "Sharp, Short, Shove",
+            description: "Increase the multiplier of drift",
+            effectDisplay: () => {
+                const c: Decimal = Decimal.fromValue(driftMultiplierModifier.apply(1));
+                return `* ${c}`;
+            }
+        }
+    }));
+
+    const driftMultiplierModifier = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: new Decimal(driftMultiplierRepeatable.amount.value).add(1),
+            enabled: Decimal.gt(driftMultiplierRepeatable.amount.value, 0)
+        }))
+    ]);
+
     const drift = createResource<DecimalSource>(1, "drift");
     const timer = createResource<DecimalSource>(0, "timer");
     const timerMax = computed(() => {
-        return new Decimal(5);
+        return new Decimal(5).times(timerMaxModifer.apply(1));
     });
 
-    const timerGain = computed(() => {
-        return new Decimal(1);
-    });
+    const timerGain = computed(() => new Decimal(1));
     
     const driftChance = computed(() => {
-        return new Decimal(5);
+        return new Decimal(5).add(driftChanceModifier.apply(0));
     })
 
     const driftGainMultiplier = computed(() => {
-        // eslint-disable-next-line prefer-const
-        let gain = new Decimal(1.1);
+        let gain = new Decimal(1.1).times(driftMultiplierModifier.apply(1));
+        console.log({
+            gain: gain.toString(),
+            mult: driftMultiplierModifier.apply(1).toString()
+        })
         return gain;
     });
+
     baseLayer.on("update", diff => {
         timer.value = Decimal.add(timer.value, Decimal.times(timerGain.value, diff));
-        // points.value = Decimal.add(points.value, Decimal.times(driftGain.value, diff));
 
         if (timer.value.gte(timerMax.value)) {
             timer.value = 0;
 
             const value = Math.random() * 100;
-            console.log({ value })
             if (Decimal.gte(driftChance.value, value)) {
-                console.log('ping!');
                 drift.value = Decimal.multiply(drift.value, driftGainMultiplier.value);
             } 
         }
@@ -61,23 +132,38 @@ const layer = createLayer(id, baseLayer => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
+    const instability = createResource(0, "instability", 2);
+
     const treeNode = createLayerTreeNode(() => ({
         layerID: id,
         color,
         reset
     }));
 
-    // const resetButton = createResetButton(() => ({
-    //     conversion,
-    //     tree: main.tree,
-    //     treeNode
-    // }));
+    const conversion = createCumulativeConversion(() => ({
+        formula: x => x.pow(0.3),
+        baseResource: drift,
+        gainResource: instability,
+        onConvert: () => drift.value = 1,
+        currentGain: computed((): Decimal => {
+            return Decimal.fromValue(conversion.formula.evaluate(drift.value));
+        })
+    }));
+
+    const resetButton = createResetButton(() => ({
+        conversion,
+        tree: main.tree,
+        treeNode,
+        showNextAt: false,
+    }));
 
     // const hotkey = createHotkey(() => ({
     //     description: "Reset for prestige points",
     //     key: "p",
     //     onPress: resetButton.onClick!
     // }));
+
+
 
     return {
         name,
@@ -88,16 +174,28 @@ const layer = createLayer(id, baseLayer => {
         timer,
         timerGain,
         timerMax,
+        instability,
+        timerMaxRepeatable,
+        driftChanceRepeatable,
+        driftMultiplierRepeatable,
         display: () => (
             <>
-                {Decimal.lt(drift.value, "1e1000") ? <span>You have </span> : null}
-                <h2>{format(drift.value)}</h2>
-                {Decimal.lt(drift.value, "1e1e6") ? <span> drift</span> : null}
+                <h2>You have {format(drift.value)}</h2>
                 <br></br>
                 <p>Timer: {format(timer.value)}/{format(timerMax.value)}</p>
                 <p>Chance: {format(driftChance.value)}%</p>
                 <p>Multiplier: {format(driftGainMultiplier.value)}</p>
-                {/* {render(resetButton)} */}
+                <br/>
+                <br/>
+                <h3>You have {format(instability.value)} stability</h3>
+                {render(resetButton)}
+                <br/>
+                <br/>
+                <div class="flex">
+                    <div class="col">{render(timerMaxRepeatable)}</div>
+                    <div class="col">{render(driftChanceRepeatable)}</div>
+                    <div class="col">{render(driftMultiplierRepeatable)}</div>
+                </div>
             </>
         ),
         treeNode,
