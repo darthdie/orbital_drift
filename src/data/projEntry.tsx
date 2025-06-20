@@ -81,7 +81,7 @@ export const main = createLayer("main", layer => {
 export const getInitialLayers = (
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   player: Partial<Player>
-): Array<Layer> => [main, prestige, solar];
+): Array<Layer> => [main, solar, prestige];
 
 /**
  * A computed ref whose value is true whenever the game is over.

@@ -22,6 +22,7 @@ import Formula from "game/formulas/formulas";
 import { noPersist } from "game/persistence";
 import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Column from "components/layout/Column.vue";
+import solarLayer from "./solar";
 
 const id = "P";
 const layer = createLayer(id, baseLayer => {
@@ -130,13 +131,14 @@ const layer = createLayer(id, baseLayer => {
   const instability = createResource(0, "instability", 2);
 
   const treeNode = createLayerTreeNode(() => ({
+    visibility: noPersist(solarLayer.mercuryUpgrade.bought),
     layerID: id,
     color,
     reset
   }));
 
   const conversion = createCumulativeConversion(() => ({
-    formula: x => x.log10().pow(1.3),
+    formula: x => x.add(1).log10().pow(0.8),
     baseResource: drift,
     gainResource: instability,
     onConvert: () => drift.value = 1,
