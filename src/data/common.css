@@ -17,10 +17,6 @@
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }
 
-.flex {
-    display: flex;
-}
-
-.col {
-    flex: 1;
+.gap-4 {
+    gap: 1rem;
 }

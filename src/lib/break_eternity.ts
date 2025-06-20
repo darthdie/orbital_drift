@@ -1777,13 +1777,11 @@ export default class Decimal {
 
         if (Math.abs(a.mag - b.mag) > MAX_SIGNIFICANT_DIGITS) {
             return a;
-        } else {
-            const magdiff = Math.pow(10, a.mag - b.mag);
-            const mantissa = b.sign + a.sign * magdiff;
-            return FC(Math.sign(mantissa), 1, b.mag + Math.log10(Math.abs(mantissa)));
         }
 
-        throw Error("Bad arguments to add: " + this + ", " + value);
+        const magdiff = Math.pow(10, a.mag - b.mag);
+        const mantissa = b.sign + a.sign * magdiff;
+        return FC(Math.sign(mantissa), 1, b.mag + Math.log10(Math.abs(mantissa)));
     }
 
     public plus(value: DecimalSource): Decimal {
