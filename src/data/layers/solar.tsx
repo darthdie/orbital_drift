@@ -9,13 +9,14 @@ import { createCostRequirement } from "game/requirements";
 import { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render } from "util/vue";
+import { unref } from "vue";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
   const name = "Solar";
   const color = "#FFCC33";
 
-  const energy = createResource<DecimalSource>(0);
+  const energy = createResource<DecimalSource>(1, "solar energy");
   const best = trackBest(energy);
   const total = trackTotal(energy);
 
@@ -29,13 +30,14 @@ const layer = createLayer(id, baseLayer => {
     reset
   }));
 
+  
   const mercuryUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
       resource: noPersist(energy),
       cost: 1
     })),
     display: {
-      description: "Unlock Mercury"
+      description: (): string => mercuryUpgrade.bought.value ? "Mercury Unlocked" : "Unlock Mercury"
     }
   }));
     
@@ -44,6 +46,7 @@ const layer = createLayer(id, baseLayer => {
     energy,
     best,
     total,
+    color,
     mercuryUpgrade,
     display: () => (
       <>

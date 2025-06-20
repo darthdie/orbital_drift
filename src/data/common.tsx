@@ -210,7 +210,7 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(optionsFunc:
             ...(props as Omit<typeof props, keyof LayerTreeNodeOptions>),
             layerID,
             display: display ?? layerID,
-            append: processGetter(append) ?? true,
+            append: processGetter(append) ?? false,
             onClick() {
                 if (unref<boolean>(layerTreeNode.append)) {
                     if (player.tabs.includes(layerID)) {

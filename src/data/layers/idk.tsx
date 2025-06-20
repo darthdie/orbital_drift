@@ -4,15 +4,11 @@
  */
 import { main } from "data/projEntry";
 import { createCumulativeConversion } from "features/conversion";
-import { createHotkey } from "features/hotkey";
 import { createReset } from "features/reset";
-import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
-import { createResourceTooltip } from "features/trees/tree";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render, renderRow } from "util/vue";
-import { addTooltip } from "wrappers/tooltips/tooltip";
 import { createLayerTreeNode, createResetButton } from "../common";
 import { computed, unref } from "vue";
 import Decimal, { format } from "util/bignum";
@@ -24,10 +20,10 @@ import { createAdditiveModifier, createMultiplicativeModifier, createSequentialM
 import Column from "components/layout/Column.vue";
 import solarLayer from "./solar";
 
-const id = "P";
+const id = "M";
 const layer = createLayer(id, baseLayer => {
-  const name = "Prestige";
-  const color = "#4BDC13";
+  const name = "Mercury";
+  const color = "#8c8c94";
 
   const timerMaxRepeatable = createRepeatable(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({

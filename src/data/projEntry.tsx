@@ -1,4 +1,4 @@
-import { createResource, trackBest, trackOOMPS, trackTotal } from "features/resources/resource";
+import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { branchedResetPropagation, createTree, Tree } from "features/trees/tree";
 import type { Layer } from "game/layers";
 import { createLayer } from "game/layers";
@@ -6,8 +6,8 @@ import { noPersist } from "game/persistence";
 import player, { Player } from "game/player";
 import { format, formatTime, type DecimalSource } from "util/bignum";
 import { render } from "util/vue";
-import { computed, toRaw } from "vue";
-import prestige from "./layers/prestige";
+import { computed } from "vue";
+import mercury from "./layers/mercury";
 import solar from "./layers/solar";
 import Node from "components/Node.vue";
 import Spacer from "components/layout/Spacer.vue";
@@ -23,11 +23,11 @@ export const main = createLayer("main", layer => {
   // Note: Casting as generic tree to avoid recursive type definitions
   const tree = createTree(() => ({
     nodes: noPersist([
-      [prestige.treeNode],
+      [mercury.treeNode],
       [solar.treeNode],
     ]),
     branches: [
-      { startNode: solar.treeNode, endNode: prestige.treeNode }
+      { startNode: solar.treeNode, endNode: mercury.treeNode }
     ],
     onReset() {
       // planets.value = toRaw(tree.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
@@ -81,7 +81,7 @@ export const main = createLayer("main", layer => {
 export const getInitialLayers = (
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   player: Partial<Player>
-): Array<Layer> => [main, solar, prestige];
+): Array<Layer> => [main, solar, mercury];
 
 /**
  * A computed ref whose value is true whenever the game is over.
