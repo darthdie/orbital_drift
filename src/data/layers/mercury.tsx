@@ -5,7 +5,7 @@
 import { main } from "data/projEntry";
 import { createCumulativeConversion } from "features/conversion";
 import { createReset } from "features/reset";
-import { createResource } from "features/resources/resource";
+import { createResource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render, renderRow } from "util/vue";
@@ -21,6 +21,9 @@ import Column from "components/layout/Column.vue";
 import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
 import { createUpgrade } from "features/clickables/upgrade";
+import TabFamily from "features/tabs/TabFamily.vue";
+import { createTabFamily } from "features/tabs/tabFamily";
+import { createTab } from "features/tabs/tab";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -44,6 +47,7 @@ const layer = createLayer(id, baseLayer => {
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
   const mercurialDust = createResource(0, "mercurial dust", 2);
+  const totalMercurialDust = trackTotal(mercurialDust);
 
   const collisionTime = createResource<DecimalSource>(7603200);
 
@@ -62,7 +66,6 @@ const layer = createLayer(id, baseLayer => {
 
   const tickAmount = computed(
     () => new Decimal(1)
-      // .add(baseTickAmountModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
       .times(accelerationModifier.apply(1))
   );
@@ -70,11 +73,13 @@ const layer = createLayer(id, baseLayer => {
   const baseTimeSinceResetGain = computed(
     () => Decimal.dOne
         .add(baseDustAmountModifier.apply(0))
+        .add(totalTimeModifier.apply(0))
         .times(baseTimeRateModifier.apply(1))
         .times(slippingTimeModifier.apply(1))
   )
 
   const timeSinceReset = createResource<DecimalSource>(0);
+  const totalTimeSinceReset = trackTotal(timeSinceReset);
 
   baseLayer.on("update", diff => {
     if (!unlocked.value) {
@@ -99,13 +104,15 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const conversion = createCumulativeConversion(() => ({
-    formula: x => x.div(2).pow(0.3).times(dustMultiplierModifier.apply(1)),
+    formula: x => x.div(2).pow(0.3).add(baseDustGainModifier.apply(0)).times(dustMultiplierModifier.apply(1)),
     baseResource: timeSinceReset,
     gainResource: mercurialDust,
     currentGain: computed((): Decimal => {
       if (Decimal.lt(timeSinceReset.value, 10)) {
         return Decimal.dZero;
       }
+
+      
 
       return Decimal.fromValue(conversion.formula.evaluate(timeSinceReset.value));
     }),
@@ -140,7 +147,7 @@ const layer = createLayer(id, baseLayer => {
 
   const dustMultiplierModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      multiplier: () => Decimal.dOne.add(Decimal.times(0.1, dustMultiplierRepeatable.amount.value)),
+      multiplier: () => Decimal.dOne.add(Decimal.times(0.2, dustMultiplierRepeatable.amount.value)),
       enabled: () => Decimal.gt(dustMultiplierRepeatable.amount.value, 0)
     }))
   ]);
@@ -152,13 +159,35 @@ const layer = createLayer(id, baseLayer => {
     })),
     display: {
       title: "Enriched Dust",
-      description: "Increase dust gain by x1.1 per level",
+      description: "Multiply dust gain by x1.2 per level",
       effectDisplay: () => {
         const c: any = dustMultiplierModifier.apply(1);
         return `*${format(c, 1)}`;
       }
     }
   }));
+
+  const baseDustGainModifier = createSequentialModifier(() => [
+    createAdditiveModifier(() => ({
+      enabled: () => Decimal.gt(baseDustGainRepeatable.amount.value, 0),
+      addend: () => baseDustGainRepeatable.amount.value
+    }))
+  ])
+
+  const baseDustGainRepeatable = createRepeatable(() => ({
+    requirements: createCostRequirement((): CostRequirementOptions => ({
+      resource: noPersist(mercurialDust),
+      cost: Formula.variable(baseDustGainRepeatable.amount).pow_base(1.8).times(20)
+    })),
+    display: {
+      title: "Salted Dust",
+      description: "Increase base dust gain by +1 per level",
+      effectDisplay: () => {
+        const c: any = baseDustGainModifier.apply(0)
+        return `+${format(c)}`;
+      }
+    }
+  }))
 
   const messengerGodUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({
@@ -175,14 +204,14 @@ const layer = createLayer(id, baseLayer => {
     createMultiplicativeModifier(() => ({
       enabled: () => accelerationUpgrade.bought.value,
       // x: TSLR
-      multiplier: () => Decimal.sqrt(timeSinceReset.value).pow(0.25)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1)
     }))
   ]);
 
   const slippingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: slippingTimeUpgrade.bought,
-      multiplier: () => Decimal.log10(timeSinceReset.value).pow(0.6)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1)
     }))
   ])
 
@@ -193,8 +222,38 @@ const layer = createLayer(id, baseLayer => {
     })),
     display: {
       title: "Slippery Time",
-      description: "Increases rate of reset time by itself.",
+      description: "Multiplies rate of reset time based on time since last reset.",
       effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
+    }
+  }));
+
+  const totalTimeModifier = createSequentialModifier(() => [
+    createAdditiveModifier(() => ({
+      enabled: totalUpgrade.bought,
+      addend: () => totalTimeSinceReset.value
+    }))
+  ]);
+
+  const chunkUnlockUpgrade = createUpgrade(() => ({
+    requirements: createCostRequirement(() => ({
+      resource: noPersist(mercurialDust),
+      cost: Decimal.fromNumber(250)
+    })),
+    display: {
+      title: "Chunks",
+      description: "Unlock Mercurial Chunks"
+    }
+  }))
+
+  const totalUpgrade = createUpgrade(() => ({
+    requirements: createCostRequirement(() => ({
+      resource: noPersist(mercurialDust),
+      cost: Decimal.fromNumber(500)
+    })),
+    display: {
+      title: "???",
+      description: "Increases base time speed by total time since last reset.",
+      effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
     }
   }))
 
@@ -221,20 +280,72 @@ const layer = createLayer(id, baseLayer => {
     reset
   }));
 
+  const tabs = createTabFamily({
+    dust: () => ({
+      display: "Dust",
+      tab: createTab(() => ({
+        display: () =>(<>
+          <h2>{format(mercurialDust.value)} mercurial dust</h2>
+          <h5>It has been {format(timeSinceReset.value)} seconds since the last reset.</h5>
+          <h6>A second is worth {format(baseTimeSinceResetGain.value)} real seconds</h6>
+          
+          <Spacer/>
+          {render(resetButton)}
+          <Spacer/>
+          <Spacer/>
+          <Column>
+            {renderRow(
+              baseDustTimeRepeatable,
+              baseDustGainRepeatable,
+              dustMultiplierRepeatable,
+            )}
+          </Column>
+          <Spacer/>
+          <Column>
+            {renderRow(
+              messengerGodUpgrade,
+              slippingTimeUpgrade,
+              chunkUnlockUpgrade,
+            )}
+            {renderRow(
+              totalUpgrade,
+              accelerationUpgrade
+            )}
+          </Column>
+        </>)
+      }))
+    }),
+    chunks: () => ({
+      visibility: chunkUnlockUpgrade.bought,
+      display: "Chunks",
+      tab: createTab(() => ({
+        display: () => (<></>)
+      }))
+    })
+  })
+
   return {
     name,
     color,
     collisionTime,
     timeSinceReset,
+    totalTimeSinceReset,
     mercurialDust,
+    totalMercurialDust,
     baseDustAmountModifier,
     baseDustTimeRepeatable,
+    baseDustGainRepeatable,
+    baseDustGainModifier,
     dustMultiplierModifier,
     dustMultiplierRepeatable,
     messengerGodUpgrade,
     accelerationUpgrade,
     slippingTimeUpgrade,
+    chunkUnlockUpgrade,
     slippingTimeModifier,
+    totalUpgrade,
+    totalTimeModifier,
+    tabs,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
@@ -245,28 +356,7 @@ const layer = createLayer(id, baseLayer => {
 
         <h4>-{format(tickAmount.value)}/s</h4>
         <Spacer/>
-        <Spacer/>
-        <h2>{format(mercurialDust.value)} mercurial dust</h2>
-        <h4>It has been {format(timeSinceReset.value)} seconds since the last reset.</h4>
-        <small>A second is worth {format(baseTimeSinceResetGain.value)} real seconds</small>
-        <Spacer/>
-        {render(resetButton)}
-        <Spacer/>
-        <Spacer/>
-        <Column>
-          {renderRow(
-            baseDustTimeRepeatable,
-            dustMultiplierRepeatable,
-          )}
-        </Column>
-        <Spacer/>
-        <Column>
-          {renderRow(
-            messengerGodUpgrade,
-            slippingTimeUpgrade,
-            accelerationUpgrade
-          )}
-        </Column>
+        {render(tabs)}
       </>
     ),
     treeNode,
