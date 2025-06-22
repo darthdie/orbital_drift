@@ -8,6 +8,7 @@ import { format, formatTime, type DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { computed } from "vue";
 import mercury from "./layers/mercury";
+import mercuryDustTab from './layers/mercury/dust';
 import solar from "./layers/solar";
 import Node from "components/Node.vue";
 import Spacer from "components/layout/Spacer.vue";
@@ -81,7 +82,7 @@ export const main = createLayer("main", layer => {
 export const getInitialLayers = (
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   player: Partial<Player>
-): Array<Layer> => [main, solar, mercury];
+): Array<Layer> => [main, solar, mercury, mercuryDustTab];
 
 /**
  * A computed ref whose value is true whenever the game is over.
