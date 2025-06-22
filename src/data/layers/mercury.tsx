@@ -20,6 +20,14 @@ import { createAdditiveModifier, createMultiplicativeModifier, createSequentialM
 import Column from "components/layout/Column.vue";
 import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
+import { createUpgrade } from "features/clickables/upgrade";
+
+/* TODO:
+  upgrade/repeatable: seconds increases itself (acceleration)
+  rename: "reset time" to something more thematic
+
+  I need
+*/
 
 const id = "M";
 const layer = createLayer(id, baseLayer => {
@@ -30,7 +38,14 @@ const layer = createLayer(id, baseLayer => {
 
   const mercurialDust = createResource(0, "mercurial dust", 2);
 
-  const collisionTime = createResource<DecimalSource>(88, "days", 2);
+  const collisionTime = createResource<DecimalSource>(7603200);
+
+  const baseTimeRateModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      multiplier: 1.5,
+      enabled: messengerGodUpgrade.bought
+    })),
+  ]);
 
   const baseTickAmountModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
@@ -38,8 +53,24 @@ const layer = createLayer(id, baseLayer => {
     }))
   ]);
 
+  const test = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      multiplier: 2
+    })),
+    createAdditiveModifier(() => ({
+      addend: 1
+    }))
+  ]);
+
+  console.log({
+    testva: test.apply(1)
+  })
+
   const tickAmount = computed(
-    () => new Decimal(1).add(baseTickAmountModifier.apply(0))
+    () => new Decimal(1)
+      .add(baseTickAmountModifier.apply(0))
+      .times(baseTimeRateModifier.apply(1))
+      .times(accelerationModifier.apply(1))
   );
 
   const timeSinceReset = createResource<DecimalSource>(0);
@@ -51,20 +82,20 @@ const layer = createLayer(id, baseLayer => {
 
     timeSinceReset.value = Decimal.add(
       timeSinceReset.value,
-      Decimal.times(tickAmount.value, diff)
+      Decimal.times(Decimal.dOne.times(baseTimeRateModifier.apply(1)), diff)
     );
 
     collisionTime.value = Decimal.sub(
       collisionTime.value,
       Decimal.times(
-        tickAmount.value.div(86400),
+        tickAmount.value,
         diff
       )
     ).clampMin(0);
   });
 
   const conversion = createCumulativeConversion(() => ({
-    formula: x => x.div(2).pow(0.3),
+    formula: x => x.div(2).pow(0.3).times(dustMultiplierModifier.apply(1)),
     baseResource: timeSinceReset,
     gainResource: mercurialDust,
     currentGain: computed((): Decimal => {
@@ -103,6 +134,70 @@ const layer = createLayer(id, baseLayer => {
     }
   }));
 
+  const dustMultiplierModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      multiplier: () => Decimal.dOne.add(Decimal.times(0.1, dustMultiplierRepeatable.amount.value)),
+      enabled: () => Decimal.gt(dustMultiplierRepeatable.amount.value, 0)
+    }))
+  ]);
+
+  const dustMultiplierRepeatable = createRepeatable(() => ({
+    requirements: createCostRequirement((): CostRequirementOptions => ({
+      resource: noPersist(mercurialDust),
+      cost: Formula.variable(dustMultiplierRepeatable.amount).pow_base(1.5).times(30)
+      // cost: Formula.variable(dustMultiplierRepeatable.amount.value).add(10).if(
+      //   Decimal.gt(dustMultiplierRepeatable.amount.value, 0),
+      //   x => x.pow(1.5)
+      // )
+      // cost: Formula.if(
+      //   Formula.variable
+      // )
+      // cost: Formula.variable(dustMultiplierRepeatable.amount.value)
+      //   .add(50)
+      //   .times(10)
+    })),
+    display: {
+      title: "Enriched Dust",
+      description: "Increase dust gain by x1.1 per level",
+      effectDisplay: () => {
+        const c: any = dustMultiplierModifier.apply(1);
+        console.log(c)
+        return `*${format(c, 1)}`;
+      }
+    }
+  }));
+
+  const messengerGodUpgrade = createUpgrade(() => ({
+    requirements: createCostRequirement((): CostRequirementOptions => ({
+      resource: noPersist(mercurialDust),
+      cost: Decimal.fromNumber(50)
+    })),
+    display: {
+      title: "The Messenger God",
+      description: "Increase time speed in this layer by *1.5"
+    }
+  }));
+
+  const accelerationModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      enabled: () => accelerationUpgrade.bought.value,
+      // x: TSLR
+      multiplier: () => Decimal.sqrt(timeSinceReset.value).pow(0.25)
+    }))
+  ]);
+
+  const accelerationUpgrade = createUpgrade(() => ({
+    requirements: createCostRequirement(() => ({
+      resource: noPersist(mercurialDust),
+      cost: Decimal.fromNumber(1000)
+    })),
+    display: {
+      title: 'Acceleration',
+      description: "Increase collision time rate based on time since last reset",
+      effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
+    }
+  }))
+
   const reset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => [layer]
   }));
@@ -122,9 +217,18 @@ const layer = createLayer(id, baseLayer => {
     mercurialDust,
     baseTickAmountModifier,
     baseCollisionTimeRepeatable,
+    dustMultiplierModifier,
+    dustMultiplierRepeatable,
+    messengerGodUpgrade,
+    accelerationUpgrade,
     display: () => (
       <>
-        <h2>{format(collisionTime.value)} days until collision</h2>
+        {Decimal.lt(collisionTime.value, 86400) ? (
+          <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
+        ) : (
+          <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
+        )}
+
         <h4>-{format(tickAmount.value)}/s</h4>
         <Spacer/>
         <Spacer/>
@@ -135,45 +239,19 @@ const layer = createLayer(id, baseLayer => {
         <Column>
           {renderRow(
             baseCollisionTimeRepeatable,
+            dustMultiplierRepeatable,
+          )}
+        </Column>
+        <Spacer/>
+        <Column>
+          {renderRow(
+            messengerGodUpgrade,
+            accelerationUpgrade
           )}
         </Column>
       </>
     ),
-    // drift,
-    // driftGainMultiplier,
-    // driftChance,
-    // timer,
-    // timerGain,
-    // timerMax,
-    // instability,
-    // timerMaxRepeatable,
-    // driftChanceRepeatable,
-    // driftMultiplierRepeatable,
-    // display: () => (
-    //   <>
-    //     <h2>You have {format(drift.value)}</h2>
-    //     <br></br>
-    //     <p>Timer: {format(timer.value)}/{format(timerMax.value)}</p>
-    //     <p>Chance: {format(driftChance.value)}%</p>
-    //     <p>Multiplier: {format(driftGainMultiplier.value)}</p>
-    //     <br />
-    //     <br />
-    //     <h3>You have {format(instability.value)} instability</h3>
-    //     {render(resetButton)}
-    //     <br />
-    //     <br />
-    //     <Column>
-    //       {renderRow(
-    //         timerMaxRepeatable,
-    //         driftChanceRepeatable,
-    //         driftMultiplierRepeatable,
-    //       )}
-    //     </Column>
-    //   </>
-    // ),
     treeNode,
-
-    // hotkey
   };
 });
 
