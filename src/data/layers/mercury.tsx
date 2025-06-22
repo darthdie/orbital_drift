@@ -25,8 +25,15 @@ import { createUpgrade } from "features/clickables/upgrade";
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
   rename: "reset time" to something more thematic
+  add milestones
+  add solar rays
 
   I need
+*/
+
+/*
+  Add toggle to enable/disable mercurial dust gain, which enables/disables collision time?
+  Then add upgrades that boost based on collision time?
 */
 
 const id = "M";
@@ -47,31 +54,25 @@ const layer = createLayer(id, baseLayer => {
     })),
   ]);
 
-  const baseTickAmountModifier = createSequentialModifier(() => [
+  const baseDustAmountModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
-      addend: () => baseCollisionTimeRepeatable.amount.value
+      addend: () => baseDustTimeRepeatable.amount.value
     }))
   ]);
-
-  const test = createSequentialModifier(() => [
-    createMultiplicativeModifier(() => ({
-      multiplier: 2
-    })),
-    createAdditiveModifier(() => ({
-      addend: 1
-    }))
-  ]);
-
-  console.log({
-    testva: test.apply(1)
-  })
 
   const tickAmount = computed(
     () => new Decimal(1)
-      .add(baseTickAmountModifier.apply(0))
+      // .add(baseTickAmountModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
       .times(accelerationModifier.apply(1))
   );
+
+  const baseTimeSinceResetGain = computed(
+    () => Decimal.dOne
+        .add(baseDustAmountModifier.apply(0))
+        .times(baseTimeRateModifier.apply(1))
+        .times(slippingTimeModifier.apply(1))
+  )
 
   const timeSinceReset = createResource<DecimalSource>(0);
 
@@ -82,7 +83,10 @@ const layer = createLayer(id, baseLayer => {
 
     timeSinceReset.value = Decimal.add(
       timeSinceReset.value,
-      Decimal.times(Decimal.dOne.times(baseTimeRateModifier.apply(1)), diff)
+      Decimal.times(
+        baseTimeSinceResetGain.value,
+        diff
+      )
     );
 
     collisionTime.value = Decimal.sub(
@@ -119,16 +123,16 @@ const layer = createLayer(id, baseLayer => {
     resetDescription: () => `Reset both reset time and collision time for `
   }));
 
-  const baseCollisionTimeRepeatable = createRepeatable(() => ({
+  const baseDustTimeRepeatable = createRepeatable(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({
       resource: noPersist(mercurialDust),
-      cost: Formula.variable(baseCollisionTimeRepeatable.amount.value).add(1).times(3)
+      cost: Formula.variable(baseDustTimeRepeatable.amount).pow_base(1.3).times(10)
     })),
     display: {
       title: "Align the Stars",
-      description: "Increase the base collision timer by 1/s",
+      description: "Increase the base dust timer by +1/s per level",
       effectDisplay: () => {
-        const c: any = baseTickAmountModifier.apply(0);
+        const c: any = baseDustAmountModifier.apply(0);
         return `+${c}/s`;
       }
     }
@@ -145,23 +149,12 @@ const layer = createLayer(id, baseLayer => {
     requirements: createCostRequirement((): CostRequirementOptions => ({
       resource: noPersist(mercurialDust),
       cost: Formula.variable(dustMultiplierRepeatable.amount).pow_base(1.5).times(30)
-      // cost: Formula.variable(dustMultiplierRepeatable.amount.value).add(10).if(
-      //   Decimal.gt(dustMultiplierRepeatable.amount.value, 0),
-      //   x => x.pow(1.5)
-      // )
-      // cost: Formula.if(
-      //   Formula.variable
-      // )
-      // cost: Formula.variable(dustMultiplierRepeatable.amount.value)
-      //   .add(50)
-      //   .times(10)
     })),
     display: {
       title: "Enriched Dust",
       description: "Increase dust gain by x1.1 per level",
       effectDisplay: () => {
         const c: any = dustMultiplierModifier.apply(1);
-        console.log(c)
         return `*${format(c, 1)}`;
       }
     }
@@ -174,7 +167,7 @@ const layer = createLayer(id, baseLayer => {
     })),
     display: {
       title: "The Messenger God",
-      description: "Increase time speed in this layer by *1.5"
+      description: "Increase time speed in this layer by x1.5"
     }
   }));
 
@@ -185,6 +178,25 @@ const layer = createLayer(id, baseLayer => {
       multiplier: () => Decimal.sqrt(timeSinceReset.value).pow(0.25)
     }))
   ]);
+
+  const slippingTimeModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      enabled: slippingTimeUpgrade.bought,
+      multiplier: () => Decimal.log10(timeSinceReset.value).pow(0.6)
+    }))
+  ])
+
+  const slippingTimeUpgrade = createUpgrade(() => ({
+    requirements: createCostRequirement(() => ({
+      resource: noPersist(mercurialDust),
+      cost: Decimal.fromNumber(100)
+    })),
+    display: {
+      title: "Slippery Time",
+      description: "Increases rate of reset time by itself.",
+      effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
+    }
+  }))
 
   const accelerationUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
@@ -215,12 +227,14 @@ const layer = createLayer(id, baseLayer => {
     collisionTime,
     timeSinceReset,
     mercurialDust,
-    baseTickAmountModifier,
-    baseCollisionTimeRepeatable,
+    baseDustAmountModifier,
+    baseDustTimeRepeatable,
     dustMultiplierModifier,
     dustMultiplierRepeatable,
     messengerGodUpgrade,
     accelerationUpgrade,
+    slippingTimeUpgrade,
+    slippingTimeModifier,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
@@ -234,11 +248,14 @@ const layer = createLayer(id, baseLayer => {
         <Spacer/>
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
         <h4>It has been {format(timeSinceReset.value)} seconds since the last reset.</h4>
+        <small>A second is worth {format(baseTimeSinceResetGain.value)} real seconds</small>
+        <Spacer/>
         {render(resetButton)}
+        <Spacer/>
         <Spacer/>
         <Column>
           {renderRow(
-            baseCollisionTimeRepeatable,
+            baseDustTimeRepeatable,
             dustMultiplierRepeatable,
           )}
         </Column>
@@ -246,6 +263,7 @@ const layer = createLayer(id, baseLayer => {
         <Column>
           {renderRow(
             messengerGodUpgrade,
+            slippingTimeUpgrade,
             accelerationUpgrade
           )}
         </Column>
