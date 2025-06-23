@@ -174,7 +174,7 @@ const layer = createLayer(id, baseLayer => {
 
   const conversion = createCumulativeConversion(() => {
     const multiplier = computed(() => {
-      return Decimal.clampMin(baseDustGainModifier.apply(0), 0).times(dustMultiplierModifier.apply(1));
+      return Decimal.clampMin(baseDustGainModifier.apply(0), 0).times(dustMultiplierModifier.apply(1)).clampMin(1);
     });
 
     return {
