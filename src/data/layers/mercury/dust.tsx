@@ -1,4 +1,4 @@
-import { createResource, trackTotal } from "features/resources/resource";
+import { createResource, Resource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -32,82 +32,134 @@ const layer = createLayer(id, baseLayer => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
+  // const createBasicCost = (resource: Resource, cost: Decimal) => {
+  //   return createCostRequirement((): CostRequirementOptions => ({
+  //     resource: noPersist(resource),
+  //     cost: cost
+  //   }));
+  // }
+
+  const basicUpgrades = {
+    totalUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(500)
+      })),
+      display: {
+        title: "???",
+        description: "Increases base time speed by total time since last reset.",
+        effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
+      }
+    })),
+    messengerGodUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(50)
+      })),
+      display: {
+        title: "The Messenger God",
+        description: "Increase time speed in this layer by x1.5"
+      }
+    })),
+    slippingTimeUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(100)
+      })),
+      display: {
+        title: "Slippery Time",
+        description: "Multiplies rate of reset time based on time since last reset.",
+        effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
+      }
+    })),
+    accelerationUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1000)
+      })),
+      display: {
+        title: 'Acceleration',
+        description: "Increase collision time rate based on time since last reset",
+        effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
+      }
+    })),
+  }
+
+  const repeatables = {
+    baseDustTime: createRepeatable(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Formula.variable(repeatables.baseDustTime.amount).pow_base(1.3).times(10)
+      })),
+      display: {
+        title: "Align the Stars",
+        description: "Increase the base dust timer by +1/s per level",
+        effectDisplay: () => {
+          const c: any = baseDustAmountModifier.apply(0);
+          return `+${c}/s`;
+        }
+      }
+    })),
+    
+    baseDustGain: createRepeatable(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(20)
+      })),
+      display: {
+        title: "Salted Dust",
+        description: "Increase base dust gain by +1 per level",
+        effectDisplay: () => {
+          const c: any = baseDustGainModifier.apply(0)
+          return `+${format(c)}`;
+        }
+      }
+    })),
+
+    dustMultiplier: createRepeatable(() => ({
+    requirements: createCostRequirement((): CostRequirementOptions => ({
+      resource: noPersist(mercurialDust),
+      cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.5).times(30)
+    })),
+    display: {
+      title: "Enriched Dust",
+      description: "Multiply dust gain by x1.2 per level",
+      effectDisplay: () => {
+        const c: any = dustMultiplierModifier.apply(1);
+        return `x${format(c, 1)}`;
+      }
+    }
+  })),
+  };
+
   const totalTimeModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
-      enabled: totalUpgrade.bought,
+      enabled: basicUpgrades.totalUpgrade.bought,
       addend: () => totalTimeSinceReset.value
     }))
   ]);
 
-  const totalUpgrade = createUpgrade(() => ({
-    requirements: createCostRequirement(() => ({
-      resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(500)
-    })),
-    display: {
-      title: "???",
-      description: "Increases base time speed by total time since last reset.",
-      effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
-    }
-  }));
-
   const baseDustAmountModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
-      addend: () => baseDustTimeRepeatable.amount.value
+      addend: () => repeatables.baseDustTime.amount.value
     }))
   ]);
 
-  const baseDustTimeRepeatable = createRepeatable(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(mercurialDust),
-      cost: Formula.variable(baseDustTimeRepeatable.amount).pow_base(1.3).times(10)
-    })),
-    display: {
-      title: "Align the Stars",
-      description: "Increase the base dust timer by +1/s per level",
-      effectDisplay: () => {
-        const c: any = baseDustAmountModifier.apply(0);
-        return `+${c}/s`;
-      }
-    }
-  }));
 
-  const messengerGodUpgrade = createUpgrade(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(50)
-    })),
-    display: {
-      title: "The Messenger God",
-      description: "Increase time speed in this layer by x1.5"
-    }
-  }));
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       multiplier: 1.5,
-      enabled: messengerGodUpgrade.bought
+      enabled: basicUpgrades.messengerGodUpgrade.bought
     })),
   ]);
 
   const slippingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      enabled: slippingTimeUpgrade.bought,
+      enabled: basicUpgrades.slippingTimeUpgrade.bought,
       multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1)
     }))
   ])
-
-  const slippingTimeUpgrade = createUpgrade(() => ({
-    requirements: createCostRequirement(() => ({
-      resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(100)
-    })),
-    display: {
-      title: "Slippery Time",
-      description: "Multiplies rate of reset time based on time since last reset.",
-      effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
-    }
-  }));
 
   const baseTimeSinceResetGain = computed(
     () => Decimal.dOne
@@ -130,47 +182,18 @@ const layer = createLayer(id, baseLayer => {
 
   const baseDustGainModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
-      enabled: () => Decimal.gt(baseDustGainRepeatable.amount.value, 0),
-      addend: () => baseDustGainRepeatable.amount.value
+      enabled: () => Decimal.gt(repeatables.baseDustGain.amount.value, 0),
+      addend: () => repeatables.baseDustGain.amount.value
     }))
   ]);
 
-  const baseDustGainRepeatable = createRepeatable(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(mercurialDust),
-      cost: Formula.variable(baseDustGainRepeatable.amount).pow_base(1.8).times(20)
-    })),
-    display: {
-      title: "Salted Dust",
-      description: "Increase base dust gain by +1 per level",
-      effectDisplay: () => {
-        const c: any = baseDustGainModifier.apply(0)
-        return `+${format(c)}`;
-      }
-    }
-  }));
 
   const dustMultiplierModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      multiplier: () => Decimal.dOne.add(Decimal.times(0.2, dustMultiplierRepeatable.amount.value)),
-      enabled: () => Decimal.gt(dustMultiplierRepeatable.amount.value, 0)
+      multiplier: () => Decimal.dOne.add(Decimal.times(0.2, repeatables.dustMultiplier.amount.value)),
+      enabled: () => Decimal.gt(repeatables.dustMultiplier.amount.value, 0)
     }))
   ]);
-
-  const dustMultiplierRepeatable = createRepeatable(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(mercurialDust),
-      cost: Formula.variable(dustMultiplierRepeatable.amount).pow_base(1.5).times(30)
-    })),
-    display: {
-      title: "Enriched Dust",
-      description: "Multiply dust gain by x1.2 per level",
-      effectDisplay: () => {
-        const c: any = dustMultiplierModifier.apply(1);
-        return `x${format(c, 1)}`;
-      }
-    }
-  }));
 
   const conversion = createCumulativeConversion(() => {
     const addend = computed(() => baseDustGainModifier.apply(0))
@@ -196,26 +219,23 @@ const layer = createLayer(id, baseLayer => {
 
   const accelerationModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      enabled: () => accelerationUpgrade.bought.value,
+      enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
       // x: TSLR
       multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1)
     }))
   ]);
 
-  const accelerationUpgrade = createUpgrade(() => ({
-    requirements: createCostRequirement(() => ({
-      resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(1000)
-    })),
-    display: {
-      title: 'Acceleration',
-      description: "Increase collision time rate based on time since last reset",
-      effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
-    }
-  }));
-
   const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => [layer]
+    thingsToReset: (): Record<string, unknown>[] => noPersist([
+      basicUpgrades,
+      repeatables,
+    ]),
+    onReset: () => {
+      mercurialDust.value = mercurialDust.defaultValue;
+      totalMercurialDust.value = Decimal.dZero;
+      timeSinceReset.value = timeSinceReset.defaultValue;
+      totalTimeSinceReset.value = Decimal.dZero;
+    }
   }));
 
   const resetButton = createResetButton(() => ({
@@ -229,7 +249,9 @@ const layer = createLayer(id, baseLayer => {
   const treeNode = createLayerTreeNode(() => ({
     layerID: id,
     color,
-    reset
+    reset,
+    classes: {"small": true},
+    display: "D"
   }));
 
   baseLayer.on("update", diff => {
@@ -254,19 +276,15 @@ const layer = createLayer(id, baseLayer => {
     mercurialDust,
     totalMercurialDust,
     baseDustAmountModifier,
-    baseDustTimeRepeatable,
-    baseDustGainRepeatable,
     baseDustGainModifier,
     dustMultiplierModifier,
-    dustMultiplierRepeatable,
-    messengerGodUpgrade,
-    accelerationUpgrade,
-    slippingTimeUpgrade,
     chunkUnlockUpgrade,
     slippingTimeModifier,
-    totalUpgrade,
+    repeatables,
+    basicUpgrades,
     totalTimeModifier,
     accelerationModifier,
+    reset,
     display: () => (
       <>
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
@@ -279,21 +297,21 @@ const layer = createLayer(id, baseLayer => {
         <Spacer />
         <Column>
           {renderRow(
-            baseDustTimeRepeatable,
-            baseDustGainRepeatable,
-            dustMultiplierRepeatable,
+            repeatables.baseDustTime,
+            repeatables.baseDustGain,
+            repeatables.dustMultiplier,
           )}
         </Column>
         <Spacer />
         <Column>
           {renderRow(
-            messengerGodUpgrade,
-            slippingTimeUpgrade,
+            basicUpgrades.messengerGodUpgrade,
+            basicUpgrades.slippingTimeUpgrade,
             chunkUnlockUpgrade,
           )}
           {renderRow(
-            totalUpgrade,
-            accelerationUpgrade
+            basicUpgrades.totalUpgrade,
+            basicUpgrades.accelerationUpgrade
           )}
         </Column>
       </>

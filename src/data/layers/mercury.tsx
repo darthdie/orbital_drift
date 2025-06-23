@@ -45,7 +45,7 @@ const layer = createLayer(id, baseLayer => {
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       multiplier: 1.5,
-      enabled: dustTab.messengerGodUpgrade.bought
+      enabled: dustTab.basicUpgrades.messengerGodUpgrade.bought
     })),
   ]);
 
@@ -95,6 +95,13 @@ const layer = createLayer(id, baseLayer => {
       display: "Chunks",
       tab: createTab(() => ({
         display: chunksTab.display
+      }))
+    }),
+    milestones: () => ({
+      visibility: dustTab.chunkUnlockUpgrade.bought,
+      display: "Milestones",
+      tab: createTab(() => ({
+        display: (<></>)
       }))
     })
   })

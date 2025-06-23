@@ -2,7 +2,7 @@ import { createReset } from "features/reset";
 import { createLayer } from "game/layers";
 import { main } from "data/projEntry";
 import { createLayerTreeNode, createResetButton } from "data/common";
-import { createCumulativeConversion } from "features/conversion";
+import { createCumulativeConversion, createIndependentConversion } from "features/conversion";
 import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
@@ -20,24 +20,38 @@ const layer = createLayer(id, baseLayer => {
   const chunks = createResource(0, "mercurial chunks");
   const totalChunks = trackTotal(chunks);
 
-  const conversion = createCumulativeConversion(() => {
+  const conversion = createIndependentConversion(() => {
     return {
-      formula: x => x.div(250),
+      formula: x => {
+        return x
+          .div(250)
+          .step(1, f => f.div(10));
+      },
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
-        return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value)).max(0);
+        return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
+          .max(chunks.value)
+          .min(Decimal.add(chunks.value, 1));
+      }),
+      actualGain: computed((): Decimal => {
+        return Decimal.sub(
+            conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
+            chunks.value
+        ).floor().max(0).min(1);
       }),
       gainResource: noPersist(chunks),
-      roundUpCost: true,
       spend: () => {},
-      buyMax: false,
     };
   });
+
+  const upgrades = {};
 
   const treeNode = createLayerTreeNode(() => ({
     layerID: id,
     color,
-    reset
+    reset,
+    display: "C",
+    classes: {"small": true}
   }));
 
   const reset = createReset(() => ({
@@ -48,8 +62,10 @@ const layer = createLayer(id, baseLayer => {
     conversion,
     tree: main.tree,
     treeNode,
-    showNextAt: false,
-    resetDescription: () => `Condense your mercurial dust for `
+    resetDescription: () => `Condense your (total) mercurial dust for `,
+    onClick: () => {
+      dustLayer.reset.reset();
+    }
   }));
 
   return {
@@ -61,10 +77,12 @@ const layer = createLayer(id, baseLayer => {
     chunks,
     totalChunks,
     conversion,
+    upgrades,
     treeNode,
     display: () => (<>
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
-      <h4>You have made a total of {format(totalChunks.value)}</h4>
+      <h4>You have condensed a total of {format(totalChunks.value)}</h4>
+      <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
       <Spacer/>
       {render(resetButton)}
     </>)

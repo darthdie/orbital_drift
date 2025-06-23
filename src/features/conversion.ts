@@ -257,6 +257,7 @@ export function createIndependentConversion<T extends ConversionOptions>(options
             if (unref(options.buyMax as MaybeRef<boolean>) === false) {
                 gain = gain.min(1);
             }
+
             return gain;
         });
 

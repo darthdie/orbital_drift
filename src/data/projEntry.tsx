@@ -13,6 +13,8 @@ import mercuryChunksTab from './layers/mercury/chunks';
 import solar from "./layers/solar";
 import Node from "components/Node.vue";
 import Spacer from "components/layout/Spacer.vue";
+import dustLayer from './layers/mercury/dust';
+import chunksLayer from './layers/mercury/chunks';
 
 /**
  * @hidden
@@ -25,11 +27,14 @@ export const main = createLayer("main", layer => {
   // Note: Casting as generic tree to avoid recursive type definitions
   const tree = createTree(() => ({
     nodes: noPersist([
+      // [dustLayer.treeNode, chunksLayer.treeNode],
       [mercury.treeNode],
       [solar.treeNode],
     ]),
     branches: [
-      { startNode: solar.treeNode, endNode: mercury.treeNode }
+      { startNode: solar.treeNode, endNode: mercury.treeNode },
+      // { startNode: mercury.treeNode, endNode: dustLayer.treeNode },
+      // { startNode: mercury.treeNode, endNode: chunksLayer.treeNode }
     ],
     onReset() {
       // planets.value = toRaw(tree.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
