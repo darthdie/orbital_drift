@@ -51,7 +51,7 @@ const layer = createLayer(id, baseLayer => {
     display: () => (
       <>
         <h2>You have {format(energy.value)} solar energy</h2>
-        <h4>You have made a total of {format(best.value)}</h4>
+        <h4>You have made a total of {format(total.value)}</h4>
         <Spacer/>
         {render(mercuryUpgrade)}
       </>
