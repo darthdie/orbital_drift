@@ -51,7 +51,7 @@ export function createResource<T extends State>(
     resource.displayName = displayName;
     resource.precision = precision;
     resource.small = small;
-    resource.defaultValue = unref<T>(refDefaultValue);
+    resource.defaultValue = unref<T>(defaultValue);
     if (!isRef(defaultValue)) {
         const nonPersistentResource = (resource as Persistent<T>)[
             NonPersistent
@@ -59,6 +59,7 @@ export function createResource<T extends State>(
         nonPersistentResource.displayName = displayName;
         nonPersistentResource.precision = precision;
         nonPersistentResource.small = small;
+        nonPersistentResource.defaultValue = defaultValue;
     }
     return resource as Resource<T>;
 }
