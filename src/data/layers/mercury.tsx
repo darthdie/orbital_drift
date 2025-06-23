@@ -2,29 +2,22 @@
  * @module
  * @hidden
  */
-import { main } from "data/projEntry";
-import { createCumulativeConversion } from "features/conversion";
 import { createReset } from "features/reset";
 import { createResource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
-import { render, renderRow } from "util/vue";
-import { createLayerTreeNode, createResetButton } from "../common";
-import { computed, unref } from "vue";
+import { render } from "util/vue";
+import { createLayerTreeNode } from "../common";
+import { computed } from "vue";
 import Decimal, { format } from "util/bignum";
-import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
-import { CostRequirementOptions, createCostRequirement } from "game/requirements";
-import Formula from "game/formulas/formulas";
 import { noPersist } from "game/persistence";
-import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import Column from "components/layout/Column.vue";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
-import { createUpgrade } from "features/clickables/upgrade";
-import TabFamily from "features/tabs/TabFamily.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import dustTab from './mercury/dust';
+import chunksTab from './mercury/chunks';
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -79,9 +72,6 @@ const layer = createLayer(id, baseLayer => {
     ).clampMin(0);
   });
 
-  // ??
-
-
   const reset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => [layer]
   }));
@@ -104,7 +94,7 @@ const layer = createLayer(id, baseLayer => {
       visibility: dustTab.chunkUnlockUpgrade.bought,
       display: "Chunks",
       tab: createTab(() => ({
-        display: () => (<></>)
+        display: chunksTab.display
       }))
     })
   })
