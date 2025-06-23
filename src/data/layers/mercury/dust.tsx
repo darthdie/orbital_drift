@@ -22,7 +22,7 @@ import Spacer from "components/layout/Spacer.vue";
 const id = "Md";
 const layer = createLayer(id, baseLayer => {
   const name = "Mercury";
-  const color = "#8c8c94";
+  const color = "#b1adad";
 
   const mercurialDust = createResource(0, "mercurial dust", 2);
   const totalMercurialDust = trackTotal(mercurialDust);
@@ -173,12 +173,11 @@ const layer = createLayer(id, baseLayer => {
   }));
 
   const conversion = createCumulativeConversion(() => {
-    const multiplier = computed(() => {
-      return Decimal.clampMin(baseDustGainModifier.apply(0), 0).times(dustMultiplierModifier.apply(1)).clampMin(1);
-    });
+    const addend = computed(() => baseDustGainModifier.apply(0))
+    const multiplier = computed(() => Decimal.clampMin(dustMultiplierModifier.apply(1), 1));
 
     return {
-      formula: x => x.div(2).pow(0.3).times(multiplier),
+      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier),
       baseResource: timeSinceReset,
       gainResource: mercurialDust,
       currentGain: computed((): Decimal => {
