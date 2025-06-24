@@ -43,17 +43,6 @@ const layer = createLayer(id, baseLayer => {
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
   const basicUpgrades = {
-    totalUpgrade: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(500)
-      })),
-      display: {
-        title: "???",
-        description: "Increases base time speed by total time since last reset.",
-        effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
-      }
-    })),
     messengerGodUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
@@ -64,6 +53,7 @@ const layer = createLayer(id, baseLayer => {
         description: "Increase time speed in this layer by x1.5"
       }
     })),
+
     slippingTimeUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
@@ -75,17 +65,7 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
       }
     })),
-    accelerationUpgrade: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1000)
-      })),
-      display: {
-        title: 'Acceleration',
-        description: "Increase collision time rate based on time since last reset",
-        effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
-      }
-    })),
+
     acummulatingDust: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
@@ -97,6 +77,7 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: (): string => `0`
       }
     })),
+
     collisionCourse: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
@@ -107,7 +88,33 @@ const layer = createLayer(id, baseLayer => {
         description: "Multiply time in this layer based on time until collision",
         effectDisplay: (): string => `0`
       }
-    }))
+    })),
+
+    totalUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1000)
+      })),
+      display: {
+        title: "???",
+        description: "Increases base time speed by total time since last reset.",
+        effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
+      }
+    })),
+
+
+    accelerationUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(10000)
+      })),
+      display: {
+        title: 'Acceleration',
+        description: "Increase collision time rate based on time since last reset",
+        effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
+      }
+    })),
+
   }
 
   const repeatables = {
@@ -347,16 +354,7 @@ const layer = createLayer(id, baseLayer => {
         </Column>
         <Spacer />
         <Column>
-          {renderRow(
-            basicUpgrades.messengerGodUpgrade,
-            basicUpgrades.slippingTimeUpgrade,
-            basicUpgrades.acummulatingDust
-          )}
-          {renderRow(
-            basicUpgrades.collisionCourse,
-            basicUpgrades.totalUpgrade,
-            basicUpgrades.accelerationUpgrade
-          )}
+          {chunkArray(Object.values(basicUpgrades), 3).map(group => renderRow.apply(null, group))}
         </Column>
         <Spacer/>
         <Column>
