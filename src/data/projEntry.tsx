@@ -48,8 +48,10 @@ export const main = createLayer("main", layer => {
   //  but I'd recommend it over trying to remember what does and doesn't need to be included.
   // Officially all you need are anything with persistency or that you want to access elsewhere
   return {
-    name: "Tree",
+    name: "Galaxy",
     links: tree.links,
+    minWidth: '250',
+    minimizable: true,
     display: () => (
       <>
         {player.devSpeed === 0 ? (
