@@ -4,12 +4,12 @@ import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed } from "vue";
-import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier } from "game/modifiers";
+import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier } from "game/modifiers";
 import { render, renderRow } from "util/vue";
-import { createRepeatable } from "features/clickables/repeatable";
+import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
-import { createCostRequirement, CostRequirementOptions } from "game/requirements";
-import { createUpgrade } from "features/clickables/upgrade";
+import { createCostRequirement, CostRequirementOptions, createVisibilityRequirement, Requirements } from "game/requirements";
+import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
 import { format } from "util/break_eternity";
 import { createCumulativeConversion } from "features/conversion";
 import { createLayerTreeNode, createResetButton } from "data/common";
@@ -18,6 +18,16 @@ import mercury from '../mercury';
 import { main } from "data/projEntry";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
+
+function chunkArray<T>(arr: T[], size: number) {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+    arr.slice(i * size, i * size + size)
+  );
+}
+
+// TODO:
+// Increase base chunk cost
+// Add more upgrades, make it more meaningful or some shit
 
 const id = "Md";
 const layer = createLayer(id, baseLayer => {
@@ -31,13 +41,6 @@ const layer = createLayer(id, baseLayer => {
   const totalTimeSinceReset = trackTotal(timeSinceReset);
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
-
-  // const createBasicCost = (resource: Resource, cost: Decimal) => {
-  //   return createCostRequirement((): CostRequirementOptions => ({
-  //     resource: noPersist(resource),
-  //     cost: cost
-  //   }));
-  // }
 
   const basicUpgrades = {
     totalUpgrade: createUpgrade(() => ({
@@ -83,6 +86,28 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
       }
     })),
+    acummulatingDust: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(250)
+      })),
+      display: {
+        title: 'Accumulating Dust',
+        description: "Multiply dust gain based on unspent dust",
+        effectDisplay: (): string => `0`
+      }
+    })),
+    collisionCourse: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(500)
+      })),
+      display: {
+        title: "Collision Course",
+        description: "Multiply time in this layer based on time until collision",
+        effectDisplay: (): string => `0`
+      }
+    }))
   }
 
   const repeatables = {
@@ -100,7 +125,7 @@ const layer = createLayer(id, baseLayer => {
         }
       }
     })),
-    
+
     baseDustGain: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
@@ -117,19 +142,34 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     dustMultiplier: createRepeatable(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(mercurialDust),
-      cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.5).times(30)
-    })),
-    display: {
-      title: "Enriched Dust",
-      description: "Multiply dust gain by x1.2 per level",
-      effectDisplay: () => {
-        const c: any = dustMultiplierModifier.apply(1);
-        return `x${format(c, 1)}`;
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.3).times(30)
+      })),
+      display: {
+        title: "Enriched Dust",
+        description: "Multiply dust gain by x1.1 per level",
+        effectDisplay: () => {
+          const c: any = dustMultiplierModifier.apply(1);
+          return `x${format(c, 1)}`;
+        }
       }
-    }
-  })),
+    })),
+
+    dustPowerMultiplier: createRepeatable((): RepeatableOptions => ({
+      requirements: [
+        createVisibilityRequirement(mercury.achievements.first.earned),
+        createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(mercurialDust),
+          cost: Formula.variable(repeatables.dustPowerMultiplier.amount).pow_base(2.5).times(75)
+        }))
+      ],
+      display: {
+        title: "Dust Piles",
+        description: "Raise dust gain by 1.1 per level",
+        effectDisplay: () => `^${format(dustPowerEffect.value)}`
+      }
+    }))
   };
 
   const totalTimeModifier = createSequentialModifier(() => [
@@ -144,8 +184,6 @@ const layer = createLayer(id, baseLayer => {
       addend: () => repeatables.baseDustTime.amount.value
     }))
   ]);
-
-
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
@@ -172,7 +210,7 @@ const layer = createLayer(id, baseLayer => {
   const chunkUnlockUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
       resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(250)
+      cost: Decimal.fromNumber(1000)
     })),
     display: {
       title: "Chunks",
@@ -190,17 +228,20 @@ const layer = createLayer(id, baseLayer => {
 
   const dustMultiplierModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      multiplier: () => Decimal.dOne.add(Decimal.times(0.2, repeatables.dustMultiplier.amount.value)),
+      multiplier: () => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustMultiplier.amount.value)),
       enabled: () => Decimal.gt(repeatables.dustMultiplier.amount.value, 0)
     }))
   ]);
 
+  const dustPowerEffect = computed((): Decimal => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustPowerMultiplier.amount.value)));
+
   const conversion = createCumulativeConversion(() => {
     const addend = computed(() => baseDustGainModifier.apply(0))
     const multiplier = computed(() => Decimal.clampMin(dustMultiplierModifier.apply(1), 1));
+    const exponent = computed((): Decimal => dustPowerEffect.value);
 
     return {
-      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier),
+      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier).pow(exponent),
       baseResource: timeSinceReset,
       gainResource: mercurialDust,
       currentGain: computed((): Decimal => {
@@ -235,6 +276,12 @@ const layer = createLayer(id, baseLayer => {
       totalMercurialDust.value = Decimal.dZero;
       timeSinceReset.value = timeSinceReset.defaultValue;
       totalTimeSinceReset.value = Decimal.dZero;
+
+      if (mercury.achievements.second.earned.value) {
+        Object.values(basicUpgrades)
+          .slice(0, mercury.completedAchievementsCount.value)
+          .forEach(u => u.bought.value = true);
+      }
     }
   }));
 
@@ -250,7 +297,7 @@ const layer = createLayer(id, baseLayer => {
     layerID: id,
     color,
     reset,
-    classes: {"small": true},
+    classes: { "small": true },
     display: "D"
   }));
 
@@ -296,23 +343,24 @@ const layer = createLayer(id, baseLayer => {
         <Spacer />
         <Spacer />
         <Column>
-          {renderRow(
-            repeatables.baseDustTime,
-            repeatables.baseDustGain,
-            repeatables.dustMultiplier,
-          )}
+          {chunkArray(Object.values(repeatables), 3).map(group => renderRow.apply(null, group))}
         </Column>
         <Spacer />
         <Column>
           {renderRow(
             basicUpgrades.messengerGodUpgrade,
             basicUpgrades.slippingTimeUpgrade,
-            chunkUnlockUpgrade,
+            basicUpgrades.acummulatingDust
           )}
           {renderRow(
+            basicUpgrades.collisionCourse,
             basicUpgrades.totalUpgrade,
             basicUpgrades.accelerationUpgrade
           )}
+        </Column>
+        <Spacer/>
+        <Column>
+          {render(chunkUnlockUpgrade)}
         </Column>
       </>
     ),

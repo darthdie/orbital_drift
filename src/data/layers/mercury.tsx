@@ -18,6 +18,8 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import dustTab from './mercury/dust';
 import chunksTab from './mercury/chunks';
+import { createAchievement } from "features/achievements/achievement";
+import { CostRequirementOptions, createCostRequirement } from "game/requirements";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -83,6 +85,43 @@ const layer = createLayer(id, baseLayer => {
     reset
   }));
 
+  const completedAchievementsCount = computed(() => Object.values(achievements).filter((a) => a.earned.value).length);
+
+  const achievements = {
+    first: createAchievement(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: chunksTab.chunks,
+        cost: 1
+      })),
+      display: {
+        requirement: "1 Mercurial Chunk",
+        optionsDisplay: "Unlock the `Dust Piles` buyable",
+        // ^1.1 per total?
+      }
+    })),
+    second: createAchievement(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: chunksTab.chunks,
+        cost: 2
+      })),
+      display: {
+        requirement: "2 Mercurial Chunk",
+        optionsDisplay: "Keep 1 Dust upgrade per milestone achieved.",
+        effectDisplay: (): string => `${completedAchievementsCount.value} upgrades are kept`
+      }
+    })),
+    three: createAchievement(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: chunksTab.chunks,
+        cost: 3
+      })),
+      display: {
+        requirement: "3 Mercurial Chunk",
+        optionsDisplay: "Unlocks more upgrades?"
+      }
+    }))
+  }
+
   const tabs = createTabFamily({
     dust: () => ({
       display: "Dust",
@@ -101,7 +140,9 @@ const layer = createLayer(id, baseLayer => {
       visibility: dustTab.chunkUnlockUpgrade.bought,
       display: "Milestones",
       tab: createTab(() => ({
-        display: (<></>)
+        display: (<>
+        {Object.values(achievements).map(a => render(a))}
+        </>)
       }))
     })
   })
@@ -113,6 +154,8 @@ const layer = createLayer(id, baseLayer => {
     timeSinceReset,
     totalTimeSinceReset,
     tabs,
+    achievements,
+    completedAchievementsCount,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
