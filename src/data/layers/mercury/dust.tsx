@@ -4,7 +4,7 @@ import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed } from "vue";
-import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier } from "game/modifiers";
+import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import { render, renderRow } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
@@ -66,26 +66,26 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-    acummulatingDust: createUpgrade(() => ({
+    collisionCourse: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
         cost: Decimal.fromNumber(250)
       })),
       display: {
-        title: 'Accumulating Dust',
-        description: "Multiply dust gain based on unspent dust",
-        effectDisplay: (): string => `0`
+        title: "Collision Course",
+        description: "Multiply time in this layer based on time until collision",
+        effectDisplay: (): string => `x${format(collisionCourseModifier.apply(1))}`
       }
     })),
 
-    collisionCourse: createUpgrade(() => ({
+    acummulatingDust: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(500)
+        cost: Decimal.fromNumber(1000)
       })),
       display: {
-        title: "Collision Course",
-        description: "Multiply time in this layer based on time until collision",
+        title: 'Accumulating Dust',
+        description: "Multiply dust gain based on unspent dust",
         effectDisplay: (): string => `0`
       }
     })),
@@ -136,7 +136,7 @@ const layer = createLayer(id, baseLayer => {
     baseDustGain: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(20)
+        cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(15)
       })),
       display: {
         title: "Salted Dust",
@@ -164,20 +164,25 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     dustPowerMultiplier: createRepeatable((): RepeatableOptions => ({
-      requirements: [
-        createVisibilityRequirement(mercury.achievements.first.earned),
-        createCostRequirement((): CostRequirementOptions => ({
-          resource: noPersist(mercurialDust),
-          cost: Formula.variable(repeatables.dustPowerMultiplier.amount).pow_base(2.5).times(75)
-        }))
-      ],
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Formula.variable(repeatables.dustPowerMultiplier.amount).pow_base(2.5).times(75)
+      })),
       display: {
         title: "Dust Piles",
         description: "Raise dust gain by 1.1 per level",
         effectDisplay: () => `^${format(dustPowerEffect.value)}`
-      }
+      },
+      visibility: () => mercury.achievements.first.earned.value
     }))
   };
+
+  const collisionCourseModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: basicUpgrades.collisionCourse.bought,
+      multiplier: () => Decimal.subtract(mercury.maxCollisionTime, mercury.collisionTime.value).add(1).log10().sqrt().clampMin(1)
+    })),
+  ]);
 
   const totalTimeModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
@@ -210,6 +215,7 @@ const layer = createLayer(id, baseLayer => {
     () => Decimal.dOne
       .add(baseDustAmountModifier.apply(0))
       .add(totalTimeModifier.apply(0))
+      .times(collisionCourseModifier.apply(1))
       .times(baseTimeRateModifier.apply(1))
       .times(slippingTimeModifier.apply(1))
   );
@@ -350,11 +356,11 @@ const layer = createLayer(id, baseLayer => {
         <Spacer />
         <Spacer />
         <Column>
-          {chunkArray(Object.values(repeatables), 3).map(group => renderRow.apply(null, group))}
+          {chunkArray(Object.values(repeatables), 4).map(group => renderRow.apply(null, group))}
         </Column>
         <Spacer />
         <Column>
-          {chunkArray(Object.values(basicUpgrades), 3).map(group => renderRow.apply(null, group))}
+          {chunkArray(Object.values(basicUpgrades), 4).map(group => renderRow.apply(null, group))}
         </Column>
         <Spacer/>
         <Column>

@@ -42,7 +42,8 @@ const layer = createLayer(id, baseLayer => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
-  const collisionTime = createResource<DecimalSource>(7603200);
+  const maxCollisionTime = 7603200;
+  const collisionTime = createResource<DecimalSource>(maxCollisionTime);
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
@@ -151,6 +152,7 @@ const layer = createLayer(id, baseLayer => {
     name,
     color,
     collisionTime,
+    maxCollisionTime,
     timeSinceReset,
     totalTimeSinceReset,
     tabs,
