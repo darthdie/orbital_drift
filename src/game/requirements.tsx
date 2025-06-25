@@ -242,6 +242,22 @@ export function createCostRequirement<T extends CostRequirementOptions>(optionsF
 }
 
 /**
+ * Lazily creates a requirement with the given options, that is based on meeting a certain count.
+ * Useful for e.g. requiring a total/best of a given resource.
+ * @param optionsFunc Cost requirement options.
+ */
+export function createCountRequirement(
+    count: MaybeRef<DecimalSource>,
+    required: MaybeRef<DecimalSource>
+) {
+    return createLazyProxy(() => ({
+        requirementMet: computed(() => Decimal.gte(unref(count), unref(required))),
+        requiresPay: false,
+        visibility: false
+    }));
+};
+
+/**
  * Utility function for creating a requirement that a specified vue feature is visible
  * @param visibility The visibility ref to check
  */

@@ -3,7 +3,7 @@ import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier } from "game/modifiers";
 import { render, renderRow } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
@@ -124,7 +124,7 @@ const layer = createLayer(id, baseLayer => {
       display: {
         title: 'Acceleration',
         description: "Increase collision time rate based on time since last reset",
-        effectDisplay: (): string => `x${accelerationModifier.apply(1)}`,
+        effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`,
       }
     })),
 
@@ -340,20 +340,26 @@ const layer = createLayer(id, baseLayer => {
       timeSinceReset.value = timeSinceReset.defaultValue;
       totalTimeSinceReset.value = Decimal.dZero;
 
-      console.log({
-        earned: mercury.achievements.second.earned.value,
-      })
       if (mercury.achievements.second.earned.value) {
-        console.log({
-          slice:Object.values(basicUpgrades)
-          .slice(0, mercury.completedAchievementsCount.value)
-        })
+        console.log('reset', { count: mercury.completedAchievementsCount.value })
         Object.values(basicUpgrades)
           .slice(0, mercury.completedAchievementsCount.value)
           .forEach(u => u.bought.value = true);
       }
     }
   }));
+
+  watch(mercury.completedAchievementsCount, count => {
+    if (!mercury.achievements.second.earned.value) {
+      return;
+    }
+
+     console.log('update', { count: count })
+
+    Object.values(basicUpgrades)
+      .slice(0, count)
+      .forEach(u => u.bought.value = true);
+  });
 
   const resetButton = createResetButton(() => ({
     conversion,

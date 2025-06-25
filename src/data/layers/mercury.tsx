@@ -8,7 +8,7 @@ import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { createLayerTreeNode } from "../common";
-import { computed } from "vue";
+import { computed, unref } from "vue";
 import Decimal, { format } from "util/bignum";
 import { noPersist, persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
@@ -19,7 +19,8 @@ import { createTab } from "features/tabs/tab";
 import dustTab from './mercury/dust';
 import chunksTab from './mercury/chunks';
 import { createAchievement } from "features/achievements/achievement";
-import { CostRequirementOptions, createCostRequirement } from "game/requirements";
+import { createCountRequirement } from "game/requirements";
+import { Conversion } from "features/conversion";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -96,10 +97,7 @@ const layer = createLayer(id, baseLayer => {
 
   const achievements = {
     first: createAchievement(() => ({
-      requirements: createCostRequirement((): CostRequirementOptions => ({
-        resource: chunksTab.chunks,
-        cost: 1
-      })),
+      requirements: createCountRequirement(chunksTab.totalChunks, 1),
       display: {
         requirement: "1 Mercurial Chunk",
         effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
@@ -112,10 +110,7 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
     second: createAchievement(() => ({
-      requirements: createCostRequirement((): CostRequirementOptions => ({
-        resource: chunksTab.chunks,
-        cost: 2
-      })),
+      requirements: createCountRequirement(chunksTab.totalChunks, 2),
       display: {
         requirement: "2 Mercurial Chunk",
         optionsDisplay: "Keep 1 Dust upgrade per milestone achieved.",
@@ -123,10 +118,7 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
     three: createAchievement(() => ({
-      requirements: createCostRequirement((): CostRequirementOptions => ({
-        resource: chunksTab.chunks,
-        cost: 3
-      })),
+      requirements: createCountRequirement(chunksTab.totalChunks, 3),
       display: {
         requirement: "3 Mercurial Chunk",
         optionsDisplay: "Unlocks more upgrades?"
@@ -143,7 +135,7 @@ const layer = createLayer(id, baseLayer => {
     }),
     chunks: () => ({
       visibility: dustTab.chunkUnlockUpgrade.bought,
-      display: "Chunks",
+      display: () => (<>Chunks {Decimal.gte(unref((chunksTab.conversion as Conversion).actualGain), 1) ? "!" : null}</>),
       tab: createTab(() => ({
         display: chunksTab.display
       }))

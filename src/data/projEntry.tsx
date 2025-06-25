@@ -16,6 +16,14 @@ import Spacer from "components/layout/Spacer.vue";
 import dustLayer from './layers/mercury/dust';
 import chunksLayer from './layers/mercury/chunks';
 
+/* planet mechanic themes
+mercury: acceleration
+jupiter: rng via moons
+earth: growth
+
+perhaps spend X of each to gain a solar ray?
+*/
+
 /**
  * @hidden
  */
