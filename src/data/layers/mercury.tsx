@@ -102,7 +102,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         requirement: "1 Mercurial Chunk",
-        effectDisplay: "x1.5",
+        effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
         optionsDisplay: () => (<>
           Unlock the `Dust Piles` buyable
           <br/>

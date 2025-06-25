@@ -104,15 +104,15 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-    waitingGame: createUpgrade(() => ({
+    killingTime: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
         cost: Decimal.fromNumber(5000)
       })),
       display: {
         title: "Killin' Time",
-        description: "For every X seconds of last reset time, gain +0.1 base dust gain",
-        effectDisplay: `+0.0`
+        description: "For every 1000 seconds of last reset time, gain +0.1 base dust gain",
+        effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
       }
     })),
 
@@ -138,7 +138,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Align the Stars",
-        description: "Increase the base dust timer by +1/s per level",
+        description: "Increase the base dust timer by +1s",
         effectDisplay: () => {
           const c: any = baseDustAmountModifier.apply(0);
           return `+${c}/s`;
@@ -153,7 +153,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Salted Dust",
-        description: "Increase base dust gain by +1 per level",
+        description: "Increase base dust gain by 1",
         effectDisplay: () => {
           const c: any = baseDustGainModifier.apply(0)
           return `+${format(c)}`;
@@ -168,7 +168,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Enriched Dust",
-        description: "Multiply dust gain by x1.1 per level",
+        description: "Multiply dust gain by x1.1",
         effectDisplay: () => {
           const c: any = dustMultiplierModifier.apply(1);
           return `x${format(c, 1)}`;
@@ -183,7 +183,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Dust Piles",
-        description: "Raise dust gain by 1.1 per level",
+        description: "Raise dust gain to ^1.1",
         effectDisplay: () => `^${format(dustPilesEffect.value)}`
       },
       visibility: () => mercury.achievements.first.earned.value
@@ -283,10 +283,18 @@ const layer = createLayer(id, baseLayer => {
       enabled: () => Decimal.gt(repeatables.dustPiles.amount.value, 0),
       exponent: () => dustPilesEffect.value
     }))
-  ])
+  ]);
+
+  const killingTimeModifier = createSequentialModifier(() => [
+    createAdditiveModifier(() => ({
+      enabled: basicUpgrades.killingTime.bought,
+      addend: () => Decimal.divide(timeSinceReset.value, 1000).times(0.1)
+    }))
+  ]);
 
   const dustPowerGainModifier = createSequentialModifier(() => [
     baseDustGainModifier,
+    killingTimeModifier,
     dustMultiplierModifier,
     accumulatingDustModifier,
     dustPilesModifier,
@@ -332,7 +340,14 @@ const layer = createLayer(id, baseLayer => {
       timeSinceReset.value = timeSinceReset.defaultValue;
       totalTimeSinceReset.value = Decimal.dZero;
 
+      console.log({
+        earned: mercury.achievements.second.earned.value,
+      })
       if (mercury.achievements.second.earned.value) {
+        console.log({
+          slice:Object.values(basicUpgrades)
+          .slice(0, mercury.completedAchievementsCount.value)
+        })
         Object.values(basicUpgrades)
           .slice(0, mercury.completedAchievementsCount.value)
           .forEach(u => u.bought.value = true);
