@@ -25,7 +25,7 @@ const layer = createLayer(id, baseLayer => {
       formula: x => {
         return x
           .div(1000)
-          .step(1, f => f.div(10));
+          .step(1, f => f.div(25));
       },
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {

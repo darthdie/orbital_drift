@@ -18,7 +18,7 @@ import mercury from '../mercury';
 import { main } from "data/projEntry";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
-import { WithRequired } from "util/common";
+import { InvertibleIntegralFormula } from "game/formulas/types";
 
 function chunkArray<T>(arr: T[], size: number) {
   return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
@@ -87,7 +87,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: 'Accumulating Dust',
-        description: "Multiply dust gain based on unspent dust",
+        description: "Multiply dust gain based on current dust",
         effectDisplay: (): string => `x${format(accumulatingDustModifier.apply(1))}`
       }
     })),
@@ -98,12 +98,23 @@ const layer = createLayer(id, baseLayer => {
         cost: Decimal.fromNumber(2000)
       })),
       display: {
-        title: "???",
+        title: "Seasoned Dust",
         description: "Increases base time speed by total time since last reset.",
-        effectDisplay: (): string => `+${format(totalTimeModifier.apply(0))}`
+        effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
       }
     })),
 
+    waitingGame: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(5000)
+      })),
+      display: {
+        title: "Killin' Time",
+        description: "For every X seconds of last reset time, gain +0.1 base dust gain",
+        effectDisplay: `+0.0`
+      }
+    })),
 
     accelerationUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
@@ -165,15 +176,15 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-    dustPowerMultiplier: createRepeatable((): RepeatableOptions => ({
+    dustPiles: createRepeatable((): RepeatableOptions => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Formula.variable(repeatables.dustPowerMultiplier.amount).pow_base(2.5).times(75)
+        cost: Formula.variable(repeatables.dustPiles.amount).pow_base(2.5).times(75)
       })),
       display: {
         title: "Dust Piles",
         description: "Raise dust gain by 1.1 per level",
-        effectDisplay: () => `^${format(dustPowerEffect.value)}`
+        effectDisplay: () => `^${format(dustPilesEffect.value)}`
       },
       visibility: () => mercury.achievements.first.earned.value
     }))
@@ -186,10 +197,10 @@ const layer = createLayer(id, baseLayer => {
     }))
   ]);
 
-  const totalTimeModifier = createSequentialModifier(() => [
+  const seasonedDustModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.totalUpgrade.bought,
-      addend: () => totalTimeSinceReset.value
+      addend: () => new Decimal(totalTimeSinceReset.value).log10().sqrt().clampMin(1)
     }))
   ]);
 
@@ -227,18 +238,16 @@ const layer = createLayer(id, baseLayer => {
     supportLowNumbers: true,
   }));
 
-  // fucking hell typescript type inference sucks ass
-  const fuckts: WithRequired<Modifier, any> = mercury.firstMilestoneModifier;
   const timeSinceLastResetGainModifier = createSequentialModifier(() => [
-    // ^
-    collisionCourseModifier,
-    // *
-    fuckts,
+    // +
+    seasonedDustModifier,
+    baseDustAmountModifier,
+    // // *
+    mercury.firstMilestoneModifier,
     slippingTimeModifier,
     baseTimeRateModifier,
-    // +
-    totalTimeModifier,
-    baseDustAmountModifier,
+    // ^
+    collisionCourseModifier
   ]);
 
   const chunkUnlockUpgrade = createUpgrade(() => ({
@@ -262,21 +271,32 @@ const layer = createLayer(id, baseLayer => {
 
   const dustMultiplierModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      multiplier: () => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustMultiplier.amount.value)),
+      multiplier: () => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustMultiplier.amount.value)).clampMin(1),
       enabled: () => Decimal.gt(repeatables.dustMultiplier.amount.value, 0)
     }))
   ]);
 
-  const dustPowerEffect = computed((): Decimal => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustPowerMultiplier.amount.value)));
+  const dustPilesEffect = computed((): Decimal => Decimal.dOne.add(Decimal.times(0.1, repeatables.dustPiles.amount.value)).clampMin(1));
+
+  const dustPilesModifier = createSequentialModifier(() => [
+    createExponentialModifier(() => ({
+      enabled: () => Decimal.gt(repeatables.dustPiles.amount.value, 0),
+      exponent: () => dustPilesEffect.value
+    }))
+  ])
+
+  const dustPowerGainModifier = createSequentialModifier(() => [
+    baseDustGainModifier,
+    dustMultiplierModifier,
+    accumulatingDustModifier,
+    dustPilesModifier,
+  ]);
 
   const conversion = createCumulativeConversion(() => {
-    const addend = computed(() => baseDustGainModifier.apply(0))
-    const multiplier = computed(() => Decimal.clampMin(dustMultiplierModifier.apply(1), 1));
-    const mult2 = computed(() => accumulatingDustModifier.apply(1));
-    const exponent = computed((): Decimal => dustPowerEffect.value);
-
     return {
-      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier).times(mult2).pow(exponent),
+      formula: x => {
+        return dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula;
+      },
       baseResource: timeSinceReset,
       gainResource: mercurialDust,
       currentGain: computed((): Decimal => {
@@ -359,11 +379,10 @@ const layer = createLayer(id, baseLayer => {
     slippingTimeModifier,
     repeatables,
     basicUpgrades,
-    totalTimeModifier,
+    totalTimeModifier: seasonedDustModifier,
     accelerationModifier,
     collisionCourseEffect,
     collisionCourseModifier,
-    timeSinceLastResetGainModifier,
     reset,
     display: () => (
       <>
