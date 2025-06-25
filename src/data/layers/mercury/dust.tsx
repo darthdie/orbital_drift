@@ -4,7 +4,7 @@ import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed } from "vue";
-import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
+import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier } from "game/modifiers";
 import { render, renderRow } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
@@ -18,6 +18,7 @@ import mercury from '../mercury';
 import { main } from "data/projEntry";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
+import { WithRequired } from "util/common";
 
 function chunkArray<T>(arr: T[], size: number) {
   return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
@@ -41,6 +42,7 @@ const layer = createLayer(id, baseLayer => {
   const totalTimeSinceReset = trackTotal(timeSinceReset);
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
+
 
   const basicUpgrades = {
     messengerGodUpgrade: createUpgrade(() => ({
@@ -73,8 +75,8 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Collision Course",
-        description: "Multiply time in this layer based on time until collision",
-        effectDisplay: (): string => `x${format(collisionCourseModifier.apply(1))}`
+        description: "Raise time in this layer based on time until collision",
+        effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
       }
     })),
 
@@ -86,14 +88,14 @@ const layer = createLayer(id, baseLayer => {
       display: {
         title: 'Accumulating Dust',
         description: "Multiply dust gain based on unspent dust",
-        effectDisplay: (): string => `0`
+        effectDisplay: (): string => `x${format(accumulatingDustModifier.apply(1))}`
       }
     })),
 
     totalUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1000)
+        cost: Decimal.fromNumber(2000)
       })),
       display: {
         title: "???",
@@ -177,11 +179,11 @@ const layer = createLayer(id, baseLayer => {
     }))
   };
 
-  const collisionCourseModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
-      enabled: basicUpgrades.collisionCourse.bought,
-      multiplier: () => Decimal.subtract(mercury.maxCollisionTime, mercury.collisionTime.value).add(1).log10().sqrt().clampMin(1)
-    })),
+  const accumulatingDustModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      enabled: basicUpgrades.acummulatingDust.bought,
+      multiplier: () => Decimal.add(mercurialDust.value, 1).log10().sqrt().clampMin(1)
+    }))
   ]);
 
   const totalTimeModifier = createSequentialModifier(() => [
@@ -209,16 +211,35 @@ const layer = createLayer(id, baseLayer => {
       enabled: basicUpgrades.slippingTimeUpgrade.bought,
       multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1)
     }))
-  ])
+  ]);
 
-  const baseTimeSinceResetGain = computed(
-    () => Decimal.dOne
-      .add(baseDustAmountModifier.apply(0))
-      .add(totalTimeModifier.apply(0))
-      .times(collisionCourseModifier.apply(1))
-      .times(baseTimeRateModifier.apply(1))
-      .times(slippingTimeModifier.apply(1))
-  );
+  const collisionCourseEffect = computed((): Decimal => {
+    if (basicUpgrades.collisionCourse.bought.value) {
+      return Decimal.subtract(7603200, mercury.collisionTime.value).add(1).log10().sqrt().pow(0.3).clampMin(1);
+    }
+    
+    return Decimal.dOne;
+  });
+
+  const collisionCourseModifier = createExponentialModifier((): ExponentialModifierOptions => ({
+    enabled: basicUpgrades.collisionCourse.bought,
+    exponent: () => Decimal.subtract(7603200, mercury.collisionTime.value).add(1).log10().sqrt().pow(0.3).clampMin(1),
+    supportLowNumbers: true,
+  }));
+
+  // fucking hell typescript type inference sucks ass
+  const fuckts: WithRequired<Modifier, any> = mercury.firstMilestoneModifier;
+  const timeSinceLastResetGainModifier = createSequentialModifier(() => [
+    // ^
+    collisionCourseModifier,
+    // *
+    fuckts,
+    slippingTimeModifier,
+    baseTimeRateModifier,
+    // +
+    totalTimeModifier,
+    baseDustAmountModifier,
+  ]);
 
   const chunkUnlockUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
@@ -251,10 +272,11 @@ const layer = createLayer(id, baseLayer => {
   const conversion = createCumulativeConversion(() => {
     const addend = computed(() => baseDustGainModifier.apply(0))
     const multiplier = computed(() => Decimal.clampMin(dustMultiplierModifier.apply(1), 1));
+    const mult2 = computed(() => accumulatingDustModifier.apply(1));
     const exponent = computed((): Decimal => dustPowerEffect.value);
 
     return {
-      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier).pow(exponent),
+      formula: x => x.div(2).pow(0.3).add(addend).times(multiplier).times(mult2).pow(exponent),
       baseResource: timeSinceReset,
       gainResource: mercurialDust,
       currentGain: computed((): Decimal => {
@@ -319,13 +341,8 @@ const layer = createLayer(id, baseLayer => {
       return;
     }
 
-    timeSinceReset.value = Decimal.add(
-      timeSinceReset.value,
-      Decimal.times(
-        baseTimeSinceResetGain.value,
-        diff
-      )
-    );
+    const totalDiff = Decimal.times(timeSinceLastResetGainModifier.apply(1), diff);
+    timeSinceReset.value = Decimal.add(timeSinceReset.value, totalDiff);
   });
 
   return {
@@ -344,12 +361,15 @@ const layer = createLayer(id, baseLayer => {
     basicUpgrades,
     totalTimeModifier,
     accelerationModifier,
+    collisionCourseEffect,
+    collisionCourseModifier,
+    timeSinceLastResetGainModifier,
     reset,
     display: () => (
       <>
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
         <h5>It has been {format(timeSinceReset.value)} seconds since the last reset.</h5>
-        <h6>A second is worth {format(baseTimeSinceResetGain.value)} real seconds</h6>
+        <h6>A second is worth {format(timeSinceLastResetGainModifier.apply(1))} real seconds</h6>
 
         <Spacer />
         {render(resetButton)}

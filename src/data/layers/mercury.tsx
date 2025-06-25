@@ -10,8 +10,8 @@ import { render } from "util/vue";
 import { createLayerTreeNode } from "../common";
 import { computed } from "vue";
 import Decimal, { format } from "util/bignum";
-import { noPersist } from "game/persistence";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { noPersist, persistent } from "game/persistence";
+import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -42,8 +42,8 @@ const layer = createLayer(id, baseLayer => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
-  const maxCollisionTime = 7603200;
-  const collisionTime = createResource<DecimalSource>(maxCollisionTime);
+  const maxCollisionTime = persistent<DecimalSource>(7603200);
+  const collisionTime = createResource<DecimalSource>(noPersist(maxCollisionTime));
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
@@ -52,14 +52,20 @@ const layer = createLayer(id, baseLayer => {
     })),
   ]);
 
+  const firstMilestoneModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      multiplier: () => Decimal.times(1.5, completedAchievementsCount.value).clampMin(1),
+      enabled: achievements.first.earned
+    })),
+  ]);
+
   const tickAmount = computed(
     () => new Decimal(1)
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
+      .times(firstMilestoneModifier.apply(1))
+      .pow(dustTab.collisionCourseEffect.value)
   );
-
-  const timeSinceReset = createResource<DecimalSource>(0);
-  const totalTimeSinceReset = trackTotal(timeSinceReset);
 
   baseLayer.on("update", diff => {
     if (!unlocked.value) {
@@ -96,7 +102,12 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         requirement: "1 Mercurial Chunk",
-        optionsDisplay: "Unlock the `Dust Piles` buyable",
+        effectDisplay: "x1.5",
+        optionsDisplay: () => (<>
+          Unlock the `Dust Piles` buyable
+          <br/>
+          Boost time by x1.5 per milestone achieved
+        </>),
         // ^1.1 per total?
       }
     })),
@@ -153,11 +164,10 @@ const layer = createLayer(id, baseLayer => {
     color,
     collisionTime,
     maxCollisionTime,
-    timeSinceReset,
-    totalTimeSinceReset,
     tabs,
     achievements,
     completedAchievementsCount,
+    firstMilestoneModifier,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
