@@ -55,7 +55,7 @@ const layer = createLayer(id, baseLayer => {
 
   const firstMilestoneModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
-      multiplier: () => Decimal.times(1.5, completedAchievementsCount.value).clampMin(1),
+      multiplier: () => Decimal.times(1.5, chunksTab.totalChunks.value).clampMin(1),
       enabled: achievements.first.earned
     })),
   ]);
@@ -66,6 +66,7 @@ const layer = createLayer(id, baseLayer => {
       .times(dustTab.accelerationModifier.apply(1))
       .times(firstMilestoneModifier.apply(1))
       .pow(dustTab.collisionCourseEffect.value)
+      .pow(chunksTab.chuckingChunksModifier.apply(1))
   );
 
   baseLayer.on("update", diff => {
@@ -104,9 +105,8 @@ const layer = createLayer(id, baseLayer => {
         optionsDisplay: () => (<>
           Unlock the `Dust Piles` buyable
           <br/>
-          Boost time by x1.5 per milestone achieved
+          Boost time by x1.5 per total chunk
         </>),
-        // ^1.1 per total?
       }
     })),
     second: createAchievement(() => ({
@@ -121,7 +121,7 @@ const layer = createLayer(id, baseLayer => {
       requirements: createCountRequirement(chunksTab.totalChunks, 3),
       display: {
         requirement: "3 Mercurial Chunk",
-        optionsDisplay: "Unlocks more upgrades?"
+        optionsDisplay: "Unlock Chunk Upgrades"
       }
     }))
   }

@@ -1,7 +1,7 @@
 import { createReset } from "features/reset";
 import { createLayer } from "game/layers";
 import { main } from "data/projEntry";
-import { createLayerTreeNode, createResetButton } from "data/common";
+import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
 import { createCumulativeConversion, createIndependentConversion } from "features/conversion";
 import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
@@ -9,8 +9,12 @@ import { noPersist } from "game/persistence";
 import { computed } from "vue";
 import Decimal from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render } from "util/vue";
+import { render, renderRow } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
+import { createUpgrade } from "features/clickables/upgrade";
+import { createCostRequirement } from "game/requirements";
+import Column from "components/layout/Column.vue";
+import { createExponentialModifier, createSequentialModifier, ExponentialModifierOptions } from "game/modifiers";
 
 const id = "Mc";
 const layer = createLayer(id, baseLayer => {
@@ -44,7 +48,51 @@ const layer = createLayer(id, baseLayer => {
     };
   });
 
-  const upgrades = {};
+  const chuckingChunksModifier = createSequentialModifier(() => [
+    createExponentialModifier((): ExponentialModifierOptions => ({
+      enabled: upgrades.chuckingChunks.bought,
+      exponent: () => Decimal.dOne.add(Decimal.times(0.01, totalChunks.value)),
+      supportLowNumbers: true,
+    }))
+  ]);
+
+  const upgrades = {
+    chuckingChunks: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(3)
+      })),
+      display: {
+        title: "Chuckin' Chunks",
+        description: "Raise collision time based on total chunks",
+        effectDisplay: () => `^${format(chuckingChunksModifier.apply(1))}`
+      }
+    })),
+
+    grindingChunks: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(3)
+      })),
+      display: {
+        title: "Grindin' Chunks",
+        description: "Gain 5% of dust per second",
+        effectDisplay: () => `5%/s`
+      }
+    })),
+
+    chunkDial: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(3)
+      })),
+      display: {
+        title: "Chunk Dial",
+        description: "Raise dust gain based on total chunks",
+        effectDisplay: () => `^.1 per level perhaps?`
+      }
+    }))
+  };
 
   const treeNode = createLayerTreeNode(() => ({
     layerID: id,
@@ -78,6 +126,7 @@ const layer = createLayer(id, baseLayer => {
     totalChunks,
     conversion,
     upgrades,
+    chuckingChunksModifier,
     treeNode,
     display: () => (<>
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
@@ -85,6 +134,12 @@ const layer = createLayer(id, baseLayer => {
       <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
       <Spacer/>
       {render(resetButton)}
+      <Spacer/>
+      <h3>Upgrades</h3>
+      <Spacer/>
+      <Column>
+        {chunkArray(Object.values(upgrades), 4).map(group => renderRow.apply(null, group))}
+      </Column>
     </>)
   };
 });

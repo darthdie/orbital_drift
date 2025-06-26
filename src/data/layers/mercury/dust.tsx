@@ -1,9 +1,9 @@
 import { createResource, Resource, trackTotal } from "features/resources/resource";
-import { createLayer } from "game/layers";
+import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
-import { computed, watch } from "vue";
+import { computed, ComputedRef, unref, watch } from "vue";
 import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier } from "game/modifiers";
 import { render, renderRow } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
@@ -11,27 +11,22 @@ import Formula from "game/formulas/formulas";
 import { createCostRequirement, CostRequirementOptions, createVisibilityRequirement, Requirements } from "game/requirements";
 import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
 import { format } from "util/break_eternity";
-import { createCumulativeConversion } from "features/conversion";
-import { createLayerTreeNode, createResetButton } from "data/common";
+import { createCumulativeConversion, setupPassiveGeneration } from "features/conversion";
+import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
 import { createReset } from "features/reset";
 import mercury from '../mercury';
 import { main } from "data/projEntry";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { InvertibleIntegralFormula } from "game/formulas/types";
-
-function chunkArray<T>(arr: T[], size: number) {
-  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-    arr.slice(i * size, i * size + size)
-  );
-}
+import chunksLayer from './chunks';
 
 // TODO:
 // Increase base chunk cost
 // Add more upgrades, make it more meaningful or some shit
 
 const id = "Md";
-const layer = createLayer(id, baseLayer => {
+const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const name = "Mercury";
   const color = "#b1adad";
 
@@ -247,7 +242,8 @@ const layer = createLayer(id, baseLayer => {
     slippingTimeModifier,
     baseTimeRateModifier,
     // ^
-    collisionCourseModifier
+    collisionCourseModifier,
+    chunksLayer.chuckingChunksModifier,
   ]);
 
   const chunkUnlockUpgrade = createUpgrade(() => ({
@@ -377,6 +373,17 @@ const layer = createLayer(id, baseLayer => {
     display: "D"
   }));
 
+  const enablePassiveGeneration: ComputedRef<boolean> = computed<boolean>(() => chunksLayer.upgrades.grindingChunks.bought.value);
+  const passiveGenerationPerSecond: ComputedRef<Decimal> = computed(() => {
+    return Decimal.times(0.05, unref(conversion.actualGain));
+  });
+
+  setupPassiveGeneration(
+    baseLayer,
+    conversion,
+    () => enablePassiveGeneration.value ? 0.05 : 0,
+  );
+
   baseLayer.on("update", diff => {
     if (!unlocked.value) {
       return;
@@ -408,6 +415,11 @@ const layer = createLayer(id, baseLayer => {
     display: () => (
       <>
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
+        {
+          enablePassiveGeneration.value
+            ? <><h6>Gaining {format(passiveGenerationPerSecond.value)}/s</h6></>
+            : null
+        }
         <h5>It has been {format(timeSinceReset.value)} seconds since the last reset.</h5>
         <h6>A second is worth {format(timeSinceLastResetGainModifier.apply(1))} real seconds</h6>
 
