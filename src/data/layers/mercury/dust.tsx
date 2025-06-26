@@ -4,7 +4,7 @@ import { noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed, ComputedRef, unref, watch } from "vue";
-import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier } from "game/modifiers";
+import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier, createModifierSection, ModifierSectionOptions } from "game/modifiers";
 import { render, renderRow } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
@@ -38,7 +38,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
-
   const basicUpgrades = {
     messengerGodUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
@@ -70,7 +69,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Collision Course",
-        description: "Raise time in this layer based on time until collision",
+        description: "Raise last reset time gain based on time until collision",
         effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
       }
     })),
@@ -188,34 +187,39 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const accumulatingDustModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.acummulatingDust.bought,
-      multiplier: () => Decimal.add(mercurialDust.value, 1).log10().sqrt().clampMin(1)
+      multiplier: () => Decimal.add(mercurialDust.value, 1).log10().sqrt().clampMin(1),
+      description: "Accumulating Dust"
     }))
   ]);
 
   const seasonedDustModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.totalUpgrade.bought,
-      addend: () => new Decimal(totalTimeSinceReset.value).log10().sqrt().clampMin(1)
+      addend: () => new Decimal(totalTimeSinceReset.value).log10().sqrt().clampMin(1),
+      description: "Seasoned Dust"
     }))
   ]);
 
   const baseDustAmountModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
-      addend: () => repeatables.baseDustTime.amount.value
+      addend: () => repeatables.baseDustTime.amount.value,
+      description: "Align the Stars"
     }))
   ]);
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       multiplier: 1.5,
-      enabled: basicUpgrades.messengerGodUpgrade.bought
+      enabled: basicUpgrades.messengerGodUpgrade.bought,
+      description: "Messenger God"
     })),
   ]);
 
   const slippingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.slippingTimeUpgrade.bought,
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1).clampMax(3),
+      description: "Slippery Time"
     }))
   ]);
 
@@ -229,21 +233,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const collisionCourseModifier = createExponentialModifier((): ExponentialModifierOptions => ({
     enabled: basicUpgrades.collisionCourse.bought,
-    exponent: () => Decimal.subtract(7603200, mercury.collisionTime.value).add(1).log10().sqrt().pow(0.3).clampMin(1),
-    supportLowNumbers: true,
+    exponent: () => collisionCourseEffect.value,
+    description: "Collision Course"
+    // supportLowNumbers: true,
   }));
 
   const timeSinceLastResetGainModifier = createSequentialModifier(() => [
     // +
     seasonedDustModifier,
     baseDustAmountModifier,
+    chunksLayer.chuckingChunksModifier,
     // // *
     mercury.firstMilestoneModifier,
     slippingTimeModifier,
     baseTimeRateModifier,
     // ^
     collisionCourseModifier,
-    chunksLayer.chuckingChunksModifier,
   ]);
 
   const chunkUnlockUpgrade = createUpgrade(() => ({
@@ -321,7 +326,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     createMultiplicativeModifier(() => ({
       enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
       // x: TSLR
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1).clampMax(5)
     }))
   ]);
 

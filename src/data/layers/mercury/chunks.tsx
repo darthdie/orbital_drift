@@ -14,7 +14,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import Column from "components/layout/Column.vue";
-import { createExponentialModifier, createSequentialModifier, ExponentialModifierOptions } from "game/modifiers";
+import { AdditiveModifierOptions, createAdditiveModifier, createExponentialModifier, createSequentialModifier, ExponentialModifierOptions } from "game/modifiers";
 
 const id = "Mc";
 const layer = createLayer(id, baseLayer => {
@@ -25,12 +25,16 @@ const layer = createLayer(id, baseLayer => {
   const totalChunks = trackTotal(chunks);
 
   const conversion = createIndependentConversion(() => {
+    const computedLovingChunks = computed(() => {
+      return Decimal.clampMin(lovingChunksModifier.apply(0), 1);
+    });
+
     return {
-      formula: x => {
-        return x
+      formula: x => x
+          // .sub(lovingChunksModifier.apply(0))
+          .mul(computedLovingChunks)
           .div(1000)
-          .step(1, f => f.div(25));
-      },
+          .step(1, f => f.div(25)),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
@@ -49,12 +53,20 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const chuckingChunksModifier = createSequentialModifier(() => [
-    createExponentialModifier((): ExponentialModifierOptions => ({
+    createAdditiveModifier((): AdditiveModifierOptions => ({
       enabled: upgrades.chuckingChunks.bought,
-      exponent: () => Decimal.dOne.add(Decimal.times(0.01, totalChunks.value)),
-      supportLowNumbers: true,
+      addend: () => totalChunks.value,
+      description: "Chuckin' Chinks"
     }))
   ]);
+
+  const lovingChunksModifier = createSequentialModifier(() => [
+    createAdditiveModifier((): AdditiveModifierOptions => ({
+      enabled: upgrades.lovingChunks.bought,
+      addend: () => Decimal.add(dustLayer.mercurialDust.value, 1).log10().pow(0.2),
+      description: "Lovin' Chunks"
+    }))
+  ])
 
   const upgrades = {
     chuckingChunks: createUpgrade(() => ({
@@ -64,8 +76,8 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Chuckin' Chunks",
-        description: "Raise collision time based on total chunks",
-        effectDisplay: () => `^${format(chuckingChunksModifier.apply(1))}`
+        description: "Increase base reset time by your total chunks",
+        effectDisplay: () => `+${format(chuckingChunksModifier.apply(0))}`
       }
     })),
 
@@ -81,15 +93,15 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-    chunkDial: createUpgrade(() => ({
+    lovingChunks: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(chunks),
         cost: Decimal.fromNumber(3)
       })),
       display: {
-        title: "Chunk Dial",
-        description: "Raise dust gain based on total chunks",
-        effectDisplay: () => `^.1 per level perhaps?`
+        title: "Lovein' Chunks",
+        description: "Reduce chunk cost based on dust",
+        effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
       }
     }))
   };

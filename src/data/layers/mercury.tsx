@@ -21,6 +21,8 @@ import chunksTab from './mercury/chunks';
 import { createAchievement } from "features/achievements/achievement";
 import { createCountRequirement } from "game/requirements";
 import { Conversion } from "features/conversion";
+import { createBar } from "features/bars/bar";
+import { Direction } from "util/common";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -43,30 +45,42 @@ const layer = createLayer(id, baseLayer => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
-  const maxCollisionTime = persistent<DecimalSource>(7603200);
+  const maxCollisionTime = Decimal.fromNumber(7603200)
   const collisionTime = createResource<DecimalSource>(noPersist(maxCollisionTime));
+
+  const collisionTimeProgressBar = createBar(() => ({
+    progress: () => Decimal.div(collisionTime.value, maxCollisionTime),
+    width: 512,
+    height: 10,
+    direction: Direction.Right,
+    containerStyle: {
+      'text-align': 'center'
+    }
+  }))
 
   const baseTimeRateModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       multiplier: 1.5,
-      enabled: dustTab.basicUpgrades.messengerGodUpgrade.bought
+      enabled: dustTab.basicUpgrades.messengerGodUpgrade.bought,
+      description: "Messenger God"
     })),
   ]);
 
   const firstMilestoneModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       multiplier: () => Decimal.times(1.5, chunksTab.totalChunks.value).clampMin(1),
-      enabled: achievements.first.earned
+      enabled: achievements.first.earned,
+      description: "First Chunk Milestone"
     })),
   ]);
 
   const tickAmount = computed(
     () => new Decimal(1)
+      // .add(chunksTab.chuckingChunksModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
       .times(firstMilestoneModifier.apply(1))
-      .pow(dustTab.collisionCourseEffect.value)
-      .pow(chunksTab.chuckingChunksModifier.apply(1))
+      // .pow(dustTab.collisionCourseEffect.value)
   );
 
   baseLayer.on("update", diff => {
@@ -123,6 +137,13 @@ const layer = createLayer(id, baseLayer => {
         requirement: "3 Mercurial Chunk",
         optionsDisplay: "Unlock Chunk Upgrades"
       }
+    })),
+    four: createAchievement(() => ({
+      requirements: createCountRequirement(chunksTab.totalChunks, 25),
+      display: {
+        title: "PATY",
+        optionsDisplay: "time to get fucked up"
+      }
     }))
   }
 
@@ -169,6 +190,7 @@ const layer = createLayer(id, baseLayer => {
         )}
 
         <h4>-{format(tickAmount.value)}/s</h4>
+        {render(collisionTimeProgressBar)}
         <Spacer/>
         {render(tabs)}
       </>
