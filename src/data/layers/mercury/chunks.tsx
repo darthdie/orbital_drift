@@ -35,10 +35,10 @@ const layer = createLayer(id, baseLayer => {
 
     return {
       formula: x => x
-          // .sub(lovingChunksModifier.apply(0))
           .mul(computedLovingChunks)
           .div(1000)
-          .step(1, f => f.div(25)),
+          .step(1, f => f.div(25))
+          .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1)),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))

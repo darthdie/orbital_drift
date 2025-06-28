@@ -45,7 +45,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const dustBuyable = createRepeatable(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({
       resource: noPersist(dustLayer.mercurialDust),
-      cost: Formula.variable(dustBuyable.amount).pow_base(1.9).times(5e5).evaluate()
+      cost: () => Formula.variable(dustBuyable.amount.value).pow_base(5).times(5e5).evaluate()
     })),
     clickableStyle: {
       minHeight: '40px',
@@ -89,7 +89,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }))
   ]);
 
-  const dustTimerMaxModifier = Formula.variable(dustBuyable.amount).mul(0.002).add(1);
+  const dustTimerMaxModifier = Formula.variable(dustBuyable.amount).mul(0.01).add(1);
 
   // const dustAcceleratorResetButton = createResetButton(() => ({
 
@@ -99,7 +99,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     dust: () => ({
       display: "Dust",
       tab: createTab(() => ({
-        display: () => <>
+        display: () => (<>
           <h2>{format(dustAccelerators.value)} Dust Accelerators</h2>
           <h6>You are gaining 1 every {format(dustTimerMax.value)} seconds.</h6>
           <Spacer/>
@@ -117,7 +117,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
           <Spacer/>
           <h4>Upgrades</h4>
-        </>
+        </>)
       }))
     }),
   }, () => ({

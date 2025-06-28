@@ -71,8 +71,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       requirements: createCountRequirement(chunksTab.totalChunks, 20),
       display: {
         requirement: "20 Total Mercurial Chunks",
-        optionsDisplay: "FUCKING PUKE",
-        effectDisplay: () => `?`
+        optionsDisplay: "Keep some buyable levels on reset equal to your total chunks.",
+        effectDisplay: () => `Up to ${chunksTab.totalChunks.value} buyable levels are kept.`
       }
     }))
   }

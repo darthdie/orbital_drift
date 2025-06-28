@@ -128,7 +128,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const repeatables = {
     baseDustTime: createRepeatable(() => ({
-      limit: 50,
+      limit: 30,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustTime.amount).pow_base(1.3).times(10)
@@ -144,7 +144,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     baseDustGain: createRepeatable(() => ({
-      limit: 50,
+      limit: 30,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(15)
@@ -160,7 +160,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustMultiplier: createRepeatable(() => ({
-      limit: 50,
+      limit: 30,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.3).times(30)
@@ -176,7 +176,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustPiles: createRepeatable((): RepeatableOptions => ({
-      limit: 50,
+      limit: 30,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustPiles.amount).pow_base(2.5).times(75)
@@ -358,17 +358,36 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }))
   ]);
 
+  const preresetBuyableLevels = {
+    baseDustTime: 0,
+    baseDustGain: 0,
+    dustMultiplier: 0,
+    dustPiles: 0
+  };
   const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => noPersist([
-      basicUpgrades,
-      repeatables,
-    ]),
+    thingsToReset: (): Record<string, unknown>[] => {
+      Object.keys(preresetBuyableLevels).forEach((buyable) => {
+        (preresetBuyableLevels as any)[buyable] = (repeatables as any)[buyable].amount.value;
+      });
+
+      return noPersist([
+        basicUpgrades,
+        repeatables,
+      ]);
+    },
     onReset: () => {
-      mercurialDust.value = mercurialDust.defaultValue;
+      mercurialDust.value = mercurialDust[DefaultValue];
       totalMercurialDust.value = Decimal.dZero;
-      timeSinceReset.value = timeSinceReset.defaultValue;
+      timeSinceReset.value = timeSinceReset[DefaultValue];
       totalTimeSinceReset.value = Decimal.dZero;
       mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
+
+        Object.keys(preresetBuyableLevels).forEach((buyable) => {
+          (repeatables as any)[buyable].amount.value = Decimal.min(
+            (preresetBuyableLevels as any)[buyable],
+            chunksLayer.totalChunks.value
+          );
+      });
 
       if (milestonesLayer.milestones.second.earned.value) {
         console.log('reset', { count: milestonesLayer.completedMilestonesCount.value })
