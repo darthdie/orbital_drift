@@ -6,7 +6,7 @@ import { createCumulativeConversion, createIndependentConversion } from "feature
 import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import Decimal from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderRow } from "util/vue";
@@ -15,6 +15,7 @@ import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import Column from "components/layout/Column.vue";
 import { AdditiveModifierOptions, createAdditiveModifier, createExponentialModifier, createSequentialModifier, ExponentialModifierOptions } from "game/modifiers";
+import mercuryLayer from '../mercury';
 
 const id = "Mc";
 const layer = createLayer(id, baseLayer => {
@@ -23,6 +24,9 @@ const layer = createLayer(id, baseLayer => {
 
   const chunks = createResource(0, "mercurial chunks");
   const totalChunks = trackTotal(chunks);
+  watch(chunks, () => {
+    console.log('fuck this goddamn game engine dude', totalChunks.value)
+  })
 
   const conversion = createIndependentConversion(() => {
     const computedLovingChunks = computed(() => {
@@ -88,8 +92,8 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Grindin' Chunks",
-        description: "Gain 5% of dust per second",
-        effectDisplay: () => `5%/s`
+        description: "Gain dust per second equal to your total chunks",
+        effectDisplay: () => `${format(totalChunks.value)}/s`
       }
     })),
 
@@ -115,14 +119,14 @@ const layer = createLayer(id, baseLayer => {
   }));
 
   const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => [dustLayer]
+    thingsToReset: (): Record<string, unknown>[] => [dustLayer, mercuryLayer]
   }));
 
   const resetButton = createResetButton(() => ({
     conversion,
     tree: main.tree,
     treeNode,
-    resetDescription: () => `Condense your (total) mercurial dust for `,
+    resetDescription: () => `Condense your dust & time for `,
     onClick: () => {
       dustLayer.reset.reset();
     }

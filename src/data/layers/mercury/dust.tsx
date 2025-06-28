@@ -1,6 +1,6 @@
 import { createResource, Resource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import { noPersist } from "game/persistence";
+import { DefaultValue, noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed, ComputedRef, unref, watch } from "vue";
@@ -20,6 +20,7 @@ import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { InvertibleIntegralFormula } from "game/formulas/types";
 import chunksLayer from './chunks';
+import milestonesLayer from './milestones';
 
 // TODO:
 // Increase base chunk cost
@@ -69,7 +70,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Collision Course",
-        description: "Raise last reset time gain based on time until collision",
+        description: "Raise last reset time gain based on dust",
         effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
       }
     })),
@@ -180,7 +181,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         description: "Raise dust gain to ^1.1",
         effectDisplay: () => `^${format(dustPilesEffect.value)}`
       },
-      visibility: () => mercury.achievements.first.earned.value
+      visibility: () => milestonesLayer.milestones.first.earned.value
     }))
   };
 
@@ -195,7 +196,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const seasonedDustModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.totalUpgrade.bought,
-      addend: () => new Decimal(totalTimeSinceReset.value).log10().sqrt().clampMin(1),
+      addend: () => {
+        return Decimal.add(totalTimeSinceReset.value, 1).log10().sqrt().clampMin(1);
+      },
       description: "Seasoned Dust"
     }))
   ]);
@@ -218,14 +221,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const slippingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.slippingTimeUpgrade.bought,
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1).clampMax(3),
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1),
       description: "Slippery Time"
     }))
   ]);
 
   const collisionCourseEffect = computed((): Decimal => {
     if (basicUpgrades.collisionCourse.bought.value) {
-      return Decimal.subtract(7603200, mercury.collisionTime.value).add(1).log10().sqrt().pow(0.3).clampMin(1);
+      return Decimal.add(mercurialDust.value, 1).log10().sqrt().pow(0.2).clampMin(1);
     }
     
     return Decimal.dOne;
@@ -243,24 +246,40 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     seasonedDustModifier,
     baseDustAmountModifier,
     chunksLayer.chuckingChunksModifier,
-    // // *
-    mercury.firstMilestoneModifier,
+    // *
+    milestonesLayer.firstMilestoneModifier,
     slippingTimeModifier,
     baseTimeRateModifier,
     // ^
     collisionCourseModifier,
+    createExponentialModifier(() => ({
+      exponent: () => milestonesLayer.fourthMilestoneModifier.value
+    }))
   ]);
 
-  const chunkUnlockUpgrade = createUpgrade(() => ({
-    requirements: createCostRequirement(() => ({
-      resource: noPersist(mercurialDust),
-      cost: Decimal.fromNumber(1000)
+  const unlocks = {
+    chunks: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1000)
+      })),
+      display: {
+        title: "Chunks",
+        description: "Unlock Mercurial Chunks"
+      }
     })),
-    display: {
-      title: "Chunks",
-      description: "Unlock Mercurial Chunks"
-    }
-  }));
+
+    accelerators: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(100000)
+      })),
+      display: {
+        title: "Accelerators",
+        description: "Unlock Accelerators"
+      }
+    })),
+  };
 
   const baseDustGainModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
@@ -316,8 +335,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         return Decimal.fromValue(conversion.formula.evaluate(timeSinceReset.value));
       }),
       spend: () => {
-        timeSinceReset.value = 0;
-        mercury.collisionTime.value = mercury.collisionTime.defaultValue;
+        timeSinceReset.value = Decimal.dZero;
+        mercury.collisionTime.value = new Decimal(mercury.collisionTime.defaultValue);
       }
     }
   });
@@ -326,7 +345,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     createMultiplicativeModifier(() => ({
       enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
       // x: TSLR
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1).clampMax(5)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1)
     }))
   ]);
 
@@ -340,18 +359,19 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       totalMercurialDust.value = Decimal.dZero;
       timeSinceReset.value = timeSinceReset.defaultValue;
       totalTimeSinceReset.value = Decimal.dZero;
+      mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
-      if (mercury.achievements.second.earned.value) {
-        console.log('reset', { count: mercury.completedAchievementsCount.value })
+      if (milestonesLayer.milestones.second.earned.value) {
+        console.log('reset', { count: milestonesLayer.completedMilestonesCount.value })
         Object.values(basicUpgrades)
-          .slice(0, mercury.completedAchievementsCount.value)
+          .slice(0, milestonesLayer.completedMilestonesCount.value)
           .forEach(u => u.bought.value = true);
       }
     }
   }));
 
-  watch(mercury.completedAchievementsCount, count => {
-    if (!mercury.achievements.second.earned.value) {
+  watch(milestonesLayer.completedMilestonesCount, count => {
+    if (!milestonesLayer.milestones.second.earned.value) {
       return;
     }
 
@@ -378,15 +398,16 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     display: "D"
   }));
 
+  const passiveGenerationPerSecondEffect = computed(() => Decimal.mul(chunksLayer.totalChunks.value, 0.01).clampMin(0.01));
   const enablePassiveGeneration: ComputedRef<boolean> = computed<boolean>(() => chunksLayer.upgrades.grindingChunks.bought.value);
   const passiveGenerationPerSecond: ComputedRef<Decimal> = computed(() => {
-    return Decimal.times(0.05, unref(conversion.actualGain));
+    return Decimal.times(passiveGenerationPerSecondEffect.value, unref(conversion.actualGain));
   });
 
   setupPassiveGeneration(
     baseLayer,
     conversion,
-    () => enablePassiveGeneration.value ? 0.05 : 0,
+    () => enablePassiveGeneration.value ? passiveGenerationPerSecondEffect.value : 0,
   );
 
   baseLayer.on("update", diff => {
@@ -408,7 +429,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     baseDustAmountModifier,
     baseDustGainModifier,
     dustMultiplierModifier,
-    chunkUnlockUpgrade,
+    unlocks,
     slippingTimeModifier,
     repeatables,
     basicUpgrades,
@@ -419,6 +440,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     reset,
     display: () => (
       <>
+      
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
         {
           enablePassiveGeneration.value
@@ -441,7 +463,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         </Column>
         <Spacer/>
         <Column>
-          {render(chunkUnlockUpgrade)}
+          {chunkArray(Object.values(unlocks), 4).map(group => renderRow.apply(null, group))}
         </Column>
       </>
     ),

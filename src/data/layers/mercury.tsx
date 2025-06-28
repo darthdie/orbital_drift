@@ -8,7 +8,7 @@ import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { createLayerTreeNode } from "../common";
-import { computed, unref } from "vue";
+import { computed, ref, unref, watch } from "vue";
 import Decimal, { format } from "util/bignum";
 import { noPersist, persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
@@ -23,6 +23,7 @@ import { createCountRequirement } from "game/requirements";
 import { Conversion } from "features/conversion";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
+import milestones from './mercury/milestones';
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -45,8 +46,9 @@ const layer = createLayer(id, baseLayer => {
 
   const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
 
-  const maxCollisionTime = Decimal.fromNumber(7603200)
-  const collisionTime = createResource<DecimalSource>(noPersist(maxCollisionTime));
+  const maxCollisionTime = Decimal.times(1e88, 84600)
+  const collisionTime = createResource<DecimalSource>(maxCollisionTime);
+
 
   const collisionTimeProgressBar = createBar(() => ({
     progress: () => Decimal.div(collisionTime.value, maxCollisionTime),
@@ -66,21 +68,14 @@ const layer = createLayer(id, baseLayer => {
     })),
   ]);
 
-  const firstMilestoneModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
-      multiplier: () => Decimal.times(1.5, chunksTab.totalChunks.value).clampMin(1),
-      enabled: achievements.first.earned,
-      description: "First Chunk Milestone"
-    })),
-  ]);
-
   const tickAmount = computed(
     () => new Decimal(1)
       // .add(chunksTab.chuckingChunksModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
-      .times(firstMilestoneModifier.apply(1))
-      // .pow(dustTab.collisionCourseEffect.value)
+      .times(milestones.firstMilestoneModifier.apply(1))
+      .pow(dustTab.collisionCourseEffect.value)
+      .pow(milestones.fourthMilestoneModifier.value)
   );
 
   baseLayer.on("update", diff => {
@@ -98,7 +93,10 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => [layer]
+    thingsToReset: (): Record<string, unknown>[] => [layer],
+    onReset: () => {
+      console.log('resetting mercury')
+    }
   }));
 
   const treeNode = createLayerTreeNode(() => ({
@@ -108,45 +106,6 @@ const layer = createLayer(id, baseLayer => {
     reset
   }));
 
-  const completedAchievementsCount = computed(() => Object.values(achievements).filter((a) => a.earned.value).length);
-
-  const achievements = {
-    first: createAchievement(() => ({
-      requirements: createCountRequirement(chunksTab.totalChunks, 1),
-      display: {
-        requirement: "1 Mercurial Chunk",
-        effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
-        optionsDisplay: () => (<>
-          Unlock the `Dust Piles` buyable
-          <br/>
-          Boost time by x1.5 per total chunk
-        </>),
-      }
-    })),
-    second: createAchievement(() => ({
-      requirements: createCountRequirement(chunksTab.totalChunks, 2),
-      display: {
-        requirement: "2 Mercurial Chunk",
-        optionsDisplay: "Keep 1 Dust upgrade per milestone achieved.",
-        effectDisplay: (): string => `${completedAchievementsCount.value} upgrades are kept`
-      }
-    })),
-    three: createAchievement(() => ({
-      requirements: createCountRequirement(chunksTab.totalChunks, 3),
-      display: {
-        requirement: "3 Mercurial Chunk",
-        optionsDisplay: "Unlock Chunk Upgrades"
-      }
-    })),
-    four: createAchievement(() => ({
-      requirements: createCountRequirement(chunksTab.totalChunks, 25),
-      display: {
-        title: "PATY",
-        optionsDisplay: "time to get fucked up"
-      }
-    }))
-  }
-
   const tabs = createTabFamily({
     dust: () => ({
       display: "Dust",
@@ -155,21 +114,21 @@ const layer = createLayer(id, baseLayer => {
       }))
     }),
     chunks: () => ({
-      visibility: dustTab.chunkUnlockUpgrade.bought,
+      visibility: dustTab.unlocks.chunks.bought,
       display: () => (<>Chunks {Decimal.gte(unref((chunksTab.conversion as Conversion).actualGain), 1) ? "!" : null}</>),
       tab: createTab(() => ({
         display: chunksTab.display
       }))
     }),
-    milestones: () => ({
-      visibility: dustTab.chunkUnlockUpgrade.bought,
-      display: "Milestones",
-      tab: createTab(() => ({
-        display: (<>
-        {Object.values(achievements).map(a => render(a))}
-        </>)
-      }))
-    })
+    milestones: () => {
+      return {
+        visibility: dustTab.unlocks.chunks.bought,
+        display: "Milestones",
+        tab: createTab(() => ({
+          display: milestones.display
+        }))
+      };
+    }
   })
 
   return {
@@ -178,9 +137,6 @@ const layer = createLayer(id, baseLayer => {
     collisionTime,
     maxCollisionTime,
     tabs,
-    achievements,
-    completedAchievementsCount,
-    firstMilestoneModifier,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
