@@ -37,7 +37,7 @@ export function createTab<T extends TabOptions>(optionsFunc: () => T) {
             type: TabType,
             ...(props as Omit<typeof props, keyof VueFeature | keyof TabOptions>),
             ...vueFeatureMixin("tab", options, display),
-            display
+            display,
         } satisfies Tab;
 
         return tab;

@@ -1,5 +1,5 @@
 <template>
-    <button @click="selectTab" class="tabButton" :style="glowColorStyle" :class="{ active }">
+    <button @click="selectTab" class="tabButton" :style="styles" :class="{ active }">
         <Component />
     </button>
 </template>
@@ -10,12 +10,13 @@ import { getNotifyStyle } from "game/notifications";
 import settings from "game/settings";
 import { MaybeGetter } from "util/computed";
 import { render, Renderable } from "util/vue";
-import { computed, MaybeRef, unref } from "vue";
+import { computed, CSSProperties, MaybeRef, unref } from "vue";
 
 const props = defineProps<{
     display: MaybeGetter<Renderable>;
     glowColor?: MaybeRef<string>;
     active?: boolean;
+    style?: MaybeRef<CSSProperties>;
 }>();
 
 const emit = defineEmits<{
@@ -23,6 +24,14 @@ const emit = defineEmits<{
 }>();
 
 const Component = () => render(props.display);
+
+const styles = computed(() => {
+    console.log(props.style)
+    return {
+    ...props.style,
+    ...glowColorStyle
+}
+});
 
 const glowColorStyle = computed(() => {
     const color = unref(props.glowColor);
