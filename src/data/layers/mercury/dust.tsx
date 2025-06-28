@@ -21,6 +21,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { InvertibleIntegralFormula } from "game/formulas/types";
 import chunksLayer from './chunks';
 import milestonesLayer from './milestones';
+import acceleratorsLayer from './accelerators';
 
 // TODO:
 // Increase base chunk cost
@@ -127,6 +128,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const repeatables = {
     baseDustTime: createRepeatable(() => ({
+      limit: 50,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustTime.amount).pow_base(1.3).times(10)
@@ -142,6 +144,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     baseDustGain: createRepeatable(() => ({
+      limit: 50,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(15)
@@ -157,6 +160,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustMultiplier: createRepeatable(() => ({
+      limit: 50,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.3).times(30)
@@ -172,6 +176,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustPiles: createRepeatable((): RepeatableOptions => ({
+      limit: 50,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustPiles.amount).pow_base(2.5).times(75)
@@ -313,10 +318,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   ]);
 
   const dustPowerGainModifier = createSequentialModifier(() => [
+    // +
     baseDustGainModifier,
     killingTimeModifier,
+    // *
     dustMultiplierModifier,
     accumulatingDustModifier,
+    acceleratorsLayer.dustBuyableGainModifier,
+    // ^
     dustPilesModifier,
   ]);
 

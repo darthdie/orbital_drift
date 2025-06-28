@@ -13,8 +13,7 @@ import mercuryChunksTab from './layers/mercury/chunks';
 import solar from "./layers/solar";
 import Node from "components/Node.vue";
 import Spacer from "components/layout/Spacer.vue";
-import dustLayer from './layers/mercury/dust';
-import chunksLayer from './layers/mercury/chunks';
+import acceleratorsTab from './layers/mercury/accelerators';
 
 /* planet mechanic themes
 mercury: acceleration
@@ -98,7 +97,7 @@ export const main = createLayer("main", layer => {
 export const getInitialLayers = (
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   player: Partial<Player>
-): Array<Layer> => [main, solar, mercury, mercuryDustTab, mercuryChunksTab];
+): Array<Layer> => [main, solar, mercury, mercuryDustTab, mercuryChunksTab, acceleratorsTab];
 
 /**
  * A computed ref whose value is true whenever the game is over.

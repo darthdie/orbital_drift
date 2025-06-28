@@ -3,27 +3,26 @@
  * @hidden
  */
 import { createReset } from "features/reset";
-import { createResource, trackTotal } from "features/resources/resource";
+import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { createLayerTreeNode } from "../common";
-import { computed, ref, unref, watch } from "vue";
+import { computed, unref } from "vue";
 import Decimal, { format } from "util/bignum";
-import { noPersist, persistent } from "game/persistence";
-import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
+import { noPersist } from "game/persistence";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import dustTab from './mercury/dust';
 import chunksTab from './mercury/chunks';
-import { createAchievement } from "features/achievements/achievement";
-import { createCountRequirement } from "game/requirements";
 import { Conversion } from "features/conversion";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
 import milestones from './mercury/milestones';
+import accelerators from './mercury/accelerators';
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -119,6 +118,11 @@ const layer = createLayer(id, baseLayer => {
       tab: createTab(() => ({
         display: chunksTab.display
       }))
+    }),
+    accelerators: () => ({
+      visibility: dustTab.unlocks.accelerators.bought,
+      display: "Accelerators",
+      tab: createTab(() => ({ display: accelerators.display }))
     }),
     milestones: () => {
       return {
