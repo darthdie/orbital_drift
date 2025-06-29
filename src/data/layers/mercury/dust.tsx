@@ -123,7 +123,31 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`,
       }
     })),
+  };
 
+  const chunkingTimeModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: acceleratorUpgrades.chunkingTime.bought,
+      multiplier: () => {
+        console.log({ hrm: Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1).toString() })
+        return Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1);
+      }
+    }))
+  ])
+
+  const acceleratorUpgrades = {
+    chunkingTime: createUpgrade(() => ({
+      visibility: () => acceleratorsLayer.dustUpgrades.first.bought.value,
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1e34)
+      })),
+      display: {
+        title: "It's Chunkin' time",
+        description: `Multiply "Killin' Time" based on chunks`,
+        effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+      }
+    }))
   }
 
   const repeatables = {
@@ -313,7 +337,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const killingTimeModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.killingTime.bought,
-      addend: () => Decimal.divide(timeSinceReset.value, 1000).times(0.1)
+      addend: (): Decimal => Decimal.divide(timeSinceReset.value, 1000).times(0.1).times(chunkingTimeModifier.apply(1))
     }))
   ]);
 
@@ -461,6 +485,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     slippingTimeModifier,
     repeatables,
     basicUpgrades,
+    acceleratorUpgrades,
     totalTimeModifier: seasonedDustModifier,
     accelerationModifier,
     collisionCourseEffect,
@@ -486,10 +511,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           {chunkArray(Object.values(repeatables), 4).map(group => renderRow.apply(null, group))}
         </Column>
         <Spacer />
+
+        <h4>Upgrades</h4>
         <Column>
           {chunkArray(Object.values(basicUpgrades), 4).map(group => renderRow.apply(null, group))}
         </Column>
+        <Column>
+          {chunkArray(Object.values(acceleratorUpgrades), 4).map(group => renderRow.apply(null, group))}
+        </Column>
         <Spacer/>
+
+        <h4>Unlocks</h4>
         <Column>
           {chunkArray(Object.values(unlocks), 4).map(group => renderRow.apply(null, group))}
         </Column>
