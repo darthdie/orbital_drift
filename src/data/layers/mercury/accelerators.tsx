@@ -44,7 +44,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const dustBuyable = createRepeatable(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({
       resource: noPersist(dustLayer.mercurialDust),
-      cost: () => Formula.variable(dustBuyable.amount.value).pow_base(5).times(5e5).evaluate()
+      cost: () => Formula.variable(dustBuyable.amount.value).pow_base(5.3).times(5e5).evaluate()
     })),
     clickableStyle: {
       minHeight: '40px',
@@ -68,7 +68,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     progress: 0.5
   }));
 
-  const dustTimerMax = computed(() => Decimal.div(120, dustTimerMaxModifier.evaluate()))
+  const dustTimerMax = computed(() => Decimal.div(120, dustTimerMaxModifier.value))
 
   baseLayer.on("preUpdate", (diff) => {
     dustTimer.value = Decimal.add(dustTimer.value, Decimal.times(1, diff));
@@ -98,7 +98,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     return Decimal.times(1, dustAcceleratorGainModifier.apply(1));
   })
 
-  const dustTimerMaxModifier = Formula.variable(dustBuyable.amount).log10().clampMin(1);
+  const dustTimerMaxModifier = computed(() => {
+    if (Decimal.gt(dustBuyable.amount.value, 0)) {
+      return new Decimal(dustBuyable.amount.value).mul(0.025).add(1).clampMin(1);
+    }
+    
+    return Decimal.dOne;
+  });
 
   const dustAcceleratorLevelBuyable = createRepeatable(() => ({
     limit: 3,
