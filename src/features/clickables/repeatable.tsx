@@ -14,7 +14,7 @@ import Decimal, { formatWhole } from "util/bignum";
 import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { isJSXElement, render, Renderable, VueFeature, vueFeatureMixin } from "util/vue";
-import type { MaybeRef, MaybeRefOrGetter, Ref } from "vue";
+import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref } from "vue";
 import { computed, unref } from "vue";
 import { ClickableOptions } from "./clickable";
 
@@ -42,6 +42,7 @@ export interface RepeatableOptions extends ClickableOptions {
               /** Whether or not to show the current amount of this repeatable at the bottom of the display. */
               showAmount?: boolean;
           };
+    clickableStyle?: MaybeRef<CSSProperties>;
 }
 
 /** An object that represents a feature with multiple "levels" with scaling requirements. */
@@ -82,6 +83,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             limit,
             onClick,
             initialAmount,
+            clickableStyle,
             ...props
         } = options;
 
@@ -96,6 +98,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
         }
         const vueFeature = vueFeatureMixin("repeatable", options, () => (
             <Clickable
+                style={repeatable.clickableStyle}
                 canClick={repeatable.canClick}
                 onClick={repeatable.onClick}
                 onHold={repeatable.onClick}
@@ -169,6 +172,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             amount,
             requirements,
             initialAmount,
+            clickableStyle,
             limit: processGetter(limit) ?? Decimal.dInf,
             classes: computed(() => {
                 const currClasses = unref(vueFeature.classes) || {};

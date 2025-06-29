@@ -5,7 +5,7 @@ import { createBar } from "features/bars/bar";
 import { createRepeatable } from "features/clickables/repeatable";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist, persistent } from "game/persistence";
-import { CostRequirementOptions, createCostRequirement, displayRequirements } from "game/requirements";
+import { CostRequirementOptions, createCostRequirement, createCountRequirement, displayRequirements } from "game/requirements";
 import { Direction } from "util/common";
 import { render, renderCol, renderRow } from "util/vue";
 import dustLayer from './dust';
@@ -14,10 +14,11 @@ import { createResource, Resource } from "features/resources/resource";
 import { format } from "util/bignum";
 import Formula from "game/formulas/formulas";
 import { computed, MaybeRefOrGetter, unref } from "vue";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { createTabFamily, TabFamilyOptions } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createResetButton } from "data/common";
+import { chunkArray, createResetButton } from "data/common";
+import { createUpgrade } from "features/clickables/upgrade";
 
 const id = "Ma";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -30,8 +31,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     width: 256
   };
 
-  const dustAccelerators= createResource<DecimalSource>(0, "Dust Accelerators");
-  // const timerMax = 120;
+  const dustAccelerators = createResource<DecimalSource>(0, "Dust Accelerators");
   const dustTimer = createResource<DecimalSource>(0);
   const chunkAccelerators = createResource<DecimalSource>(0);
   const timeAccelerators = createResource<DecimalSource>(0);
@@ -41,7 +41,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     progress: () => Decimal.div(dustTimer.value, dustTimerMax.value)
   }));
 
-  // dustBuyable.amount.value.add(100).pow(1.3)
   const dustBuyable = createRepeatable(() => ({
     requirements: createCostRequirement((): CostRequirementOptions => ({
       resource: noPersist(dustLayer.mercurialDust),
@@ -53,7 +52,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     },
     display: () => (<>
       <div>
-          {displayRequirements(dustBuyable.requirements, unref(dustBuyable.amountToIncrease))}
+        {dustBuyable.amount.value}
+        {displayRequirements(dustBuyable.requirements, unref(dustBuyable.amountToIncrease))}
       </div>
     </>)
   }));
@@ -73,27 +73,61 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   baseLayer.on("preUpdate", (diff) => {
     dustTimer.value = Decimal.add(dustTimer.value, Decimal.times(1, diff));
 
-    // mul(0.075).add(1)
-
     if (Decimal.gte(dustTimer.value, dustTimerMax.value)) {
       dustTimer.value = 0;
-      dustAccelerators.value = Decimal.add(dustAccelerators.value, 1);
+      dustAccelerators.value = Decimal.add(dustAccelerators.value, dustAcceleratorsGainComputed.value);
     }
   });
 
   const dustBuyableGainModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      enabled: () => Decimal.gt(dustBuyable.amount.value, 0),
-      multiplier: () => new Decimal(dustAccelerators.value).pow(0.01),
+      enabled: () => Decimal.gt(dustAccelerators.value, 0),
+      multiplier: () => new Decimal(dustAccelerators.value).pow(0.01).clampMin(1),
       description: "Dust Accelerators"
     }))
   ]);
 
-  const dustTimerMaxModifier = Formula.variable(dustBuyable.amount).mul(0.01).add(1);
+  const dustAcceleratorGainModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+      enabled: () => Decimal.gt(dustAccelerators.value, 0),
+      multiplier: () => new Decimal(dustAccelerators.value).pow(0.05).clampMin(1)
+    }))
+  ]);
 
-  // const dustAcceleratorResetButton = createResetButton(() => ({
+  const dustAcceleratorsGainComputed = computed(() => {
+    return Decimal.times(1, dustAcceleratorGainModifier.apply(1));
+  })
 
-  // }))
+  const dustTimerMaxModifier = Formula.variable(dustBuyable.amount).log10().clampMin(1);
+
+  const dustAcceleratorLevelBuyable = createRepeatable(() => ({
+    limit: 3,
+    requirements: createCostRequirement((): CostRequirementOptions => ({
+      requiresPay: false,
+      resource: noPersist(dustAccelerators),
+      cost: Formula.variable(dustAcceleratorLevelBuyable.amount).pow_base(1e1).times(100)
+    })),
+    display: {
+      title: "Refine",
+      description: "Reset Dust Accelerators to unlock a new effect."
+    },
+    onClick: () => {
+      dustAccelerators.value = 0;
+    }
+  }));
+
+  const dustUpgrades = {
+    first: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(dustAccelerators),
+        cost: Decimal.fromNumber(10)
+      })),
+      display: {
+        title: "Speed Dust",
+        description: "Unlock more Dust upgrades"
+      }
+    })),
+  };
 
   const tabs = createTabFamily<TabFamilyOptions>({
     dust: () => ({
@@ -101,7 +135,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       tab: createTab(() => ({
         display: () => (<>
           <h2>{format(dustAccelerators.value)} Dust Accelerators</h2>
-          <h6>You are gaining 1 every {format(dustTimerMax.value)} seconds.</h6>
+          <h6>You are gaining {format(dustAcceleratorsGainComputed.value)} every {format(dustTimerMax.value)} seconds.</h6>
           <Spacer/>
 
           {render(dustBar)}
@@ -114,9 +148,20 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
           <h4>Effects</h4>
           <h5>Granting a x{format(dustBuyableGainModifier.apply(1))} boost to Dust gain.</h5>
+          {
+            Decimal.gt(dustAcceleratorLevelBuyable.amount.value, 0) ?
+              <h5>Granting a x{format(dustAcceleratorGainModifier.apply(1))} boost to accelerators gain.</h5> :
+              null
+          }
+          <Spacer/>
+          
+          {render(dustAcceleratorLevelBuyable)}
 
           <Spacer/>
           <h4>Upgrades</h4>
+          <Column>
+            {chunkArray(Object.values(dustUpgrades), 4).map(group => renderRow.apply(null, group))}
+          </Column>
         </>)
       }))
     }),
@@ -141,6 +186,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     chunkAccelerators,
     timeAccelerators,
     dustBuyableGainModifier,
+    dustAcceleratorLevelBuyable,
+    dustUpgrades,
     tabs,
     display: () => (<>
       <h4>You have ${0} mercurial chunks.</h4>

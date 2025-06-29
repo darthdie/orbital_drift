@@ -247,14 +247,21 @@ export function createCostRequirement<T extends CostRequirementOptions>(optionsF
  * @param optionsFunc Cost requirement options.
  */
 export function createCountRequirement(
-    count: MaybeRef<DecimalSource>,
-    required: MaybeRef<DecimalSource>
+    count: MaybeRefOrGetter<DecimalSource>,
+    required: MaybeRefOrGetter<DecimalSource>
 ) {
-    return createLazyProxy(() => ({
-        requirementMet: computed(() => Decimal.gte(unref(count), unref(required))),
-        requiresPay: false,
-        visibility: false
-    }));
+    return createLazyProxy(() => {
+        const refCount = processGetter(count);
+        const refRequired = processGetter(required);
+
+        
+
+        return {
+            requirementMet: computed(() => Decimal.gte(unref(refCount), unref(refRequired))),
+            requiresPay: false,
+            visibility: false
+        };
+    });
 };
 
 /**
