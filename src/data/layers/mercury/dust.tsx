@@ -48,7 +48,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "The Messenger God",
-        description: "Increase time speed in this layer by x1.5"
+        description: (): string => `Increase time speed in this layer by x${format(messengerGodModifier.apply(1))}`
       }
     })),
 
@@ -128,23 +128,40 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const chunkingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       enabled: acceleratorUpgrades.chunkingTime.bought,
-      multiplier: () => {
-        console.log({ hrm: Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1).toString() })
-        return Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1);
-      }
+      multiplier: () => Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1)
     }))
-  ])
+  ]);
+
+  const fedexManagerModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: acceleratorUpgrades.fedexManager.bought,
+      multiplier: () => Decimal.fromValue(chunksLayer.totalChunks.value).log2().clampMin(1)
+    }))
+  ]);
 
   const acceleratorUpgrades = {
     chunkingTime: createUpgrade(() => ({
       visibility: () => acceleratorsLayer.dustUpgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1e34)
+        cost: Decimal.fromNumber(1e31)
       })),
       display: {
         title: "It's Chunkin' time",
         description: `Multiply "Killin' Time" based on chunks`,
+        effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+      }
+    })),
+
+    fedexManager: createUpgrade(() => ({
+      visibility: () => acceleratorsLayer.dustUpgrades.first.bought.value,
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1e32)
+      })),
+      display: {
+        title: "FedEx Manager",
+        description: `Multiply "The Messenger God" based on chunks`,
         effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
       }
     }))
@@ -239,9 +256,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }))
   ]);
 
-  const baseTimeRateModifier = createSequentialModifier(() => [
+  const messengerGodModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
-      multiplier: 1.5,
+      multiplier: () => Decimal.fromNumber(1.5).times(fedexManagerModifier.apply(1)),
       enabled: basicUpgrades.messengerGodUpgrade.bought,
       description: "Messenger God"
     })),
@@ -278,7 +295,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     // *
     milestonesLayer.firstMilestoneModifier,
     slippingTimeModifier,
-    baseTimeRateModifier,
+    messengerGodModifier,
     // ^
     collisionCourseModifier,
     createExponentialModifier(() => ({

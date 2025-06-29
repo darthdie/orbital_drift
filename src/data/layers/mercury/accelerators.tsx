@@ -82,7 +82,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const dustBuyableGainModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: () => Decimal.gt(dustAccelerators.value, 0),
-      multiplier: () => new Decimal(dustAccelerators.value).pow(0.05).clampMin(1),
+      multiplier: () => Decimal.add(dustAccelerators.value, 1).pow(0.05).clampMin(1),
       description: "Dust Accelerators"
     }))
   ]);
@@ -90,7 +90,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const dustAcceleratorGainModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: () => Decimal.gt(dustAcceleratorLevelBuyable.amount.value, 0),
-      multiplier: () => new Decimal(dustAccelerators.value).pow(0.1).clampMin(1)
+      multiplier: () => Decimal.add(dustAccelerators.value, 1).pow(0.1).clampMin(1)
     }))
   ]);
 
