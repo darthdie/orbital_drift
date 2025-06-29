@@ -112,13 +112,12 @@ export function createTabFamily<T extends TabFamilyOptions>(
                 const options = tabs[tab]();
                 const { tab: buttonTab, glowColor, display, ...props } = options;
 
-                console.log({ options: options })
-
                 const tabButton = {
                     type: TabButtonType,
                     ...(props as Omit<typeof props, keyof VueFeature | keyof TabButtonOptions>),
                     ...vueFeatureMixin("tabButton", options, () => (
                         <TabButton
+                            floating={tabFamily.floating}
                             style={tabFamily.buttonStyle}
                             display={tabButton.display}
                             glowColor={tabButton.glowColor}

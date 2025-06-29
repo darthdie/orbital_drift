@@ -124,6 +124,8 @@ const tabStyle = computed(() => {
 .tab-buttons-container.floating .tab-buttons {
     justify-content: center;
     margin-top: -25px;
+
+    gap: 24px;
 }
 
 .tab-buttons {

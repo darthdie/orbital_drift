@@ -14,6 +14,7 @@ import { computed, CSSProperties, MaybeRef, unref } from "vue";
 
 const props = defineProps<{
     display: MaybeGetter<Renderable>;
+    floating?: MaybeRef<boolean>;
     glowColor?: MaybeRef<string>;
     active?: boolean;
     style?: MaybeRef<CSSProperties>;
@@ -26,26 +27,25 @@ const emit = defineEmits<{
 const Component = () => render(props.display);
 
 const styles = computed(() => {
-    console.log(props.style)
+    const color = unref(props.glowColor);
+    console.log({ color })
+    let motherfucker = {}
+    if (!!color) {
+        motherfucker = { boxShadow: `0px 9px 5px -6px ${color}` };
+    }
+
+    if (unref(props.active) && floating.value) {
+        motherfucker = getNotifyStyle(color);
+    }
+
     return {
     ...props.style,
-    ...glowColorStyle
+    ...motherfucker
 }
 });
 
-const glowColorStyle = computed(() => {
-    const color = unref(props.glowColor);
-    if (color == null || color === "") {
-        return {};
-    }
-    if (floating.value) {
-        return getNotifyStyle(color);
-    }
-    return { boxShadow: `0px 9px 5px -6px ${color}` };
-});
-
 const floating = computed(() => {
-    return themes[settings.theme].floatingTabs;
+    return themes[settings.theme].floatingTabs || props.floating;
 });
 
 function selectTab() {

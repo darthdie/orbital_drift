@@ -300,7 +300,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     collisionCourseModifier,
     createExponentialModifier(() => ({
       exponent: () => milestonesLayer.fourthMilestoneModifier.value
-    }))
+    })),
   ]);
 
   const unlocks = {
@@ -368,6 +368,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     acceleratorsLayer.dustBuyableGainModifier,
     // ^
     dustPilesModifier,
+    createExponentialModifier(() => ({
+      exponent: () => acceleratorsLayer.dustAcceleratorDustRaiseEffect.value
+    }))
   ]);
 
   const conversion = createCumulativeConversion(() => {
