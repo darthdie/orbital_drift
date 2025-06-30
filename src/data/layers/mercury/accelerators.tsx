@@ -4,17 +4,17 @@ import Spacer from "components/layout/Spacer.vue";
 import { createBar } from "features/bars/bar";
 import { createRepeatable } from "features/clickables/repeatable";
 import { BaseLayer, createLayer } from "game/layers";
-import { noPersist, persistent } from "game/persistence";
-import { CostRequirementOptions, createCostRequirement, createCountRequirement, displayRequirements } from "game/requirements";
+import { noPersist } from "game/persistence";
+import { CostRequirementOptions, createCostRequirement, displayRequirements } from "game/requirements";
 import { Direction } from "util/common";
-import { render, renderCol, renderRow } from "util/vue";
+import { joinJSX, render, renderRow } from "util/vue";
 import dustLayer from './dust';
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { createResource, Resource } from "features/resources/resource";
+import { createResource } from "features/resources/resource";
 import { format } from "util/bignum";
 import Formula from "game/formulas/formulas";
-import { computed, MaybeRefOrGetter, unref } from "vue";
-import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { computed, unref } from "vue";
+import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import { createTabFamily, TabFamilyOptions } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { chunkArray, createResetButton } from "data/common";
@@ -31,203 +31,219 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     width: 256
   };
 
-  const dustAccelerators = createResource<DecimalSource>(0, "Dust Accelerators");
-  const dustTimer = createResource<DecimalSource>(0);
-  const chunkAccelerators = createResource<DecimalSource>(0);
-  const timeAccelerators = createResource<DecimalSource>(0);
+  const dustAccelerator = {
+    timer: createResource<DecimalSource>(0),
+    resource: createResource<DecimalSource>(0, "Dust Accelerators"),
 
-  const dustBar = createBar(() => ({
-    ...sharedBarSettings,
-    progress: () => Decimal.div(dustTimer.value, dustTimerMax.value)
-  }));
+    gainComputed: computed((): Decimal => {
+      return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1));
+    }),
 
-  const dustBuyable = createRepeatable(() => ({
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      resource: noPersist(dustLayer.mercurialDust),
-      cost: () => Formula.variable(dustBuyable.amount.value).pow_base(5.3).times(5e5).evaluate(),
-      requiresPay: false,
+    bar: createBar(() => ({
+      ...sharedBarSettings,
+      progress: (): Decimal => Decimal.div(dustAccelerator.timer.value, dustAccelerator.timerMax.value)
     })),
-    clickableStyle: {
-      minHeight: '0',
-      width: 'fit-content',
-      paddingLeft: '12px',
-      paddingRight: '12px'
+
+    intervalBuyable: createRepeatable(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(dustLayer.mercurialDust),
+        cost: () => Formula.variable(dustAccelerator.intervalBuyable.amount.value).pow_base(5.3).times(5e5).evaluate(),
+        requiresPay: false,
+      })),
+      clickableStyle: {
+        minHeight: '0',
+        width: 'fit-content',
+        paddingLeft: '12px',
+        paddingRight: '12px'
+      },
+      display: () => (<>
+        <div>
+          Decrease timer interval<br />
+          Currently: {format(dustAccelerator.dustAcceleratorTimerMaxEffect.value)}
+          {displayRequirements(dustAccelerator.intervalBuyable.requirements, unref(dustAccelerator.intervalBuyable.amountToIncrease))}
+        </div>
+      </>)
+    })),
+
+    timerMax: computed((): Decimal => {
+      return Decimal.div(120, dustAccelerator.dustAcceleratorTimerMaxEffect.value).div(dustAccelerator.dustUpgradeTimerMaxEffect.value);
+    }),
+
+    isAtLeastLevelOne: computed((): boolean => Decimal.gte(dustAccelerator.levelBuyable.amount.value, 1)),
+    isAtLeastLevelTwo: computed((): boolean => Decimal.gte(dustAccelerator.levelBuyable.amount.value, 2)),
+    isAtLeastLevelThree: computed((): boolean => Decimal.gte(dustAccelerator.levelBuyable.amount.value, 3)),
+
+    dustGainMultiplierModifier: createSequentialModifier(() => [
+      createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+        enabled: () => Decimal.gt(dustAccelerator.resource.value, 0),
+        multiplier: () => Decimal.add(dustAccelerator.resource.value, 1).pow(0.25).clampMin(1),
+        description: "Dust Accelerators"
+      }))
+    ]),
+
+    dustAcceleratorGainModifier: createSequentialModifier(() => [
+      createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+        enabled: () => dustAccelerator.isAtLeastLevelOne.value,
+        multiplier: () => Decimal.add(dustAccelerator.resource.value, 1).pow(0.2).clampMin(1)
+      }))
+    ]),
+
+    dustAcceleratorDustRaiseEffect: computed((): Decimal => {
+      if (dustAccelerator.isAtLeastLevelTwo.value) {
+        return Decimal.add(dustAccelerator.resource.value, 1).slog().pow(0.1).clampMin(1);
+      }
+
+      return Decimal.dOne;
+    }),
+
+    dustAcceleratorsGainComputed: computed((): Decimal => {
+      return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1));
+    }),
+
+    dustUpgradeTimerMaxEffect: computed((): Decimal => {
+      if (dustAccelerator.upgrades.second.bought.value) {
+        return Decimal.add(dustAccelerator.resource.value, 1).log10().pow(0.5).clampMin(1);
+      }
+
+      return Decimal.dOne;
+    }),
+
+    dustAcceleratorTimerMaxEffect: computed((): Decimal => {
+      if (Decimal.gt(dustAccelerator.intervalBuyable.amount.value, 0)) {
+        return Decimal.mul(dustAccelerator.intervalBuyable.amount.value, 0.025).add(1).clampMin(1);
+      }
+
+      return Decimal.dOne;
+    }),
+
+    dustBuyableCapEffect: computed((): Decimal => {
+      return Decimal.add(dustAccelerator.resource.value, 1).log2().sqrt().floor().clampMin(1);
+    }),
+
+    levelBuyable: createRepeatable(() => ({
+      limit: 3,
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        requiresPay: false,
+        resource: noPersist(dustAccelerator.resource),
+        cost: Formula.variable(dustAccelerator.levelBuyable.amount).pow_base(5).times(100)
+      })),
+      display: {
+        title: "Refine",
+        description: "Reset Dust Accelerators to unlock a new effect."
+      },
+      onClick: () => {
+        dustAccelerator.resource.value = 0;
+      }
+    })),
+
+    upgrades: {
+      first: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(dustAccelerator.resource),
+          cost: Decimal.fromNumber(10)
+        })),
+        display: {
+          title: "Speed Dust",
+          description: "Unlock more Dust upgrades"
+        }
+      })),
+
+      second: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(dustAccelerator.resource),
+          cost: Decimal.fromNumber(25)
+        })),
+        display: {
+          title: "Accelerating the Accelerator",
+          description: "Decrease timer interval based on accelerators",
+          effectDisplay: (): string => `/${format(dustAccelerator.dustUpgradeTimerMaxEffect.value)}`
+        }
+      })),
+
+      chunksUnlock: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(dustAccelerator.resource),
+          cost: Decimal.fromNumber(100)
+        })),
+        display: {
+          title: "je ne sais chunks",
+          description: "Unlock Chunk Accelerators",
+        }
+      }))
     },
-    display: () => (<>
-      <div>
-        Decrease timer interval<br/>
-        Currently: {format(dustAcceleratorTimerMaxEffect.value)}
-        {displayRequirements(dustBuyable.requirements, unref(dustBuyable.amountToIncrease))}
-      </div>
-    </>)
-  }));
 
-  const chunksBar = createBar(() => ({
-    ...sharedBarSettings,
-    progress: 0.5
-  }));
+    tick: (diff: number) => {
+      dustAccelerator.timer.value = Decimal.add(
+        dustAccelerator.timer.value,
+        Decimal.times(1, diff)
+      );
 
-  const timeBar = createBar(() => ({
-    ...sharedBarSettings,
-    progress: 0.5
-  }));
+      if (Decimal.gte(dustAccelerator.timer.value, dustAccelerator.timerMax.value)) {
+        dustAccelerator.timer.value = 0;
+        dustAccelerator.resource.value = Decimal.add(dustAccelerator.resource.value, dustAccelerator.gainComputed.value);
+      }
+    },
 
-  const dustTimerMax = computed(() => {
-    return Decimal.div(120, dustAcceleratorTimerMaxEffect.value).div(dustUpgradeTimerMaxEffect.value);
-  });
+    levelEffectsDisplay: () => {
+      const effects = [
+        <h5>A x{format(dustAccelerator.dustGainMultiplierModifier.apply(1))} boost to Dust gain.</h5>
+      ];
+
+      if (dustAccelerator.isAtLeastLevelOne.value) {
+        effects.push(<h5>A x{format(dustAccelerator.dustAcceleratorGainModifier.apply(1))} boost to accelerators gain.</h5>)
+      }
+
+      if (dustAccelerator.isAtLeastLevelTwo.value) {
+        effects.push(<h5>A ^{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} boost to dust gain.</h5>)
+      }
+
+      if (dustAccelerator.isAtLeastLevelThree.value) {
+        effects.push(<h5>Adding +{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} to Dust buyable caps.</h5>)
+      }
+      
+      return joinJSX(effects, <></>);
+    }
+  }
 
   baseLayer.on("preUpdate", (diff) => {
-    dustTimer.value = Decimal.add(dustTimer.value, Decimal.times(1, diff));
-
-    if (Decimal.gte(dustTimer.value, dustTimerMax.value)) {
-      dustTimer.value = 0;
-      dustAccelerators.value = Decimal.add(dustAccelerators.value, dustAcceleratorsGainComputed.value);
-    }
+    dustAccelerator.tick(diff);
   });
-
-  const isAtLeastLevelOne = computed(() => Decimal.gt(dustAcceleratorLevelBuyable.amount.value, 0));
-  const isAtLeastLevelTwo = computed(() => Decimal.gt(dustAcceleratorLevelBuyable.amount.value, 1));
-
-  const dustBuyableGainModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier(() => ({
-      enabled: () => Decimal.gt(dustAccelerators.value, 0),
-      multiplier: () => Decimal.add(dustAccelerators.value, 1).pow(0.25).clampMin(1),
-      description: "Dust Accelerators"
-    }))
-  ]);
-
-  const dustAcceleratorGainModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier(() => ({
-      enabled: () => isAtLeastLevelOne.value,
-      multiplier: () => Decimal.add(dustAccelerators.value, 1).pow(0.2).clampMin(1)
-    }))
-  ]);
-
-  const dustAcceleratorDustRaiseEffect = computed(() => {
-    if (isAtLeastLevelTwo.value) {
-      return Decimal.add(dustAccelerators.value, 1).slog().pow(0.1).clampMin(1);
-    }
-
-    return Decimal.dOne;
-  });
-
-  const dustAcceleratorsGainComputed = computed(() => {
-    return Decimal.times(1, dustAcceleratorGainModifier.apply(1));
-  })
-
-  const dustUpgradeTimerMaxEffect = computed(() => {
-    if (dustUpgrades.second.bought.value) {
-      return Decimal.add(dustAccelerators.value, 1).log10().pow(0.5).clampMin(1);
-    }
-
-    return Decimal.dOne;
-  })
-
-  const dustAcceleratorTimerMaxEffect = computed(() => {
-    if (Decimal.gt(dustBuyable.amount.value, 0)) {
-      return Decimal.mul(dustBuyable.amount.value, 0.025).add(1).clampMin(1);
-    }
-    
-    return Decimal.dOne;
-  });
-
-  const dustAcceleratorLevelBuyable = createRepeatable(() => ({
-    limit: 3,
-    requirements: createCostRequirement((): CostRequirementOptions => ({
-      requiresPay: false,
-      resource: noPersist(dustAccelerators),
-      cost: Formula.variable(dustAcceleratorLevelBuyable.amount).pow_base(1e1).times(100)
-    })),
-    display: {
-      title: "Refine",
-      description: "Reset Dust Accelerators to unlock a new effect."
-    },
-    onClick: () => {
-      dustAccelerators.value = 0;
-    }
-  }));
-
-  const dustUpgrades = {
-    first: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(dustAccelerators),
-        cost: Decimal.fromNumber(10)
-      })),
-      display: {
-        title: "Speed Dust",
-        description: "Unlock more Dust upgrades"
-      }
-    })),
-
-    second: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(dustAccelerators),
-        cost: Decimal.fromNumber(25)
-      })),
-      display: {
-        title: "Accelerating the Accelerator",
-        description: "Decrease timer interval based on accelerators",
-        effectDisplay: () => `/${format(dustUpgradeTimerMaxEffect.value)}`
-      }
-    })),
-
-    three: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(dustAccelerators),
-        cost: Decimal.fromNumber(100)
-      })),
-      display: {
-        title: "je ne sais chunks",
-        description: "Unlock Chunk Accelerators",
-      }
-    }))
-  };
 
   const tabs = createTabFamily<TabFamilyOptions>({
     dust: () => ({
       display: "Dust",
       tab: createTab(() => ({
         display: () => (<>
-          <h2>{format(dustAccelerators.value)} Dust Accelerators</h2>
-          <h6>You are gaining {format(dustAcceleratorsGainComputed.value)} every {format(dustTimerMax.value)} seconds.</h6>
-          <Spacer/>
+          <h2>{format(dustAccelerator.resource.value)} Dust Accelerators</h2>
+          <h6>You are gaining {format(dustAccelerator.gainComputed.value)} every {format(dustAccelerator.timerMax.value)} seconds.</h6>
+          <Spacer />
 
-          {render(dustBar)}
-          <Spacer/>
+          {render(dustAccelerator.bar)}
+          <Spacer />
 
           <h4>You have {format(dustLayer.mercurialDust.value)} mercurial dust.</h4>
           <Row>
-            {render(dustBuyable)}
+            {render(dustAccelerator.intervalBuyable)}
           </Row>
-          <Spacer/>
+          <Spacer />
 
           <h4>Granting you:</h4>
-          <h5>A x{format(dustBuyableGainModifier.apply(1))} boost to Dust gain.</h5>
-          {
-            isAtLeastLevelOne.value ?
-              <h5>A x{format(dustAcceleratorGainModifier.apply(1))} boost to accelerators gain.</h5> :
-              null
-          }
-          {
-              isAtLeastLevelTwo.value ?
-              <h5>A ^{format(dustAcceleratorDustRaiseEffect.value)} boost to dust gain.</h5> :
-              null
-          }
-          <Spacer/>
-          
-          {render(dustAcceleratorLevelBuyable)}
+          {render(dustAccelerator.levelEffectsDisplay)}
+          <Spacer />
 
-          <Spacer/>
+          {render(dustAccelerator.levelBuyable)}
+
+          <Spacer />
           <h4>Upgrades</h4>
           <Column>
-            {chunkArray(Object.values(dustUpgrades), 4).map(group => renderRow.apply(null, group))}
+            {chunkArray(Object.values(dustAccelerator.upgrades), 4).map(group => renderRow.apply(null, group))}
           </Column>
         </>)
       }))
     }),
     chunks: () => ({
       display: "Chunks",
-      visibility: dustUpgrades.three.bought,
+      visibility: dustAccelerator.upgrades.chunksUnlock.bought,
       tab: createTab(() => ({
         display: () => (<>butts</>)
       }))
@@ -244,48 +260,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     id,
     name,
     color,
-    dustBar,
-    chunksBar,
-    timeBar,
-    dustBuyable,
-    dustTimer,
-    dustAccelerators,
-    chunkAccelerators,
-    timeAccelerators,
-    dustBuyableGainModifier,
-    dustAcceleratorLevelBuyable,
-    dustUpgrades,
-    dustAcceleratorDustRaiseEffect,
+    dustAccelerator,
     tabs,
-    display: () => (<>
-      <h4>You have ${0} mercurial chunks.</h4>
-      <h4>You have ?time?.</h4>
-
-      {render(tabs)}
-
-      <div class="row" style="gap: 16px;">
-
-
-        {/* <div style="display: flex; gap: 8px;">
-          {render(chunksBar)}
-          <div style="text-align: start; margin: 0; margin-top: 6px;">
-            <h2>{format(chunkAccelerators.value)} Chunks</h2>
-            <h4>Granting a x1 boost to Chunks gain?</h4>
-          </div>
-        </div> */}
-      </div>
-
-      {/* <div class="row" style="gap: 16px; margin-top: 16px;">
-        <div style="display: flex; gap: 8px;">
-          {render(timeBar)}
-          <div style="text-align: start; margin: 0; margin-top: 6px;">
-            <h2>{format(timeAccelerators.value)} Time</h2>
-            <h4>Granting a x1 boost to the rate of time.</h4>
-          </div>
-        </div>
-        <div></div>
-      </div> */}
-    </>)
+    display: () => (<>{render(tabs)}</>)
   }
 });
 

@@ -141,7 +141,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const acceleratorUpgrades = {
     chunkingTime: createUpgrade(() => ({
-      visibility: () => acceleratorsLayer.dustUpgrades.first.bought.value,
+      visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Decimal.fromNumber(1e31)
@@ -154,7 +154,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     fedexManager: createUpgrade(() => ({
-      visibility: () => acceleratorsLayer.dustUpgrades.first.bought.value,
+      visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Decimal.fromNumber(1e32)
@@ -365,11 +365,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     // *
     dustMultiplierModifier,
     accumulatingDustModifier,
-    acceleratorsLayer.dustBuyableGainModifier,
+    acceleratorsLayer.dustAccelerator.dustGainMultiplierModifier,
     // ^
     dustPilesModifier,
     createExponentialModifier(() => ({
-      exponent: () => acceleratorsLayer.dustAcceleratorDustRaiseEffect.value
+      exponent: () => acceleratorsLayer.dustAccelerator.dustAcceleratorDustRaiseEffect.value
     }))
   ]);
 
