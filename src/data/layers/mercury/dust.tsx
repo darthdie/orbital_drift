@@ -5,7 +5,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from '../solar';
 import { computed, ComputedRef, unref, watch } from "vue";
 import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier, createModifierSection, ModifierSectionOptions } from "game/modifiers";
-import { render, renderRow } from "util/vue";
+import { render, renderGroupedObjects, renderRow, renderStyledRow, VueFeature } from "util/vue";
 import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
 import { createCostRequirement, CostRequirementOptions, createVisibilityRequirement, Requirements } from "game/requirements";
@@ -158,12 +158,19 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
   ]);
 
+  const dustBunniesModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: acceleratorUpgrades.dustBunnies.bought,
+      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log2().clampMin(1),
+    }))
+  ]);
+
   const acceleratorUpgrades = {
     chunkingTime: createUpgrade(() => ({
       visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1e31)
+        cost: Decimal.fromNumber(1e30)
       })),
       display: {
         title: "It's Chunkin' time",
@@ -176,11 +183,24 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1e32)
+        cost: Decimal.fromNumber(1e40)
       })),
       display: {
         title: "FedEx Manager",
         description: `Multiply "The Messenger God" based on chunks`,
+        effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+      }
+    })),
+
+    dustBunnies: createUpgrade(() => ({
+      visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1e50)
+      })),
+      display: {
+        title: "Dust Bunnies",
+        description: `Multiply "Accumulating Dust" based on total chunks`,
         effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
       }
     }))
@@ -253,7 +273,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const accumulatingDustModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.acummulatingDust.bought,
-      multiplier: () => Decimal.add(mercurialDust.value, 1).log10().sqrt().clampMin(1),
+      multiplier: (): Decimal => Decimal.add(mercurialDust.value, 1).log10().sqrt().mul(dustBunniesModifier.apply(1)).clampMin(1),
       description: "Accumulating Dust"
     }))
   ]);
@@ -511,6 +531,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     timeSinceReset.value = Decimal.add(timeSinceReset.value, totalDiff);
   });
 
+  const tableStyles = "gap: 8px; margin-bottom: 8px;";
   return {
     name,
     color,
@@ -548,22 +569,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         <Spacer />
         <Spacer />
         <Column>
-          {chunkArray(Object.values(repeatables), 4).map(group => renderRow.apply(null, group))}
+          {renderGroupedObjects(repeatables, 4, tableStyles)}
         </Column>
         <Spacer />
 
         <h4>Upgrades</h4>
         <Column>
-          {chunkArray(Object.values(basicUpgrades), 4).map(group => renderRow.apply(null, group))}
+          {renderGroupedObjects(basicUpgrades, 4, tableStyles)}
         </Column>
         <Column>
-          {chunkArray(Object.values(acceleratorUpgrades), 4).map(group => renderRow.apply(null, group))}
+          {renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}
         </Column>
         <Spacer/>
 
         <h4>Unlocks</h4>
         <Column>
-          {chunkArray(Object.values(unlocks), 4).map(group => renderRow.apply(null, group))}
+          {renderGroupedObjects(unlocks, 4, tableStyles)}
         </Column>
       </>
     ),

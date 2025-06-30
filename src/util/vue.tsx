@@ -11,6 +11,7 @@ import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref } from "vue";
 import { isRef, onUnmounted, ref, toValue } from "vue";
 import { JSX } from "vue/jsx-runtime";
 import { camelToKebab } from "./common";
+import { chunkArray } from "data/common";
 
 export const VueFeature = Symbol("VueFeature");
 
@@ -90,16 +91,22 @@ export function render(
     return wrapper?.(object) ?? object;
 }
 
-export function renderRow(...objects: (VueFeature | MaybeGetter<Renderable>)[]): JSX.Element {
+type RenderableObjectsArray = (VueFeature | MaybeGetter<Renderable>)[];
+
+export function renderRow(...objects: RenderableObjectsArray): JSX.Element {
     return <Row>{objects.map(obj => render(obj))}</Row>;
 }
 
-export function renderCol(...objects: (VueFeature | MaybeGetter<Renderable>)[]): JSX.Element {
+export function renderStyledRow(style: string, klass: string, objects: RenderableObjectsArray) {
+    return <Row style={style} class={klass}>{objects.map(obj => render(obj))}</Row>;
+}
+
+export function renderCol(...objects: RenderableObjectsArray): JSX.Element {
     return <Col>{objects.map(obj => render(obj))}</Col>;
 }
 
 export function joinJSX(
-    objects: (VueFeature | MaybeGetter<Renderable>)[],
+    objects: RenderableObjectsArray,
     joiner: JSX.Element
 ): JSX.Element {
     return objects.reduce<JSX.Element>(
@@ -113,6 +120,47 @@ export function joinJSX(
         <></>
     );
 }
+
+// | Array<{string: boolean}>
+export function classNames(classes: Record<string, boolean>): string[] {
+    return Object.keys(classes)
+        .map(key => classes[key] ? key : null)
+        .filter(className => !!className) as string[];
+}
+
+export function renderGroupedObjects(
+    objects: Record<string, VueFeature> | RenderableObjectsArray,
+    groupSize: number,
+    style?: string,
+    klass?: string
+) {
+    const mergeAdjacent = true;
+
+    const classes = [
+        ...classNames({ "row": true, "mergeAdjacent": mergeAdjacent }),
+        klass
+    ];
+
+    const normalizedObjects = objects instanceof Array ?
+        objects :
+        Object.values(objects);
+
+    const chunkedObjects = chunkArray(normalizedObjects, groupSize);
+
+    return render((<>
+        <div class="table">
+            {
+                chunkedObjects
+                .map(group => <>
+                    <div style={style} class={classes}>
+                        {group.map(object => render(object))}
+                    </div>
+                </>)
+            }
+        </div>
+    </>));
+}
+
 
 export function isJSXElement(element: unknown): element is JSX.Element {
     return (

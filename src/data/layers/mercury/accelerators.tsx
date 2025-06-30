@@ -109,7 +109,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           Formula.variable(Decimal.add(dustAccelerator.resource.value, 1))
             .mul(0.004)
             .add(1)
-            .step(2, f => f.div(32))
+            .step(2, f => f.pow(0.1))
             .evaluate()
         );
       }
@@ -277,7 +277,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       }
     })),
 
-    upgrades: {},
+    upgrades: {
+      moreChunkUpgrades: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(chunkAccelerator.resource),
+          cost: Decimal.fromNumber(10)
+        })),
+      display: {
+        title: "Speed Chunks",
+        description: "Unlock",
+      }
+      })),
+    },
 
     isAtLeastLevelOne: computed((): boolean => Decimal.gte(chunkAccelerator.levelBuyable.amount.value, 1)),
     isAtLeastLevelTwo: computed((): boolean => Decimal.gte(chunkAccelerator.levelBuyable.amount.value, 2)),
