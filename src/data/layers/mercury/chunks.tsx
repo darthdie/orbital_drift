@@ -148,9 +148,9 @@ const layer = createLayer(id, baseLayer => {
         cost: Decimal.fromNumber(45)
       })),
       display: {
-        title: "Colidin' Chunks",
+        title: "Collidin' Chunks",
         description: "Raise collision time rate based on chunks",
-        effectDisplay: () => `^${collidingChunksEffect.value}`
+        effectDisplay: () => `^${format(collidingChunksEffect.value)}`
       }
     }))
   };

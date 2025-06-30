@@ -207,7 +207,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       }
 
       if (dustAccelerator.isAtLeastLevelThree.value) {
-        effects.push(<h5>Adding +{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} to Dust buyable caps.</h5>)
+        effects.push(<h5>Adding +{format(dustAccelerator.dustBuyableCapEffect.value)} to Dust buyable caps.</h5>)
       }
       
       return joinJSX(effects, <></>);
@@ -231,7 +231,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     intervalBuyable: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(chunksLayer.chunks),
-        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(5.3).times(30).evaluate(),
+        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(1.2).times(30).floor().evaluate(),
         requiresPay: false,
       })),
       clickableStyle: {
@@ -250,7 +250,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     timerMax: computed((): Decimal => {
-      return Decimal.div(120, dustAccelerator.dustAcceleratorTimerMaxEffect.value).div(chunkAccelerator.intervalBuyableEffect.value);
+      return Decimal.div(120, chunkAccelerator.intervalBuyableEffect.value).div(chunkAccelerator.intervalBuyableEffect.value);
     }),
 
     intervalBuyableEffect: computed((): Decimal => {

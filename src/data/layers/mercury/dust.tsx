@@ -226,9 +226,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }))
   }
 
+  const buyableCap = computed(() => Decimal.add(30, acceleratorsLayer.dustAccelerator.dustBuyableCapEffect.value));
+
   const repeatables = {
     baseDustTime: createRepeatable(() => ({
-      limit: 30,
+      limit: () => buyableCap.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustTime.amount).pow_base(1.3).times(10)
@@ -244,7 +246,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     baseDustGain: createRepeatable(() => ({
-      limit: 30,
+      limit: () => buyableCap.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(15)
@@ -260,7 +262,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustMultiplier: createRepeatable(() => ({
-      limit: 30,
+      limit: () => buyableCap.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustMultiplier.amount).pow_base(1.3).times(30)
@@ -276,7 +278,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     dustPiles: createRepeatable((): RepeatableOptions => ({
-      limit: 30,
+      limit: () => buyableCap.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
         cost: Formula.variable(repeatables.dustPiles.amount).pow_base(2.5).times(75)
