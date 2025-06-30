@@ -68,7 +68,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     timerMax: computed((): Decimal => {
-      return Decimal.div(120, dustAccelerator.dustAcceleratorTimerMaxEffect.value).div(dustAccelerator.dustUpgradeTimerMaxEffect.value).clampMin(0.1);
+      return Decimal.div(120, dustAccelerator.dustAcceleratorTimerMaxEffect.value).div(dustAccelerator.acceleratingTheAcceleratorEffect.value).clampMin(0.1);
     }),
 
     isAtLeastLevelOne: computed((): boolean => Decimal.gte(dustAccelerator.levelBuyable.amount.value, 1)),
@@ -102,10 +102,16 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1));
     }),
 
-    dustUpgradeTimerMaxEffect: computed((): Decimal => {
+    acceleratingTheAcceleratorEffect: computed((): Decimal => {
       if (dustAccelerator.upgrades.second.bought.value) {
-        // return Decimal.add(dustAccelerator.resource.value, 1).log10().pow(0.5).clampMin(1);
-        return Decimal.add(dustAccelerator.resource.value, 1).mul(0.004).add(1).clampMin(1);
+        // return Decimal.add(dustAccelerator.resource.value, 1).mul(0.004).add(1).clampMin(1);
+        return Decimal.fromValue(
+          Formula.variable(Decimal.add(dustAccelerator.resource.value, 1))
+            .mul(0.004)
+            .add(1)
+            .step(2, f => f.div(32))
+            .evaluate()
+        );
       }
 
       return Decimal.dOne;
@@ -159,7 +165,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         display: {
           title: "Accelerating the Accelerator",
           description: "Decrease timer interval based on accelerators",
-          effectDisplay: (): string => `/${format(dustAccelerator.dustUpgradeTimerMaxEffect.value)}`
+          effectDisplay: (): string => `/${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
         }
       })),
 
