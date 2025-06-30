@@ -102,7 +102,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     dustUpgradeTimerMaxEffect: computed((): Decimal => {
       if (dustAccelerator.upgrades.second.bought.value) {
-        return Decimal.add(dustAccelerator.resource.value, 1).log10().pow(0.5).clampMin(1);
+        // return Decimal.add(dustAccelerator.resource.value, 1).log10().pow(0.5).clampMin(1);
+        return Decimal.add(dustAccelerator.resource.value, 1).mul(0.004).add(1).clampMin(1);
       }
 
       return Decimal.dOne;

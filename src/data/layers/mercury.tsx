@@ -67,7 +67,7 @@ const layer = createLayer(id, baseLayer => {
     })),
   ]);
 
-  const tickAmount = computed(
+  const collisionTimeGainComputed = computed(
     () => new Decimal(1)
       // .add(chunksTab.chuckingChunksModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
@@ -85,7 +85,7 @@ const layer = createLayer(id, baseLayer => {
     collisionTime.value = Decimal.sub(
       collisionTime.value,
       Decimal.times(
-        tickAmount.value,
+        collisionTimeGainComputed.value,
         diff
       )
     ).clampMin(0);
@@ -141,6 +141,7 @@ const layer = createLayer(id, baseLayer => {
     collisionTime,
     maxCollisionTime,
     tabs,
+    collisionTimeGainComputed,
     display: () => (
       <>
         {Decimal.lt(collisionTime.value, 86400) ? (
@@ -149,7 +150,7 @@ const layer = createLayer(id, baseLayer => {
           <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
         )}
 
-        <h4>-{format(tickAmount.value)}/s</h4>
+        <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
         {render(collisionTimeProgressBar)}
         <Spacer/>
         {render(tabs)}

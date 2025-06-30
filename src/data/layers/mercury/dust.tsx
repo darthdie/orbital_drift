@@ -119,10 +119,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: 'Acceleration',
-        description: "Increase collision time rate based on time since last reset",
+        description: "Multiply time until collision rate based on time since last reset",
         effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`,
       }
     })),
+
+    latestUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(25000)
+      })),
+      display: {
+        title: "Acceleration 2: This time it's personal",
+        description: "Multiply last reset time rate based on collision time rate.",
+        effectDisplay: (): string => `x${format(accelerationTwoMultiplierModifier.apply(1))}`,
+      }
+    }))
   };
 
   const chunkingTimeModifier = createSequentialModifier(() => [
@@ -137,6 +149,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       enabled: acceleratorUpgrades.fedexManager.bought,
       multiplier: () => Decimal.fromValue(chunksLayer.totalChunks.value).log2().clampMin(1)
     }))
+  ]);
+
+  const accelerationTwoMultiplierModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: basicUpgrades.latestUpgrade.bought,
+      multiplier: () => Decimal.add(mercury.collisionTimeGainComputed.value, 1).log10().cbrt().clampMin(1)
+    })),
   ]);
 
   const acceleratorUpgrades = {
@@ -296,6 +315,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     milestonesLayer.firstMilestoneModifier,
     slippingTimeModifier,
     messengerGodModifier,
+    accelerationTwoMultiplierModifier,
     // ^
     collisionCourseModifier,
     createExponentialModifier(() => ({
