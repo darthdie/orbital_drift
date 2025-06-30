@@ -28,7 +28,6 @@ const Component = () => render(props.display);
 
 const styles = computed(() => {
     const color = unref(props.glowColor);
-    console.log({ color })
     let motherfucker = {}
     if (!!color) {
         motherfucker = { boxShadow: `0px 9px 5px -6px ${color}` };

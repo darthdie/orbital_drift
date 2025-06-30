@@ -75,6 +75,8 @@ const layer = createLayer(id, baseLayer => {
       .times(milestones.firstMilestoneModifier.apply(1))
       .pow(dustTab.collisionCourseEffect.value)
       .pow(milestones.fourthMilestoneModifier.value)
+      .pow(chunksTab.collidingChunksEffect.value)
+      // collidingChunksModifier
   );
 
   baseLayer.on("update", diff => {

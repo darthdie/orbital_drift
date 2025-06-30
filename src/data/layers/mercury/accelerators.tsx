@@ -7,7 +7,7 @@ import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { CostRequirementOptions, createCostRequirement, displayRequirements } from "game/requirements";
 import { Direction } from "util/common";
-import { joinJSX, render, renderRow } from "util/vue";
+import { joinJSX, render, renderGroupedObjects, renderRow } from "util/vue";
 import dustLayer from './dust';
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { createResource } from "features/resources/resource";
@@ -285,7 +285,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
       display: {
         title: "Speed Chunks",
-        description: "Unlock",
+        description: "Unlock more Chunk upgrades",
       }
       })),
     },
@@ -363,7 +363,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           <Spacer />
           <h4>Upgrades</h4>
           <Column>
-            {chunkArray(Object.values(dustAccelerator.upgrades), 4).map(group => renderRow.apply(null, group))}
+            {renderGroupedObjects(dustAccelerator.upgrades, 4, "gap: 8px; margin-bottom: 8px;")}
           </Column>
         </>)
       }))
@@ -395,7 +395,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           <Spacer />
           <h4>Upgrades</h4>
           <Column>
-            {/* {chunkArray(Object.values(chunkAccelerator.upgrades), 4).map(group => renderRow.apply(null, group))} */}
+            {renderGroupedObjects(chunkAccelerator.upgrades, 4, "gap: 8px; margin-bottom: 8px;")}
           </Column>
         </>)
       }))

@@ -6,7 +6,7 @@ import solarLayer from '../solar';
 import { computed, ComputedRef, unref, watch } from "vue";
 import { createSequentialModifier, createAdditiveModifier, createMultiplicativeModifier, createExponentialModifier, MultiplicativeModifierOptions, ExponentialModifierOptions, Modifier, createModifierSection, ModifierSectionOptions } from "game/modifiers";
 import { render, renderGroupedObjects, renderRow, renderStyledRow, VueFeature } from "util/vue";
-import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
+import { createRepeatable, Repeatable, RepeatableOptions, setupAutoPurchaseRepeatable } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
 import { createCostRequirement, CostRequirementOptions, createVisibilityRequirement, Requirements } from "game/requirements";
 import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
@@ -140,14 +140,21 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const chunkingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       enabled: acceleratorUpgrades.chunkingTime.bought,
-      multiplier: () => Decimal.fromValue(chunksLayer.totalChunks.value).sqrt().clampMin(1)
+      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).sqrt().clampMin(1)
     }))
   ]);
+
+  const eyeHateDinosaursModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: acceleratorUpgrades.iHateDinosaurs.bought,
+      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log(2).pow(1.2).clampMin(1)
+    }))
+  ])
 
   const fedexManagerModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       enabled: acceleratorUpgrades.fedexManager.bought,
-      multiplier: () => Decimal.fromValue(chunksLayer.totalChunks.value).log2().clampMin(1)
+      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log2().clampMin(1)
     }))
   ]);
 
@@ -161,7 +168,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const dustBunniesModifier = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       enabled: acceleratorUpgrades.dustBunnies.bought,
-      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log2().clampMin(1),
+      multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log2().pow(1.1).clampMin(1),
     }))
   ]);
 
@@ -188,7 +195,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       display: {
         title: "FedEx Manager",
         description: `Multiply "The Messenger God" based on chunks`,
-        effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+        effectDisplay: () => `*${format(fedexManagerModifier.apply(1))}`
       }
     })),
 
@@ -201,7 +208,20 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       display: {
         title: "Dust Bunnies",
         description: `Multiply "Accumulating Dust" based on total chunks`,
-        effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+        effectDisplay: () => `*${format(dustBunniesModifier.apply(1))}`
+      }
+    })),
+
+    iHateDinosaurs: createUpgrade(() => ({
+      visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1e50)
+      })),
+      display: {
+        title: "eyehatedinosaurs",
+        description: `Multiply "Acceleration" based on total chunks`,
+        effectDisplay: () => `*${format(eyeHateDinosaursModifier.apply(1))}`
       }
     }))
   }
@@ -315,7 +335,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     if (basicUpgrades.collisionCourse.bought.value) {
       return Decimal.add(mercurialDust.value, 1).log10().sqrt().pow(0.2).clampMin(1);
     }
-    
+
     return Decimal.dOne;
   });
 
@@ -438,7 +458,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     createMultiplicativeModifier(() => ({
       enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
       // x: TSLR
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).clampMin(1)
+      multiplier: () => Decimal.add(timeSinceReset.value, 1).sqrt().pow(0.25).mul(eyeHateDinosaursModifier.apply(1)).clampMin(1)
     }))
   ]);
 
@@ -466,15 +486,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       totalTimeSinceReset.value = Decimal.dZero;
       mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
-        Object.keys(preresetBuyableLevels).forEach((buyable) => {
-          (repeatables as any)[buyable].amount.value = Decimal.min(
-            (preresetBuyableLevels as any)[buyable],
-            chunksLayer.totalChunks.value
-          );
+      Object.keys(preresetBuyableLevels).forEach((buyable) => {
+        (repeatables as any)[buyable].amount.value = Decimal.min(
+          (preresetBuyableLevels as any)[buyable],
+          chunksLayer.totalChunks.value
+        );
       });
 
       if (milestonesLayer.milestones.second.earned.value) {
-        console.log('reset', { count: milestonesLayer.completedMilestonesCount.value })
         Object.values(basicUpgrades)
           .slice(0, milestonesLayer.completedMilestonesCount.value)
           .forEach(u => u.bought.value = true);
@@ -486,8 +505,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     if (!milestonesLayer.milestones.second.earned.value) {
       return;
     }
-
-     console.log('update', { count: count })
 
     Object.values(basicUpgrades)
       .slice(0, count)
@@ -554,7 +571,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     reset,
     display: () => (
       <>
-      
+
         <h2>{format(mercurialDust.value)} mercurial dust</h2>
         {
           enablePassiveGeneration.value
@@ -580,7 +597,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         <Column>
           {renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}
         </Column>
-        <Spacer/>
+        <Spacer />
 
         <h4>Unlocks</h4>
         <Column>

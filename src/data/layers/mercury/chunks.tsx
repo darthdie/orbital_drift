@@ -2,7 +2,7 @@ import { createReset } from "features/reset";
 import { createLayer } from "game/layers";
 import { main } from "data/projEntry";
 import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
-import { createCumulativeConversion, createIndependentConversion } from "features/conversion";
+import { createCumulativeConversion, createIndependentConversion, setupPassiveGeneration } from "features/conversion";
 import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
@@ -16,6 +16,8 @@ import { createCostRequirement } from "game/requirements";
 import Column from "components/layout/Column.vue";
 import { AdditiveModifierOptions, createAdditiveModifier, createExponentialModifier, createSequentialModifier, ExponentialModifierOptions } from "game/modifiers";
 import mercuryLayer from '../mercury';
+import { createLazyProxy } from "util/proxies";
+import acceleratorsLayer from './accelerators';
 
 const id = "Mc";
 const layer = createLayer(id, baseLayer => {
@@ -24,9 +26,6 @@ const layer = createLayer(id, baseLayer => {
 
   const chunks = createResource(0, "mercurial chunks");
   const totalChunks = trackTotal(chunks);
-  watch(chunks, () => {
-    console.log('fuck this goddamn game engine dude', totalChunks.value)
-  })
 
   const conversion = createIndependentConversion(() => {
     const computedLovingChunks = computed(() => {
@@ -38,7 +37,8 @@ const layer = createLayer(id, baseLayer => {
           .mul(computedLovingChunks)
           .div(1000)
           .step(1, f => f.div(25))
-          .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1)),
+          .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
+          .step(30, f => f.sqrt()),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
@@ -56,11 +56,23 @@ const layer = createLayer(id, baseLayer => {
     };
   });
 
+  const autoChunker = createLazyProxy((_) => {
+    watch(dustLayer.mercurialDust, () => {
+      if (!upgrades.autoChunks.bought.value) {
+        return;
+      }
+
+      conversion.convert();
+    });
+
+    return {};
+  });
+
   const chuckingChunksModifier = createSequentialModifier(() => [
     createAdditiveModifier((): AdditiveModifierOptions => ({
       enabled: upgrades.chuckingChunks.bought,
       addend: () => totalChunks.value,
-      description: "Chuckin' Chinks"
+      description: "Chuckin' Chunks"
     }))
   ]);
 
@@ -70,7 +82,15 @@ const layer = createLayer(id, baseLayer => {
       addend: () => Decimal.add(dustLayer.mercurialDust.value, 1).log10().pow(0.2),
       description: "Lovin' Chunks"
     }))
-  ])
+  ]);
+
+  const collidingChunksEffect = computed(() => {
+    if (upgrades.collidingChunks.bought.value) {
+      return Decimal.add(totalChunks.value, 1).log10().sqrt().clampMin(1);
+    }
+
+    return Decimal.dOne;
+  })
 
   const upgrades = {
     chuckingChunks: createUpgrade(() => ({
@@ -103,9 +123,34 @@ const layer = createLayer(id, baseLayer => {
         cost: Decimal.fromNumber(3)
       })),
       display: {
-        title: "Lovein' Chunks",
+        title: "Lovin' Chunks",
         description: "Reduce chunk cost based on dust",
         effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
+      }
+    })),
+
+    autoChunks: createUpgrade(() => ({
+      visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(35)
+      })),
+      display: {
+        title: "Autoin' Chunks",
+        description: "Automatically reset for chunks, and they reset nothing."
+      }
+    })),
+
+    collidingChunks: createUpgrade(() => ({
+      visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(45)
+      })),
+      display: {
+        title: "Colidin' Chunks",
+        description: "Raise collision time rate based on chunks",
+        effectDisplay: () => `^${collidingChunksEffect.value}`
       }
     }))
   };
@@ -144,6 +189,8 @@ const layer = createLayer(id, baseLayer => {
     upgrades,
     chuckingChunksModifier,
     treeNode,
+    collidingChunksEffect,
+    autoChunker,
     display: () => (<>
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
       <h4>You have condensed a total of {format(totalChunks.value)}</h4>
