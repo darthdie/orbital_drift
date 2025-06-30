@@ -35,6 +35,7 @@ const layer = createLayer(id, baseLayer => {
     return {
       formula: x => x
           .mul(computedLovingChunks)
+          .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
           .div(1000)
           .step(1, f => f.div(25))
           .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
