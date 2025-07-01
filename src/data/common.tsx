@@ -140,7 +140,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                             )}
                         </b>{" "}
                         {conversion.gainResource.displayName}
-                        {unref(resetButton.showNextAt) != null ? (
+                        {unref(resetButton.showNextAt) != false ? (
                             <div>
                                 <br />
                                 {unref(conversion.buyMax) ? "Next:" : "Req:"}{" "}
@@ -210,7 +210,7 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(optionsFunc:
             ...(props as Omit<typeof props, keyof LayerTreeNodeOptions>),
             layerID,
             display: display ?? layerID,
-            append: processGetter(append) ?? true,
+            append: processGetter(append) ?? false,
             onClick() {
                 if (unref<boolean>(layerTreeNode.append)) {
                     if (player.tabs.includes(layerID)) {
@@ -517,4 +517,10 @@ export function setupSelectable<T>() {
         },
         selected
     };
+}
+
+export function chunkArray<T>(arr: T[], size: number) {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+    arr.slice(i * size, i * size + size)
+  );
 }

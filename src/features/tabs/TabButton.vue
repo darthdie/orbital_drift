@@ -1,5 +1,5 @@
 <template>
-    <button @click="selectTab" class="tabButton" :style="glowColorStyle" :class="{ active }">
+    <button @click="selectTab" class="tabButton" :style="styles" :class="{ active }">
         <Component />
     </button>
 </template>
@@ -10,12 +10,14 @@ import { getNotifyStyle } from "game/notifications";
 import settings from "game/settings";
 import { MaybeGetter } from "util/computed";
 import { render, Renderable } from "util/vue";
-import { computed, MaybeRef, unref } from "vue";
+import { computed, CSSProperties, MaybeRef, unref } from "vue";
 
 const props = defineProps<{
     display: MaybeGetter<Renderable>;
+    floating?: MaybeRef<boolean>;
     glowColor?: MaybeRef<string>;
     active?: boolean;
+    style?: MaybeRef<CSSProperties>;
 }>();
 
 const emit = defineEmits<{
@@ -24,19 +26,25 @@ const emit = defineEmits<{
 
 const Component = () => render(props.display);
 
-const glowColorStyle = computed(() => {
+const styles = computed(() => {
     const color = unref(props.glowColor);
-    if (color == null || color === "") {
-        return {};
+    let motherfucker = {}
+    if (!!color) {
+        motherfucker = { boxShadow: `0px 9px 5px -6px ${color}` };
     }
-    if (floating.value) {
-        return getNotifyStyle(color);
+
+    if (unref(props.active) && floating.value) {
+        motherfucker = getNotifyStyle(color);
     }
-    return { boxShadow: `0px 9px 5px -6px ${color}` };
+
+    return {
+    ...props.style,
+    ...motherfucker
+}
 });
 
 const floating = computed(() => {
-    return themes[settings.theme].floatingTabs;
+    return themes[settings.theme].floatingTabs || props.floating;
 });
 
 function selectTab() {

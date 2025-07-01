@@ -16,3 +16,12 @@
     pointer-events: none;
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.feature.small .treeNode {
+    height: 64px;
+    width: 64px;
+}

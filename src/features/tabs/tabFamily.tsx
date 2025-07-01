@@ -25,6 +25,8 @@ export interface TabButtonOptions extends VueFeatureOptions {
     display: MaybeGetter<Renderable>;
     /** The color of the glow effect to display when this button is active. */
     glowColor?: MaybeRefOrGetter<string>;
+
+    containerStyle?: MaybeRefOrGetter<CSSProperties>;
 }
 
 /**
@@ -40,6 +42,8 @@ export interface TabButton extends VueFeature {
     glowColor?: MaybeRef<string>;
     /** A symbol that helps identify features of the same type. */
     type: typeof TabButtonType;
+
+    containerStyle?: MaybeRefOrGetter<CSSProperties>;
 }
 
 /**
@@ -50,6 +54,10 @@ export interface TabFamilyOptions extends VueFeatureOptions {
     buttonContainerClasses?: MaybeRefOrGetter<Record<string, boolean>>;
     /** CSS to apply to the list of buttons for changing tabs. */
     buttonContainerStyle?: MaybeRefOrGetter<CSSProperties>;
+
+    buttonStyle?: MaybeRefOrGetter<CSSProperties>;
+
+    floating?: MaybeRefOrGetter<boolean>;
 }
 
 /**
@@ -86,13 +94,14 @@ export function createTabFamily<T extends TabFamilyOptions>(
     const selected = persistent(Object.keys(tabs)[0], false);
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { buttonContainerClasses, buttonContainerStyle, ...props } = options;
+        const { buttonContainerClasses, buttonContainerStyle, buttonStyle, floating, ...props } = options;
 
         const tabFamily = {
             type: TabFamilyType,
             ...(props as Omit<typeof props, keyof VueFeature | keyof TabFamilyOptions>),
             ...vueFeatureMixin("tabFamily", options, () => (
                 <TabFamily
+                    floating={tabFamily.floating}
                     activeTab={tabFamily.activeTab}
                     tabs={tabFamily.tabs}
                     buttonContainerClasses={tabFamily.buttonContainerClasses}
@@ -108,6 +117,8 @@ export function createTabFamily<T extends TabFamilyOptions>(
                     ...(props as Omit<typeof props, keyof VueFeature | keyof TabButtonOptions>),
                     ...vueFeatureMixin("tabButton", options, () => (
                         <TabButton
+                            floating={tabFamily.floating}
+                            style={tabFamily.buttonStyle}
                             display={tabButton.display}
                             glowColor={tabButton.glowColor}
                             active={unref(tabButton.tab) === unref(tabFamily.activeTab)}
@@ -124,6 +135,8 @@ export function createTabFamily<T extends TabFamilyOptions>(
             }, {}),
             buttonContainerClasses: processGetter(buttonContainerClasses),
             buttonContainerStyle: processGetter(buttonContainerStyle),
+            buttonStyle: processGetter(buttonStyle),
+            floating: processGetter(floating),
             selected,
             activeTab: computed((): Tab | MaybeGetter<Renderable> | null => {
                 if (

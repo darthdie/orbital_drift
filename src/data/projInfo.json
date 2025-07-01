@@ -1,9 +1,9 @@
 {
 	"$schema": "./projInfo-schema.json",
 
-	"title": "Profectus",
-	"description": "A project made in Profectus",
-	"id": "",
+	"title": "Orbital Drift",
+	"description": "WHEEEeeee eee ee e e    e  e",
+	"id": "orbital_drift",
 	"author": "",
 	"discordName": "",
 	"discordLink": "",
@@ -23,5 +23,7 @@
 	"offlineLimit": 1,
 	"enablePausing": true,
 	"exportEncoding": "base64",
-	"disableHealthWarning": false
+	"disableHealthWarning": false,
+
+	"defaultDecimalShown": 2
 }

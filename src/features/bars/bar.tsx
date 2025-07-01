@@ -14,9 +14,9 @@ export const BarType = Symbol("Bar");
  */
 export interface BarOptions extends VueFeatureOptions {
     /** The width of the bar. */
-    width: MaybeRefOrGetter<number>;
+    width: MaybeRefOrGetter<number | string>;
     /** The height of the bar. */
-    height: MaybeRefOrGetter<number>;
+    height: MaybeRefOrGetter<number | string>;
     /** The direction in which the bar progresses. */
     direction: MaybeRefOrGetter<Direction>;
     /** CSS to apply to the bar's border. */
@@ -27,6 +27,8 @@ export interface BarOptions extends VueFeatureOptions {
     textStyle?: MaybeRefOrGetter<CSSProperties>;
     /** CSS to apply to the bar's fill. */
     fillStyle?: MaybeRefOrGetter<CSSProperties>;
+    /** CSS to apply to the bar. */
+    containerStyle?: MaybeRef<CSSProperties>;
     /** The progress value of the bar, from 0 to 1. */
     progress: MaybeRefOrGetter<DecimalSource>;
     /** The display to use for this bar. */
@@ -36,9 +38,9 @@ export interface BarOptions extends VueFeatureOptions {
 /** An object that represents a feature that displays some sort of progress or completion or resource with a cap. */
 export interface Bar extends VueFeature {
     /** The width of the bar. */
-    width: MaybeRef<number>;
+    width: MaybeRef<number | string>;
     /** The height of the bar. */
-    height: MaybeRef<number>;
+    height: MaybeRef<number | string>;
     /** The direction in which the bar progresses. */
     direction: MaybeRef<Direction>;
     /** CSS to apply to the bar's border. */
@@ -49,6 +51,8 @@ export interface Bar extends VueFeature {
     textStyle?: MaybeRef<CSSProperties>;
     /** CSS to apply to the bar's fill. */
     fillStyle?: MaybeRef<CSSProperties>;
+    /** CSS to apply to the bar. */
+    containerStyle?: MaybeRef<CSSProperties>;
     /** The progress value of the bar, from 0 to 1. */
     progress: MaybeRef<DecimalSource>;
     /** The display to use for this bar. */
@@ -70,6 +74,7 @@ export function createBar<T extends BarOptions>(optionsFunc: () => T) {
             direction,
             borderStyle,
             baseStyle,
+            containerStyle,
             textStyle,
             fillStyle,
             progress,
@@ -91,6 +96,7 @@ export function createBar<T extends BarOptions>(optionsFunc: () => T) {
                     fillStyle={bar.fillStyle}
                     progress={bar.progress}
                     display={bar.display}
+                    containerStyle={bar.containerStyle}
                 />
             )),
             width: processGetter(width),
@@ -101,6 +107,7 @@ export function createBar<T extends BarOptions>(optionsFunc: () => T) {
             textStyle: processGetter(textStyle),
             fillStyle: processGetter(fillStyle),
             progress: processGetter(progress),
+            containerStyle: processGetter(containerStyle),
             display
         } satisfies Bar;
 

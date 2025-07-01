@@ -1,15 +1,15 @@
 <template>
     <div
-        :style="{
-            width: unref(width) + 'px',
-            height: unref(height) + 'px',
-        }"
+        :style="[
+            {width: computedWidth, height: computedHeight},
+            unref(containerStyle) ?? {}
+        ]"
         class="bar"
     >
         <div
             class="overlayTextContainer border"
             :style="[
-                { width: unref(width) + 'px', height: unref(height) + 'px' },
+                { width: computedWidth, height: computedHeight },
                 unref(borderStyle) ?? {}
             ]"
         >
@@ -20,7 +20,7 @@
         <div
             class="border"
             :style="[
-                { width: unref(width) + 'px', height: unref(height) + 'px' },
+                { width: computedWidth, height: computedHeight },
                 unref(baseStyle) ?? {},
                 unref(borderStyle) ?? {}
             ]"
@@ -39,16 +39,37 @@ import type { CSSProperties, MaybeRef } from "vue";
 import { computed, unref } from "vue";
 
 const props = defineProps<{
-    width: MaybeRef<number>;
-    height: MaybeRef<number>;
+    width: MaybeRef<number | string>;
+    height: MaybeRef<number | string>;
     direction: MaybeRef<Direction>;
     borderStyle?: MaybeRef<CSSProperties>;
     baseStyle?: MaybeRef<CSSProperties>;
     textStyle?: MaybeRef<CSSProperties>;
     fillStyle?: MaybeRef<CSSProperties>;
+    containerStyle?: MaybeRef<CSSProperties>;
     progress: MaybeRef<DecimalSource>;
     display?: MaybeGetter<Renderable>;
 }>();
+
+console.log(props.containerStyle);
+
+const computedWidth = computed<string>(() => {
+    const width = props.width;
+    if (typeof width === 'string') {
+        return width;
+    }
+
+    return `${width}px`;
+});
+
+const computedHeight = computed<string>(() => {
+    const height = props.height;
+    if (typeof height === 'string') {
+        return height;
+    }
+
+    return `${height}px`;
+})
 
 const normalizedProgress = computed(() => {
     const progress = unref(props.progress);
@@ -61,17 +82,18 @@ const normalizedProgress = computed(() => {
 
 const barStyle = computed(() => {
     const barStyle: Partial<CSSProperties> = {
-        width: unref(props.width) + 0.5 + "px",
-        height: unref(props.height) + 0.5 + "px"
+        width: `calc(${computedWidth.value} + 0.5px)`,
+        height: `calc(${computedHeight.value} + 0.5px)`
     };
+    
     switch (props.direction) {
         case Direction.Up:
             barStyle.clipPath = `inset(${normalizedProgress.value}% 0% 0% 0%)`;
-            barStyle.width = unref(props.width) + 1 + "px";
+            barStyle.width = `calc(${computedWidth.value} + 1px)`;
             break;
         case Direction.Down:
             barStyle.clipPath = `inset(0% 0% ${normalizedProgress.value}% 0%)`;
-            barStyle.width = unref(props.width) + 1 + "px";
+            barStyle.width = `calc(${computedWidth.value} + 1px)`
             break;
         case Direction.Right:
             barStyle.clipPath = `inset(0% ${normalizedProgress.value}% 0% 0%)`;

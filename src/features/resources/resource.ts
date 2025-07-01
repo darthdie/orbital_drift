@@ -15,6 +15,8 @@ export interface Resource<T = DecimalSource> extends Ref<T> {
     precision: number;
     /** Whether or not to display very small values using scientific notation, or rounding to 0. */
     small?: boolean;
+    /** The default value of this resource. */
+    defaultValue: T;
 }
 
 /**
@@ -42,12 +44,14 @@ export function createResource<T extends State>(
     precision = 0,
     small: boolean | undefined = undefined
 ) {
-    const resource: Partial<Resource<T>> = isRef(defaultValue)
+    const refDefaultValue = isRef(defaultValue)
         ? defaultValue
         : persistent(defaultValue);
+    const resource: Partial<Resource<T>> = refDefaultValue;
     resource.displayName = displayName;
     resource.precision = precision;
     resource.small = small;
+    resource.defaultValue = unref<T>(defaultValue);
     if (!isRef(defaultValue)) {
         const nonPersistentResource = (resource as Persistent<T>)[
             NonPersistent
@@ -55,6 +59,7 @@ export function createResource<T extends State>(
         nonPersistentResource.displayName = displayName;
         nonPersistentResource.precision = precision;
         nonPersistentResource.small = small;
+        nonPersistentResource.defaultValue = defaultValue;
     }
     return resource as Resource<T>;
 }

@@ -1,5 +1,5 @@
 import Clickable from "features/clickables/Clickable.vue";
-import { Visibility } from "features/feature";
+import { findFeatures, Visibility } from "features/feature";
 import { DefaultValue, Persistent, persistent } from "game/persistence";
 import {
     createVisibilityRequirement,
@@ -14,9 +14,11 @@ import Decimal, { formatWhole } from "util/bignum";
 import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { isJSXElement, render, Renderable, VueFeature, vueFeatureMixin } from "util/vue";
-import type { MaybeRef, MaybeRefOrGetter, Ref } from "vue";
+import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref } from "vue";
 import { computed, unref } from "vue";
 import { ClickableOptions } from "./clickable";
+import { Layer } from "game/layers";
+import { isFunction } from "util/common";
 
 /** A symbol used to identify {@link Repeatable} features. */
 export const RepeatableType = Symbol("Repeatable");
@@ -42,6 +44,7 @@ export interface RepeatableOptions extends ClickableOptions {
               /** Whether or not to show the current amount of this repeatable at the bottom of the display. */
               showAmount?: boolean;
           };
+    clickableStyle?: MaybeRef<CSSProperties>;
 }
 
 /** An object that represents a feature with multiple "levels" with scaling requirements. */
@@ -58,6 +61,7 @@ export interface Repeatable extends VueFeature {
     canClick: Ref<boolean>;
     /** A function that is called when the repeatable is clicked. */
     onClick: (event?: MouseEvent | TouchEvent) => void;
+    purchase: (spend: boolean) => void;
     /** The current amount this repeatable has. */
     amount: Persistent<DecimalSource>;
     /** Whether or not this repeatable's amount is at it's limit. */
@@ -82,6 +86,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             limit,
             onClick,
             initialAmount,
+            clickableStyle,
             ...props
         } = options;
 
@@ -96,6 +101,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
         }
         const vueFeature = vueFeatureMixin("repeatable", options, () => (
             <Clickable
+                style={repeatable.clickableStyle}
                 canClick={repeatable.canClick}
                 onClick={repeatable.onClick}
                 onHold={repeatable.onClick}
@@ -169,6 +175,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             amount,
             requirements,
             initialAmount,
+            clickableStyle,
             limit: processGetter(limit) ?? Decimal.dInf,
             classes: computed(() => {
                 const currClasses = unref(vueFeature.classes) || {};
@@ -180,18 +187,53 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             maxed: computed((): boolean => Decimal.gte(unref(amount), unref(repeatable.limit))),
             canClick: computed(() => requirementsMet(requirements)),
             amountToIncrease: computed(() => Decimal.clampMin(maxRequirementsMet(requirements), 1)),
-            onClick(event?: MouseEvent | TouchEvent) {
+            purchase(spend: boolean = true) {
                 if (!unref(repeatable.canClick)) {
                     return;
                 }
                 const purchaseAmount = unref(repeatable.amountToIncrease) ?? 1;
-                payRequirements(requirements, purchaseAmount);
+                if (spend) {
+                    payRequirements(requirements, purchaseAmount);
+                }
                 amount.value = Decimal.add(unref(amount), purchaseAmount);
+            },
+            onClick(event?: MouseEvent | TouchEvent) {
+                if (!unref(repeatable.canClick)) {
+                    return;
+                }
+                repeatable.purchase();
                 onClick?.(event);
             },
             display
         } satisfies Repeatable;
 
         return repeatable;
+    });
+}
+
+export function setupAutoPurchaseRepeatable(
+    layer: Layer,
+    autoActive: MaybeRefOrGetter<boolean>,
+    repeatables: Repeatable[] = [],
+    limit: MaybeRefOrGetter<number>,
+    spend: boolean = true
+) {
+    repeatables = repeatables.length === 0 ? (findFeatures(layer, RepeatableType) as Repeatable[]) : repeatables;
+    const isAutoActive: MaybeRef<boolean> = isFunction(autoActive)
+        ? computed(autoActive)
+        : autoActive;
+
+    const buyLimit: MaybeRef<number> = processGetter(limit);
+
+    layer.on("update", () => {
+        if (unref(isAutoActive)) {
+            repeatables.forEach(repeatable => {
+                if (Decimal.gte(repeatable.amount.value, unref(buyLimit))) {
+                    return;
+                }
+                
+                repeatable.purchase(spend);
+            });
+        }
     });
 }

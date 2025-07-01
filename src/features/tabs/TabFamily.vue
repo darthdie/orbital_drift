@@ -2,7 +2,10 @@
     <div class="tab-family-container" :class="tabClasses" :style="tabStyle">
         <Sticky
             class="tab-buttons-container"
-            :class="unref(buttonContainerClasses)"
+            :class="[
+                unref(buttonContainerClasses),
+                {floating}
+            ]"
             :style="unref(buttonContainerStyle)"
         >
             <div class="tab-buttons" :class="{ floating }">
@@ -30,6 +33,7 @@ const props = defineProps<{
     tabs: Record<string, TabButton>;
     buttonContainerClasses?: MaybeRef<Record<string, boolean>>;
     buttonContainerStyle?: MaybeRef<CSSProperties>;
+    floating?: MaybeRef<boolean>;
 }>();
 
 const Component = () => {
@@ -41,7 +45,7 @@ const Component = () => {
 };
 
 const floating = computed(() => {
-    return themes[settings.theme].floatingTabs;
+    return themes[settings.theme].floatingTabs || unref(props.floating);
 });
 
 const TabButtons = () => Object.values(props.tabs).map(tab => render(tab));
@@ -65,7 +69,7 @@ const tabStyle = computed(() => {
 .tab-family-container {
     margin: calc(50px + var(--feature-margin)) 20px var(--feature-margin) 20px;
     position: relative;
-    border: solid 4px;
+    border-top: solid 4px;
     border-color: var(--outline);
 }
 
@@ -120,6 +124,8 @@ const tabStyle = computed(() => {
 .tab-buttons-container.floating .tab-buttons {
     justify-content: center;
     margin-top: -25px;
+
+    gap: 24px;
 }
 
 .tab-buttons {
