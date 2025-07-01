@@ -34,7 +34,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const dustAccelerator = {
     timer: createResource<DecimalSource>(0),
-    resource: createResource<DecimalSource>(0, "Dust Accelerators"),
+    resource: createResource<DecimalSource>(0, "Dust Accelerons"),
 
     gainComputed: computed((): Decimal => {
       return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1))
@@ -79,7 +79,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
         enabled: () => Decimal.gt(dustAccelerator.resource.value, 0),
         multiplier: () => Decimal.add(dustAccelerator.resource.value, 1).pow(0.25).clampMin(1),
-        description: "Dust Accelerators"
+        description: "Dust Accelerons"
       }))
     ]),
 
@@ -138,7 +138,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Refine",
-        description: "Reset Dust Accelerators to unlock a new effect."
+        description: "Reset Dust Accelerons to unlock a new effect."
       },
       onClick: () => {
         dustAccelerator.resource.value = 0;
@@ -164,7 +164,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Accelerating the Accelerator",
-          description: "Decrease timer interval based on accelerators",
+          description: "Decrease timer interval based on accelerons",
           effectDisplay: (): string => `/${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
         }
       })),
@@ -176,7 +176,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "je ne sais chunks",
-          description: "Unlock Chunk Accelerators",
+          description: "Unlock Chunk Accelerons",
         }
       }))
     },
@@ -199,7 +199,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       ];
 
       if (dustAccelerator.isAtLeastLevelOne.value) {
-        effects.push(<h5>A x{format(dustAccelerator.dustAcceleratorGainModifier.apply(1))} boost to accelerators gain.</h5>)
+        effects.push(<h5>A x{format(dustAccelerator.dustAcceleratorGainModifier.apply(1))} boost to accelerons gain.</h5>)
       }
 
       if (dustAccelerator.isAtLeastLevelTwo.value) {
@@ -216,7 +216,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const chunkAccelerator = {
     timer: createResource<DecimalSource>(0),
-    resource: createResource<DecimalSource>(0, "Chunk Accelerators"),
+    resource: createResource<DecimalSource>(0, "Chunk Accelerons"),
 
     gainComputed: computed((): Decimal => {
       return Decimal.times(1, chunkAccelerator.acceleratorGainModifier.apply(1));
@@ -279,7 +279,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Refine",
-        description: "Reset Chunk Accelerators to unlock a new effect."
+        description: "Reset Chunk Accelerons to unlock a new effect."
       },
       onClick: () => {
         chunkAccelerator.resource.value = 0;
@@ -305,7 +305,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Chunks, meet Dust",
-          description: "Decrease timer interval based on dust accelerators",
+          description: "Decrease timer interval based on Dust Accelerons",
           effectDisplay: (): string => `÷${format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}`
         }
       })),
@@ -347,11 +347,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     levelEffectsDisplay: () => {
       const effects = [
-        <h5>A x{format(chunkAccelerator.dustAcceleratorModifierEffect.value)} boost to Dust Accelerator gain.</h5>
+        <h5>A x{format(chunkAccelerator.dustAcceleratorModifierEffect.value)} boost to Dust Acceleron gain.</h5>
       ];
 
       if (dustAccelerator.isAtLeastLevelOne.value) {
-        effects.push(<h5>A x{format(chunkAccelerator.acceleratorGainModifier.apply(1))} boost to Chunk accelerator gain.</h5>)
+        effects.push(<h5>A x{format(chunkAccelerator.acceleratorGainModifier.apply(1))} boost to Chunk Acceleron gain.</h5>)
       }
 
       if (chunkAccelerator.isAtLeastLevelTwo.value) {
@@ -388,7 +388,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       display: "Dust",
       tab: createTab(() => ({
         display: () => (<>
-          <h2>{format(dustAccelerator.resource.value)} Dust Accelerators</h2>
+          <h2>{format(dustAccelerator.resource.value)} Dust Accelerons</h2>
           <h6>You are gaining {format(dustAccelerator.gainComputed.value)} every {format(dustAccelerator.timerMax.value)} seconds.</h6>
           <Spacer />
 
@@ -420,7 +420,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       visibility: dustAccelerator.upgrades.chunksUnlock.bought,
       tab: createTab(() => ({
         display: () => (<>
-          <h2>{format(chunkAccelerator.resource.value)} Chunk Accelerators</h2>
+          <h2>{format(chunkAccelerator.resource.value)} Chunk Accelerons</h2>
           <h6>You are gaining {format(chunkAccelerator.gainComputed.value)} every {format(chunkAccelerator.timerMax.value)} seconds.</h6>
           <Spacer />
 
