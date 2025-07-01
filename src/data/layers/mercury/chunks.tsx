@@ -34,12 +34,13 @@ const layer = createLayer(id, baseLayer => {
 
     return {
       formula: x => x
-          .mul(computedLovingChunks)
-          .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
-          .div(1000)
-          .step(1, f => f.div(25))
-          .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
-          .step(30, f => f.sqrt()),
+        .mul(computedLovingChunks)
+        .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
+        .mul(fuckingChunksEffect)
+        .div(1000)
+        .step(1, f => f.div(25))
+        .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
+        .step(30, f => f.sqrt()),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
@@ -48,12 +49,12 @@ const layer = createLayer(id, baseLayer => {
       }),
       actualGain: computed((): Decimal => {
         return Decimal.sub(
-            conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
-            chunks.value
+          conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
+          chunks.value
         ).floor().max(0).min(1);
       }),
       gainResource: noPersist(chunks),
-      spend: () => {},
+      spend: () => { },
     };
   });
 
@@ -91,7 +92,15 @@ const layer = createLayer(id, baseLayer => {
     }
 
     return Decimal.dOne;
-  })
+  });
+
+  const fuckingChunksEffect = computed((): Decimal => {
+    if (upgrades.fuckingChunks.bought.value) {
+      return Decimal.add(mercuryLayer.collisionTimeGainComputed.value, 1).log10().cbrt().clampMin(1);
+    }
+
+    return Decimal.dOne;
+  });
 
   const upgrades = {
     chuckingChunks: createUpgrade(() => ({
@@ -146,14 +155,27 @@ const layer = createLayer(id, baseLayer => {
       visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
       requirements: createCostRequirement(() => ({
         resource: noPersist(chunks),
-        cost: Decimal.fromNumber(45)
+        cost: Decimal.fromNumber(55)
       })),
       display: {
         title: "Collidin' Chunks",
         description: "Raise collision time rate based on chunks",
         effectDisplay: () => `^${format(collidingChunksEffect.value)}`
       }
-    }))
+    })),
+
+    fuckingChunks: createUpgrade(() => ({
+      visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(90)
+      })),
+      display: {
+        title: "Fuckin' Chunks",
+        description: "Reduce chunk cost based on collision time rate",
+        effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
+      }
+    })),
   };
 
   const treeNode = createLayerTreeNode(() => ({
@@ -161,7 +183,7 @@ const layer = createLayer(id, baseLayer => {
     color,
     reset,
     display: "C",
-    classes: {"small": true}
+    classes: { "small": true }
   }));
 
   const reset = createReset(() => ({
@@ -196,11 +218,11 @@ const layer = createLayer(id, baseLayer => {
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
       <h4>You have condensed a total of {format(totalChunks.value)}</h4>
       <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
-      <Spacer/>
+      <Spacer />
       {render(resetButton)}
-      <Spacer/>
+      <Spacer />
       <h3>Upgrades</h3>
-      <Spacer/>
+      <Spacer />
       <Column>
         {chunkArray(Object.values(upgrades), 4).map(group => renderRow.apply(null, group))}
       </Column>

@@ -219,8 +219,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     resource: createResource<DecimalSource>(0, "Chunk Accelerators"),
 
     gainComputed: computed((): Decimal => {
-      return Decimal.dOne;
-      // return Decimal.times(1, chunkAccelerator.dustAcceleratorGainModifier.apply(1));
+      return Decimal.times(1, chunkAccelerator.acceleratorGainModifier.apply(1));
     }),
 
     bar: createBar(() => ({
@@ -257,7 +256,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     dustAcceleratorIntervalEffect: computed(() => {
       if (chunkAccelerator.upgrades.chunksMeetDust.bought.value) {
-        return Decimal.add(dustAccelerator.resource.value, 1).pow(0.1).sqrt().clampMin(1);
+        return Decimal.add(dustAccelerator.resource.value, 1).pow(0.12).sqrt().clampMin(1);
       }
 
       return Decimal.dOne;
@@ -265,7 +264,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     intervalBuyableEffect: computed((): Decimal => {
       if (Decimal.gt(chunkAccelerator.intervalBuyable.amount.value, 0)) {
-        return Decimal.mul(chunkAccelerator.intervalBuyable.amount.value, 0.025).add(1).clampMin(1);
+        return Decimal.mul(chunkAccelerator.intervalBuyable.amount.value, 0.03).add(1).clampMin(1);
       }
 
       return Decimal.dOne;
@@ -276,7 +275,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       requirements: createCostRequirement((): CostRequirementOptions => ({
         requiresPay: false,
         resource: noPersist(chunkAccelerator.resource),
-        cost: Formula.variable(chunkAccelerator.levelBuyable.amount).pow_base(5).times(100)
+        cost: Formula.variable(chunkAccelerator.levelBuyable.amount).pow_base(3).times(30)
       })),
       display: {
         title: "Refine",
@@ -310,6 +309,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           effectDisplay: (): string => `÷${format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}`
         }
       })),
+
+      timeUnlock: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(chunkAccelerator.resource),
+          cost: Decimal.fromNumber(25)
+        })),
+        display: {
+          title: "Time go brrr",
+          description: "Unlock Time Accelerons"
+        }
+      }))
     },
 
     isAtLeastLevelOne: computed((): boolean => Decimal.gte(chunkAccelerator.levelBuyable.amount.value, 1)),
@@ -321,25 +331,32 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }),
 
     chunkCostDivisionEffect: computed((): Decimal => {
-      if (chunkAccelerator.isAtLeastLevelOne.value) {
-        return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.15).cbrt().clampMin(1);
+      if (chunkAccelerator.isAtLeastLevelTwo.value) {
+        return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.2).cbrt().clampMin(1);
       }
 
       return Decimal.dOne;
     }),
+
+    acceleratorGainModifier: createSequentialModifier(() => [
+      createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+        enabled: () => chunkAccelerator.isAtLeastLevelOne.value,
+        multiplier: () => Decimal.add(chunkAccelerator.resource.value, 1).pow(0.2).clampMin(1)
+      }))
+    ]),
 
     levelEffectsDisplay: () => {
       const effects = [
         <h5>A x{format(chunkAccelerator.dustAcceleratorModifierEffect.value)} boost to Dust Accelerator gain.</h5>
       ];
 
-      if (chunkAccelerator.isAtLeastLevelOne.value) {
-        effects.push(<h5>Reduces Chunk cost by ÷{format(chunkAccelerator.chunkCostDivisionEffect.value)}.</h5>)
+      if (dustAccelerator.isAtLeastLevelOne.value) {
+        effects.push(<h5>A x{format(chunkAccelerator.acceleratorGainModifier.apply(1))} boost to Chunk accelerator gain.</h5>)
       }
 
-      // if (dustAccelerator.isAtLeastLevelTwo.value) {
-      //   effects.push(<h5>A ^{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} boost to dust gain.</h5>)
-      // }
+      if (chunkAccelerator.isAtLeastLevelTwo.value) {
+        effects.push(<h5>Reduces Chunk cost by ÷{format(chunkAccelerator.chunkCostDivisionEffect.value)}.</h5>)
+      }
 
       // if (dustAccelerator.isAtLeastLevelThree.value) {
       //   effects.push(<h5>Adding +{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} to Dust buyable caps.</h5>)
@@ -427,6 +444,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           <Column>
             {renderGroupedObjects(chunkAccelerator.upgrades, 4, "gap: 8px; margin-bottom: 8px;")}
           </Column>
+        </>)
+      }))
+    }),
+    time: () => ({
+      display: "Time",
+      visibility: chunkAccelerator.upgrades.timeUnlock.bought,
+      tab: createTab(() => ({
+        display: () => (<>
+          hi.
         </>)
       }))
     })
