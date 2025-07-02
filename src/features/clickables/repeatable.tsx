@@ -215,7 +215,7 @@ export function setupAutoPurchaseRepeatable(
     layer: Layer,
     autoActive: MaybeRefOrGetter<boolean>,
     repeatables: Repeatable[] = [],
-    limit: MaybeRefOrGetter<number>,
+    limit?: MaybeRefOrGetter<number>,
     spend: boolean = true
 ) {
     repeatables = repeatables.length === 0 ? (findFeatures(layer, RepeatableType) as Repeatable[]) : repeatables;
@@ -223,7 +223,7 @@ export function setupAutoPurchaseRepeatable(
         ? computed(autoActive)
         : autoActive;
 
-    const buyLimit: MaybeRef<number> = processGetter(limit);
+    const buyLimit: MaybeRef<number> = !limit ? Number.MAX_SAFE_INTEGER : processGetter(limit);
 
     layer.on("update", () => {
         if (unref(isAutoActive)) {
