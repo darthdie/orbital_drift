@@ -48,7 +48,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "The Messenger God",
-        description: (): string => `Increase time speed in this layer by x${format(messengerGodModifier.apply(1))}`
+        description: "Multiply time since last reset rate",
+        effectDisplay: (): string => `x${format(messengerGodModifier.apply(1))}`
       }
     })),
 
@@ -363,6 +364,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     createExponentialModifier(() => ({
       exponent: () => milestonesLayer.fourthMilestoneModifier.value
     })),
+    createExponentialModifier(() => ({
+      exponent: () => acceleratorsLayer.timeAccelerator.levelTwoTimeRaiseEffect.value
+    }))
   ]);
 
   const unlocks = {
@@ -432,6 +436,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     dustPilesModifier,
     createExponentialModifier(() => ({
       exponent: () => acceleratorsLayer.dustAccelerator.dustAcceleratorDustRaiseEffect.value
+    })),
+    createExponentialModifier(() => ({
+      exponent: () => acceleratorsLayer.timeAccelerator.levelTwoTimeRaiseEffect.value
     }))
   ]);
 

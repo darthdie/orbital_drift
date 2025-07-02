@@ -73,6 +73,7 @@ const layer = createLayer(id, baseLayer => {
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
       .times(milestones.firstMilestoneModifier.apply(1))
+      // .times(accelerators.timeAccelerator.bringItHomeEffect.value)
       .pow(dustTab.collisionCourseEffect.value)
       .pow(milestones.fourthMilestoneModifier.value)
       .pow(chunksTab.collidingChunksEffect.value)
