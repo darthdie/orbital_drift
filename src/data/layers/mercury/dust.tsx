@@ -477,11 +477,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     dustMultiplier: 0,
     dustPiles: 0
   };
+
   const reset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => {
-      Object.keys(preresetBuyableLevels).forEach((buyable) => {
-        (preresetBuyableLevels as any)[buyable] = (repeatables as any)[buyable].amount.value;
-      });
+      if (milestonesLayer.milestones.five.earned.value) {
+        Object.keys(preresetBuyableLevels).forEach((buyable) => {
+          (preresetBuyableLevels as Record<string, number>)[buyable] = (repeatables as any)[buyable].amount.value;
+        });
+      }
 
       return noPersist([
         basicUpgrades,
@@ -495,12 +498,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       totalTimeSinceReset.value = Decimal.dZero;
       mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
-      Object.keys(preresetBuyableLevels).forEach((buyable) => {
-        (repeatables as any)[buyable].amount.value = Decimal.min(
-          (preresetBuyableLevels as any)[buyable],
-          chunksLayer.totalChunks.value
-        );
-      });
+      if (milestonesLayer.milestones.five.earned.value) {
+        Object.keys(preresetBuyableLevels).forEach((buyable) => {
+          (repeatables as any)[buyable].amount.value = Decimal.min(
+            (preresetBuyableLevels as Record<string, number>)[buyable],
+            chunksLayer.totalChunks.value
+          );
+        });
+      }
 
       if (milestonesLayer.milestones.second.earned.value) {
         Object.values(basicUpgrades)
@@ -509,6 +514,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       }
     }
   }));
+
+  const fullReset = () => {
+    reset.reset();
+
+    mercurialDust.value = 0;
+    totalMercurialDust.value = 0;
+    timeSinceReset.value = 0;
+    totalTimeSinceReset.value = 0;
+  };
 
   watch(milestonesLayer.completedMilestonesCount, count => {
     if (!milestonesLayer.milestones.second.earned.value) {
@@ -578,6 +592,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     collisionCourseEffect,
     collisionCourseModifier,
     reset,
+    fullReset,
     display: () => (
       <>
 

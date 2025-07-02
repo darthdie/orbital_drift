@@ -200,11 +200,18 @@ const layer = createLayer(id, baseLayer => {
     }
   }));
 
+  const fullReset = () => {
+    createReset(() => ({ thingsToReset: () => [layer]})).reset();
+    chunks.value = 0;
+    totalChunks.value = 0;
+  };
+
   return {
     id,
     name,
     color,
-    reset,
+    // reset,
+    fullReset,
     resetButton,
     chunks,
     totalChunks,

@@ -7,7 +7,7 @@ import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
-import { createLayerTreeNode } from "../common";
+import { createLayerTreeNode, createResetButton } from "../common";
 import { computed, unref } from "vue";
 import Decimal, { format } from "util/bignum";
 import { noPersist } from "game/persistence";
@@ -23,6 +23,7 @@ import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
 import milestones from './mercury/milestones';
 import accelerators from './mercury/accelerators';
+import { createClickable } from "features/clickables/clickable";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -47,7 +48,6 @@ const layer = createLayer(id, baseLayer => {
 
   const maxCollisionTime = Decimal.times(1e88, 84600)
   const collisionTime = createResource<DecimalSource>(maxCollisionTime);
-
 
   const collisionTimeProgressBar = createBar(() => ({
     progress: () => Decimal.div(collisionTime.value, maxCollisionTime),
@@ -77,8 +77,10 @@ const layer = createLayer(id, baseLayer => {
       .pow(dustTab.collisionCourseEffect.value)
       .pow(milestones.fourthMilestoneModifier.value)
       .pow(chunksTab.collidingChunksEffect.value)
-      // collidingChunksModifier
+    // collidingChunksModifier
   );
+
+  const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
 
   baseLayer.on("update", diff => {
     if (!unlocked.value) {
@@ -95,10 +97,7 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => [layer],
-    onReset: () => {
-      console.log('resetting mercury')
-    }
+    thingsToReset: (): Record<string, unknown>[] => [layer]
   }));
 
   const treeNode = createLayerTreeNode(() => ({
@@ -138,6 +137,41 @@ const layer = createLayer(id, baseLayer => {
     }
   })
 
+  const regularDisplay = (<>
+    {Decimal.lt(collisionTime.value, 86400) ? (
+      <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
+    ) : (
+      <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
+    )}
+
+    <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
+    {render(collisionTimeProgressBar)}
+    <Spacer />
+    {render(tabs)}
+  </>);
+
+  const solarResetButton = createClickable(() => ({
+    display: {
+      title: "Mercury has collided with the Sun.",
+      description: "Reset for 1 Solar Energy."
+    },
+    onClick: () => {
+      solarLayer.energy.value = Decimal.add(solarLayer.energy.value, 1);
+      accelerators.fullReset();
+      milestones.fullReset();
+      chunksTab.fullReset();
+      dustTab.fullReset();
+      reset.reset();
+      collisionTime.value = maxCollisionTime;
+    }
+  }));
+
+  const collidedDisplay = (<>
+    <div style="height: 100%; display: flex;">
+      {render(solarResetButton)}
+    </div>
+  </>);
+
   return {
     name,
     color,
@@ -145,20 +179,7 @@ const layer = createLayer(id, baseLayer => {
     maxCollisionTime,
     tabs,
     collisionTimeGainComputed,
-    display: () => (
-      <>
-        {Decimal.lt(collisionTime.value, 86400) ? (
-          <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
-        ) : (
-          <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
-        )}
-
-        <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
-        {render(collisionTimeProgressBar)}
-        <Spacer/>
-        {render(tabs)}
-      </>
-    ),
+    display: () => <>{ hasCollidedComputed.value ? render(collidedDisplay) : render(regularDisplay) }</>,
     treeNode,
   };
 });

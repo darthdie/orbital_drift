@@ -21,6 +21,7 @@ import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
 import chunksLayer from './chunks';
 import mercuryLayer from '../mercury';
 import { createLazyProxy } from "util/proxies";
+import { createReset } from "features/reset";
 
 const id = "Ma";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -131,7 +132,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }),
 
     dustBuyableCapEffect: computed((): Decimal => {
-      return Decimal.add(dustAccelerator.resource.value, 1).log2().sqrt().floor().clampMin(1);
+      if (dustAccelerator.isAtLeastLevelThree.value) {
+        return Decimal.add(dustAccelerator.resource.value, 1).log2().sqrt().floor().clampMin(1);
+      }
+      
+      return Decimal.dZero;
     }),
 
     levelBuyable: createRepeatable(() => ({
@@ -686,6 +691,20 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }
   }));
 
+  const reset = createReset(() => ({
+    thingsToReset: (): Record<string, unknown>[] => [layer],
+    onReset: () => {
+
+    }
+  }));
+
+  const fullReset = () => {
+    reset.reset();
+    dustAccelerator.resource.value = 0;
+    chunkAccelerator.resource.value = 0;
+    timeAccelerator.resource.value = 0;
+  };
+
   return {
     id,
     name,
@@ -695,6 +714,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     timeAccelerator,
     tabs,
     autoIntervalBuyers,
+    fullReset,
     display: () => (<>{render(tabs)}</>)
   }
 });
