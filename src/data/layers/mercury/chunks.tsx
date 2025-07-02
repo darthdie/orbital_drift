@@ -18,6 +18,7 @@ import { AdditiveModifierOptions, createAdditiveModifier, createExponentialModif
 import mercuryLayer from '../mercury';
 import { createLazyProxy } from "util/proxies";
 import acceleratorsLayer from './accelerators';
+import solarLayer from '../solar';
 
 const id = "Mc";
 const layer = createLayer(id, baseLayer => {
@@ -37,6 +38,7 @@ const layer = createLayer(id, baseLayer => {
         .mul(computedLovingChunks)
         .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
         .mul(fuckingChunksEffect)
+        // .mul(solarLayer.mercuryRetainedSpeedModifer.apply(1))
         .div(1000)
         .step(1, f => f.div(25))
         .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))

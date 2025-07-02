@@ -254,8 +254,6 @@ export function createCountRequirement(
         const refCount = processGetter(count);
         const refRequired = processGetter(required);
 
-        
-
         return {
             requirementMet: computed(() => Decimal.gte(unref(refCount), unref(refRequired))),
             requiresPay: false,

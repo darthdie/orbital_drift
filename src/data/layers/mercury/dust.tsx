@@ -92,7 +92,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     totalUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(2000)
+        cost: Decimal.fromNumber(50000)
       })),
       display: {
         title: "Seasoned Dust",
@@ -104,7 +104,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     killingTime: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(5000)
+        cost: Decimal.fromNumber(100000)
       })),
       display: {
         title: "Killin' Time",
@@ -116,7 +116,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     accelerationUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(10000)
+        cost: Decimal.fromNumber(1e15)
       })),
       display: {
         title: 'Acceleration',
@@ -128,7 +128,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     latestUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(25000)
+        cost: Decimal.fromNumber(1e20)
       })),
       display: {
         title: "Acceleration 2: This time it's personal",
@@ -359,6 +359,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     slippingTimeModifier,
     messengerGodModifier,
     accelerationTwoMultiplierModifier,
+    solarLayer.mercuryRetainedSpeedModifer,
     // ^
     collisionCourseModifier,
     createExponentialModifier(() => ({
@@ -432,6 +433,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     dustMultiplierModifier,
     accumulatingDustModifier,
     acceleratorsLayer.dustAccelerator.dustGainMultiplierModifier,
+    // solarLayer.mercuryRetainedSpeedModifer,
     // ^
     dustPilesModifier,
     createExponentialModifier(() => ({
@@ -445,7 +447,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const conversion = createCumulativeConversion(() => {
     return {
       formula: x => {
-        return dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula;
+        return (dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula)
+        .step(100, f => f.sqrt());
       },
       baseResource: timeSinceReset,
       gainResource: mercurialDust,
