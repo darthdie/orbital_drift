@@ -329,14 +329,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const slippingTimeModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.slippingTimeUpgrade.bought,
-      multiplier: () => Decimal.add(timeSinceReset.value, 1).log10().pow(0.6).clampMin(1),
+      multiplier: () => Decimal.add(timeSinceReset.value, 10).log10().pow(0.6).clampMin(1),
       description: "Slippery Time"
     }))
   ]);
 
   const collisionCourseEffect = computed((): Decimal => {
     if (basicUpgrades.collisionCourse.bought.value) {
-      return Decimal.add(mercurialDust.value, 1).log10().sqrt().pow(0.2).clampMin(1);
+      return Decimal.add(mercurialDust.value, 10).log10().sqrt().pow(0.2).clampMin(1);
     }
 
     return Decimal.dOne;
@@ -385,7 +385,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     accelerators: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(100000)
+        cost: Decimal.fromNumber(1e9)
       })),
       display: {
         title: "Accelerators",
@@ -447,8 +447,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const conversion = createCumulativeConversion(() => {
     return {
       formula: x => {
+        const oom = computed(() => Decimal.fromValue(timeSinceReset.value).e);
         return (dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula)
-        .step(100, f => f.sqrt());
+        // .div()
+        // .step(100, f => f.sqrt())
+        .step(1000, f => f.sqrt())
+        // .step(1000, f => f.div(Formula.variable(oom).div(4)));
       },
       baseResource: timeSinceReset,
       gainResource: mercurialDust,

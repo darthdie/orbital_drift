@@ -39,20 +39,25 @@ const layer = createLayer(id, baseLayer => {
         .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
         .mul(fuckingChunksEffect)
         // .mul(solarLayer.mercuryRetainedSpeedModifer.apply(1))
-        .div(1000)
-        .step(1, f => f.div(25))
+        .div(1000) // starting cost
+        // .div()
+        .step(1, f => f.div(30))
+        .step(5, f => f.div(2))
         .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
         .step(30, f => f.sqrt()),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
-          .max(chunks.value)
-          .min(Decimal.add(chunks.value, 1));
+          // .max(chunks.value)
+          .max(totalChunks.value)
+          .min(Decimal.add(totalChunks.value, 1))
+          // .min(Decimal.add(chunks.value, 1));
       }),
       actualGain: computed((): Decimal => {
         return Decimal.sub(
           conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
-          chunks.value
+          // chunks.value
+          totalChunks.value
         ).floor().max(0).min(1);
       }),
       gainResource: noPersist(chunks),
