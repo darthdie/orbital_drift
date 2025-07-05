@@ -123,7 +123,7 @@ const layer = createLayer(id, baseLayer => {
     }),
     accelerators: () => ({
       visibility: dustTab.unlocks.accelerators.bought,
-      display: "Accelerators",
+      display: () => (<>Accelerators {accelerators.showExclamation.value ? "!" : null }</>),
       tab: createTab(() => ({ display: accelerators.display }))
     }),
     milestones: () => {

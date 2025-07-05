@@ -578,7 +578,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       if (!chunkAccelerator.upgrades.timeUnlock.bought.value) {
         return;
       }
-      
+
       timeAccelerator.timer.value = Decimal.add(
         timeAccelerator.timer.value,
         Decimal.times(1, diff)
@@ -722,6 +722,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     timeAccelerator.resource.value = 0;
   };
 
+  const showExclamation = computed(() => {
+    return dustAccelerator.levelBuyable.canClick.value ||
+      chunkAccelerator.levelBuyable.canClick.value ||
+      timeAccelerator.levelBuyable.canClick.value;
+  });
+
   return {
     id,
     name,
@@ -731,6 +737,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     timeAccelerator,
     tabs,
     autoIntervalBuyers,
+    showExclamation,
     fullReset,
     display: () => (<>{render(tabs)}</>)
   }

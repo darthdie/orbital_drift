@@ -78,7 +78,7 @@ const layer = createLayer(id, baseLayer => {
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
-      visibility: milestones.first.earned.value,
+      visibility: milestones.first.earned,
       tab: createTab(() => ({display: () => <>{Object.values(milestones).map(a => render(a))}</>}))
     }),
     mercury: () => ({
