@@ -43,7 +43,8 @@ const layer = createLayer(id, baseLayer => {
         // .div()
         .step(1, f => f.div(30))
         .step(5, f => f.div(2))
-        .step(10, f => f.sqrt().div(1000).div(totalChunks).pow(0.1))
+        .step(10, f => f.cbrt().div(2.5))
+        .step(20, f => f.sqrt().div(1000).pow(0.1)) //.div(totalChunks)
         .step(30, f => f.sqrt()),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
@@ -56,8 +57,7 @@ const layer = createLayer(id, baseLayer => {
       actualGain: computed((): Decimal => {
         return Decimal.sub(
           conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
-          // chunks.value
-          totalChunks.value
+          chunks.value
         ).floor().max(0).min(1);
       }),
       gainResource: noPersist(chunks),
@@ -130,7 +130,7 @@ const layer = createLayer(id, baseLayer => {
       display: {
         title: "Grindin' Chunks",
         description: "Gain dust per second equal to your total chunks",
-        effectDisplay: () => `${format(totalChunks.value)}/s`
+        effectDisplay: () => `${format(totalChunks.value)}%/s`
       }
     })),
 

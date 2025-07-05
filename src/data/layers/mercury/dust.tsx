@@ -104,7 +104,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     killingTime: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(100000)
+        cost: Decimal.fromNumber(1e8)
       })),
       display: {
         title: "Killin' Time",
@@ -296,7 +296,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const accumulatingDustModifier = createSequentialModifier(() => [
     createMultiplicativeModifier(() => ({
       enabled: basicUpgrades.acummulatingDust.bought,
-      multiplier: (): Decimal => Decimal.add(mercurialDust.value, 1).log10().sqrt().mul(dustBunniesModifier.apply(1)).clampMin(1),
+      multiplier: (): Decimal => Decimal.add(mercurialDust.value, 10).log10().sqrt().mul(dustBunniesModifier.apply(1)).clampMin(1),
       description: "Accumulating Dust"
     }))
   ]);
@@ -449,9 +449,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       formula: x => {
         const oom = computed(() => Decimal.fromValue(timeSinceReset.value).e);
         return (dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula)
+        .step(1e6, f => f.sqrt())
         // .div()
         // .step(100, f => f.sqrt())
-        .step(1000, f => f.sqrt())
+        // .step(1000, f => f.sqrt())
         // .step(1000, f => f.div(Formula.variable(oom).div(4)));
       },
       baseResource: timeSinceReset,
