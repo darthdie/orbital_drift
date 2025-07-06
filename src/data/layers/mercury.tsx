@@ -69,15 +69,12 @@ const layer = createLayer(id, baseLayer => {
 
   const collisionTimeGainComputed = computed(
     () => new Decimal(1)
-      // .add(chunksTab.chuckingChunksModifier.apply(0))
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
       .times(milestones.firstMilestoneModifier.apply(1))
-      // .times(accelerators.timeAccelerator.bringItHomeEffect.value)
       .pow(dustTab.collisionCourseEffect.value)
       .pow(milestones.fourthMilestoneModifier.value)
       .pow(chunksTab.collidingChunksEffect.value)
-    // collidingChunksModifier
   );
 
   const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
@@ -137,7 +134,7 @@ const layer = createLayer(id, baseLayer => {
     }
   })
 
-  const regularDisplay = (<>
+  const regularDisplay = computed(() => (<>
     {Decimal.lt(collisionTime.value, 86400) ? (
       <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
     ) : (
@@ -148,7 +145,7 @@ const layer = createLayer(id, baseLayer => {
     {render(collisionTimeProgressBar)}
     <Spacer />
     {render(tabs)}
-  </>);
+  </>));
 
   const solarResetButton = createClickable(() => ({
     display: {
@@ -166,11 +163,15 @@ const layer = createLayer(id, baseLayer => {
     }
   }));
 
-  const collidedDisplay = (<>
+  const collidedDisplay = computed(() => (<>
     <div style="height: 100%; display: flex;">
       {render(solarResetButton)}
     </div>
-  </>);
+  </>));
+
+  const renderDisplay = () => {
+    return hasCollidedComputed.value ? collidedDisplay.value : regularDisplay.value;
+  };
 
   return {
     name,
@@ -179,7 +180,7 @@ const layer = createLayer(id, baseLayer => {
     maxCollisionTime,
     tabs,
     collisionTimeGainComputed,
-    display: () => <>{ hasCollidedComputed.value ? render(collidedDisplay) : render(regularDisplay) }</>,
+    display: () => renderDisplay(),
     treeNode,
   };
 });
