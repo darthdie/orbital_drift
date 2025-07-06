@@ -53,7 +53,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     intervalBuyable: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(dustLayer.mercurialDust),
-        cost: () => Formula.variable(dustAccelerator.intervalBuyable.amount.value).pow_base(5.3).times(5e5).evaluate(),
+        cost: () => Formula.variable(dustAccelerator.intervalBuyable.amount.value).pow_base(7).times(1e10).evaluate(),
         requiresPay: false,
       })),
       clickableStyle: {
@@ -158,17 +158,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     upgrades: {
-      first: createUpgrade(() => ({
-        requirements: createCostRequirement((): CostRequirementOptions => ({
-          resource: noPersist(dustAccelerator.resource),
-          cost: Decimal.fromNumber(10)
-        })),
-        display: {
-          title: "Speed Dust",
-          description: "Unlock more Dust upgrades"
-        }
-      })),
-
       second: createUpgrade(() => ({
         requirements: createCostRequirement((): CostRequirementOptions => ({
           resource: noPersist(dustAccelerator.resource),
@@ -190,7 +179,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           title: "je ne sais chunks",
           description: "Unlock Chunk Accelerons",
         }
-      }))
+      })),
+
+      first: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(dustAccelerator.resource),
+          cost: Decimal.fromNumber(150)
+        })),
+        display: {
+          title: "Speed Dust",
+          description: "Unlock more Dust upgrades"
+        }
+      })),
     },
 
     tick: (diff: number) => {

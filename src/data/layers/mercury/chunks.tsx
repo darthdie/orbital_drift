@@ -33,6 +33,19 @@ const layer = createLayer(id, baseLayer => {
       return Decimal.clampMin(lovingChunksModifier.apply(0), 1);
     });
 
+    const post10ScalingDivider = computed(() => {
+      return Decimal.sub(totalChunks.value, 9).add(1).clampMin(1);
+      // return Decimal.fromValue(totalChunks.value).sub(9).add(1).clampMin(1);
+    });
+
+    const post20ScalingDivider = computed(() => {
+      return Decimal.sub(totalChunks.value, 19).times(25).clampMin(1);
+      // Decimal.fromValue(totalChunks.value).sub(19).times(15).clampMin(1)
+      // return Decimal.times(Decimal.sub(Decimal.add(totalChunks.value, 1), 20), 15).clampMin(1)
+    });
+
+    // * 15
+
     return {
       formula: x => x
         .mul(computedLovingChunks)
@@ -43,8 +56,8 @@ const layer = createLayer(id, baseLayer => {
         // .div()
         .step(1, f => f.div(30))
         .step(5, f => f.div(2))
-        .step(10, f => f.cbrt().div(2.5))
-        .step(20, f => f.sqrt().div(1000).pow(0.1)) //.div(totalChunks)
+        .step(10, f => f.cbrt().div(post10ScalingDivider))
+        .step(20, f => f.sqrt().div(post20ScalingDivider)) //.div(totalChunks)
         .step(30, f => f.sqrt()),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {

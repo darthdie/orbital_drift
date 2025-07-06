@@ -108,34 +108,34 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Killin' Time",
-        description: "For every 1000 seconds of last reset time, gain +0.1 base dust gain",
+        description: "Increase base dust gain based on OOM of last reset time.",
         effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
-      }
-    })),
-
-    accelerationUpgrade: createUpgrade(() => ({
-      requirements: createCostRequirement(() => ({
-        resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1e15)
-      })),
-      display: {
-        title: 'Acceleration',
-        description: "Multiply time until collision rate based on time since last reset",
-        effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`,
       }
     })),
 
     latestUpgrade: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
         resource: noPersist(mercurialDust),
+        cost: Decimal.fromNumber(1e15)
+      })),
+      display: {
+        title: "Acceleration",
+        description: "Multiply last reset time rate based on collision time rate.",
+        effectDisplay: (): string => `x${format(accelerationTwoMultiplierModifier.apply(1))}`,
+      }
+    })),
+
+    accelerationUpgrade: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(mercurialDust),
         cost: Decimal.fromNumber(1e20)
       })),
       display: {
         title: "Acceleration 2: This time it's personal",
-        description: "Multiply last reset time rate based on collision time rate.",
-        effectDisplay: (): string => `x${format(accelerationTwoMultiplierModifier.apply(1))}`,
+        description: "Multiply time until collision rate based on time since last reset",
+        effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`,
       }
-    }))
+    })),
   };
 
   const chunkingTimeModifier = createSequentialModifier(() => [
@@ -421,7 +421,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const killingTimeModifier = createSequentialModifier(() => [
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.killingTime.bought,
-      addend: (): Decimal => Decimal.divide(timeSinceReset.value, 1000).times(0.1).times(chunkingTimeModifier.apply(1))
+      // addend: (): Decimal => Decimal.divide(timeSinceReset.value, 1000).times(0.01).times(chunkingTimeModifier.apply(1))
+      addend: (): Decimal => Decimal.pow(Decimal.add(timeSinceReset.value, 1).e, 1.5)
+      // addend: 0
     }))
   ]);
 
@@ -447,9 +449,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   const conversion = createCumulativeConversion(() => {
     return {
       formula: x => {
-        const oom = computed(() => Decimal.fromValue(timeSinceReset.value).e);
+        // const oom = computed(() => Decimal.fromValue(timeSinceReset.value).e);
         return (dustPowerGainModifier.getFormula(x.div(2).pow(0.3)) as InvertibleIntegralFormula)
-        .step(1e6, f => f.sqrt())
+        .step(1e6, f => f.div(3))
         // .div()
         // .step(100, f => f.sqrt())
         // .step(1000, f => f.sqrt())
