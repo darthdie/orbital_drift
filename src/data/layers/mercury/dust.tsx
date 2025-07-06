@@ -221,7 +221,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "eyehatedinosaurs",
-        description: `Multiply "Acceleration" based on total chunks`,
+        description: `Multiply "Acceleration 2" based on total chunks`,
         effectDisplay: () => `*${format(eyeHateDinosaursModifier.apply(1))}`
       }
     }))
@@ -499,6 +499,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       return noPersist([
         basicUpgrades,
         repeatables,
+        acceleratorUpgrades,
       ]);
     },
     onReset: () => {

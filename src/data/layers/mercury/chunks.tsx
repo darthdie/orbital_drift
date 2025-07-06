@@ -6,7 +6,7 @@ import { createCumulativeConversion, createIndependentConversion, setupPassiveGe
 import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
-import { computed, watch } from "vue";
+import { computed, unref, watch } from "vue";
 import Decimal from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderRow } from "util/vue";
@@ -44,6 +44,10 @@ const layer = createLayer(id, baseLayer => {
       // return Decimal.times(Decimal.sub(Decimal.add(totalChunks.value, 1), 20), 15).clampMin(1)
     });
 
+    const post10000ScalingDivisor = computed(() => {
+      return Decimal.sub(totalChunks.value, 99999).pow(0.1).clampMin(1);
+    })
+
     // * 15
 
     return {
@@ -58,7 +62,9 @@ const layer = createLayer(id, baseLayer => {
         .step(5, f => f.div(2))
         .step(10, f => f.cbrt().div(post10ScalingDivider))
         .step(20, f => f.sqrt().div(post20ScalingDivider)) //.div(totalChunks)
-        .step(30, f => f.sqrt()),
+        .step(30, f => f.sqrt())
+        .step(100, f => f.div(500))
+        .step(100000, f => f.div(post10000ScalingDivisor).div(1e1)),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
@@ -80,7 +86,11 @@ const layer = createLayer(id, baseLayer => {
 
   const autoChunker = createLazyProxy((_) => {
     watch(dustLayer.mercurialDust, () => {
-      if (!upgrades.autoChunks.bought.value) {
+      if (!upgrades.autoChunks.bought.value || !resetButton.canClick) {
+        return;
+      }
+
+      if (Decimal.lt(unref(conversion.actualGain), 1)) {
         return;
       }
 
@@ -115,7 +125,7 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const fuckingChunksEffect = computed((): Decimal => {
-    if (upgrades.fuckingChunks.bought.value) {
+    if (upgrades.splinteringChunks.bought.value) {
       return Decimal.add(mercuryLayer.collisionTimeGainComputed.value, 1).log10().cbrt().clampMin(1);
     }
 
@@ -184,14 +194,14 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-    fuckingChunks: createUpgrade(() => ({
+    splinteringChunks: createUpgrade(() => ({
       visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
       requirements: createCostRequirement(() => ({
         resource: noPersist(chunks),
         cost: Decimal.fromNumber(90)
       })),
       display: {
-        title: "Fuckin' Chunks",
+        title: "Splinterin' Chunks",
         description: "Reduce chunk cost based on collision time rate",
         effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
       }
@@ -226,6 +236,10 @@ const layer = createLayer(id, baseLayer => {
     totalChunks.value = 0;
   };
 
+  const showExclamation = computed(() => {
+    return Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value;
+  });
+
   return {
     id,
     name,
@@ -241,6 +255,7 @@ const layer = createLayer(id, baseLayer => {
     treeNode,
     collidingChunksEffect,
     autoChunker,
+    showExclamation,
     display: () => (<>
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
       <h4>You have condensed a total of {format(totalChunks.value)}</h4>

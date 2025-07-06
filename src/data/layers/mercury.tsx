@@ -50,7 +50,12 @@ const layer = createLayer(id, baseLayer => {
   const collisionTime = createResource<DecimalSource>(maxCollisionTime);
 
   const collisionTimeProgressBar = createBar(() => ({
-    progress: () => Decimal.div(collisionTime.value, maxCollisionTime),
+    progress: () => {
+      return Decimal.sub(
+        1,
+        Decimal.div(collisionTimeGainComputed.value.e, maxCollisionTime.e)
+      )
+    },
     width: 512,
     height: 10,
     direction: Direction.Right,
@@ -72,6 +77,7 @@ const layer = createLayer(id, baseLayer => {
       .times(baseTimeRateModifier.apply(1))
       .times(dustTab.accelerationModifier.apply(1))
       .times(milestones.firstMilestoneModifier.apply(1))
+      .times(solarLayer.mercuryRetainedSpeedModifer.apply(1))
       .pow(dustTab.collisionCourseEffect.value)
       .pow(milestones.fourthMilestoneModifier.value)
       .pow(chunksTab.collidingChunksEffect.value)
@@ -113,7 +119,7 @@ const layer = createLayer(id, baseLayer => {
     }),
     chunks: () => ({
       visibility: dustTab.unlocks.chunks.bought,
-      display: () => (<>Chunks {Decimal.gte(unref((chunksTab.conversion as Conversion).actualGain), 1) ? "!" : null}</>),
+      display: () => (<>Chunks {chunksTab.showExclamation.value ? "!" : null}</>),
       tab: createTab(() => ({
         display: chunksTab.display
       }))
