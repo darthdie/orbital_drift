@@ -329,17 +329,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     })),
 
     upgrades: {
-      moreChunkUpgrades: createUpgrade(() => ({
-        requirements: createCostRequirement((): CostRequirementOptions => ({
-          resource: noPersist(chunkAccelerator.resource),
-          cost: Decimal.fromNumber(10)
-        })),
-        display: {
-          title: "Speed Chunks",
-          description: "Unlock more Chunk upgrades",
-        }
-      })),
-
       chunksMeetDust: createUpgrade(() => ({
         requirements: createCostRequirement((): CostRequirementOptions => ({
           resource: noPersist(chunkAccelerator.resource),
@@ -349,6 +338,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           title: "Chunks, meet Dust",
           description: "Decrease timer interval based on Dust Accelerons",
           effectDisplay: (): string => `÷${format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}`
+        }
+      })),
+
+      moreChunkUpgrades: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: noPersist(chunkAccelerator.resource),
+          cost: Decimal.fromNumber(100)
+        })),
+        display: {
+          title: "Speed Chunks",
+          description: "Unlock more Chunk upgrades",
         }
       })),
 
