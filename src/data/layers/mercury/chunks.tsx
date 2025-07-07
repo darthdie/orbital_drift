@@ -7,7 +7,7 @@ import dustLayer from './dust';
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
 import { computed, unref, watch } from "vue";
-import Decimal from "lib/break_eternity";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderRow } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
@@ -25,7 +25,7 @@ const layer = createLayer(id, baseLayer => {
   const name = "Mercury Chunks";
   const color = "#68696d";
 
-  const chunks = createResource(0, "mercurial chunks");
+  const chunks = createResource<DecimalSource>(0, "mercurial chunks");
   const totalChunks = trackTotal(chunks);
 
   const conversion = createIndependentConversion(() => {
@@ -55,7 +55,6 @@ const layer = createLayer(id, baseLayer => {
         .mul(computedLovingChunks)
         .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
         .mul(fuckingChunksEffect)
-        // .mul(solarLayer.mercuryRetainedSpeedModifer.apply(1))
         .div(1000) // starting cost
         // .div()
         .step(1, f => f.div(30))
@@ -68,19 +67,30 @@ const layer = createLayer(id, baseLayer => {
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
-          // .max(chunks.value)
           .max(totalChunks.value)
           .min(Decimal.add(totalChunks.value, 1))
-          // .min(Decimal.add(chunks.value, 1));
       }),
       actualGain: computed((): Decimal => {
+        // console.log({
+        //     actual: Decimal.sub(
+        //     conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
+        //     chunks.value
+        //   ).floor().max(0).min(1).toString(),
+        //   potential: Decimal.sub(
+        //     conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
+        //     totalChunks.value
+        //   ).floor().max(0).min(1).toString()
+        // })
         return Decimal.sub(
           conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
-          chunks.value
-        ).floor().max(0).min(1);
+          totalChunks.value
+        ).floor().max(0).min(1).clampMax(1);
       }),
       gainResource: noPersist(chunks),
       spend: () => { },
+      convert: () => {
+        chunks.value = Decimal.add(chunks.value, 1);
+      }
     };
   });
 
@@ -232,9 +242,19 @@ const layer = createLayer(id, baseLayer => {
 
   const fullReset = () => {
     createReset(() => ({ thingsToReset: () => [layer]})).reset();
-    chunks.value = 0;
-    totalChunks.value = 0;
+    const chunksGained = solarLayer.mercuryUpgrades.secretChunkStash.bought.value ? 3 : 0;
+
+    chunks.value = chunksGained;
+    totalChunks.value = chunksGained;
   };
+
+  watch(solarLayer.mercuryUpgrades.secretChunkStash.bought, bought => {
+    if (!bought) {
+      return;
+    }
+
+    chunks.value = Decimal.max(chunks.value, 3);
+  });
 
   const showExclamation = computed(() => {
     return Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value;

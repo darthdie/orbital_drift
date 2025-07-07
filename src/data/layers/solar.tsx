@@ -49,7 +49,7 @@ const layer = createLayer(id, baseLayer => {
       requirements: createCountRequirement(totalEnergy, 2),
       display: {
         requirement: "2 Solar Energy",
-        optionsDisplay: "Unlock Solar Milestones and Mercury Upgrades"
+        optionsDisplay: "Unlock Solar Milestones and Solar Mercury Upgrades"
       }
     }))
   };
@@ -57,9 +57,16 @@ const layer = createLayer(id, baseLayer => {
   const mercuryRetainedSpeedModifer = createSequentialModifier(() => [
     createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
       enabled: mercuryUpgrades.retainSpeed.bought,
-      multiplier: 1.5
+      multiplier: 2
     }))
-  ])
+  ]);
+
+  const mercurySolarFriedDustModifier = createSequentialModifier(() => [
+    createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
+      enabled: mercuryUpgrades.solarFriedDust.bought,
+      multiplier: 2
+    }))
+  ]);
 
   const mercuryUpgrades = {
     retainSpeed: createUpgrade(() => ({
@@ -68,12 +75,53 @@ const layer = createLayer(id, baseLayer => {
         cost: Decimal.fromNumber(1)
       })),
       display: {
-        title: "Retain Speed",
-        description: "Multiply time speed in Mercury by 1.5",
+        title: "𝘴𝘰𝘭𝘢𝘳 𝘴𝘱𝘦𝘦𝘥",
+        description: "Multiply time speed in Mercury by x2",
         effectDisplay: () => `x${mercuryRetainedSpeedModifer.apply(1)}`
       }
+    })),
+    solarFriedDust: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(energy),
+        cost: Decimal.fromNumber(1)
+      })),
+      display: {
+        title: "Solar Fried Dust",
+        description: "Multiply Dust Gain by x2",
+        effectDisplay: () => `x${mercurySolarFriedDustModifier.apply(1)}`
+      }
+    })),
+    snortingDust: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(energy),
+        cost: Decimal.fromNumber(1)
+      })),
+      display: {
+        title: "Snorting Dust",
+        description: "Always gain 1% of Dust per second."
+      }
+    })),
+    secretChunkStash: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(energy),
+        cost: Decimal.fromNumber(5)
+      })),
+      display: {
+        title: "ˢᵉᶜʳᵉᵗ ᶜʰᵘⁿᵏ ˢᵗᵃˢʰ",
+        description: "Start each Mercury reset with 3 Chunks."
+      }
+    })),
+    youGetAPile: createUpgrade(() => ({
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(energy),
+        cost: Decimal.fromNumber(5)
+      })),
+      display: {
+        title: "You get a pile, and you get...",
+        description: "Keep 'Dust Piles' unlocked and start with 1 level of each buyable."
+      }
     }))
-  }
+  };
 
   const tabs = createTabFamily({
     milestones: () => ({
@@ -91,14 +139,20 @@ const layer = createLayer(id, baseLayer => {
             milestones.first.earned.value ?
               <>
                 <h5>Upgrades</h5>
-                {renderGroupedObjects(mercuryUpgrades, 4)}
+                {renderGroupedObjects(mercuryUpgrades, 3)}
               </>
               : null
           }
         </>)
       }))
     })
-  })
+  });
+
+  // const reset = createReset(() => ({
+  //   thingsToReset: (): Record<string, unknown> => [
+  //     mercuryUpgrades,
+  //   ]
+  // }))
 
   return {
     name,
