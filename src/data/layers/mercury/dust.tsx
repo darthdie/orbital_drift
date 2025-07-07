@@ -287,7 +287,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       display: {
         title: "Dust Piles",
         description: "Raise Dust gain to ^1.1",
-        effectDisplay: () => `^${format(dustPilesEffect.value)}`
+        effectDisplay: () => `^${format(dustPilesEffect.value, 1)}`
       },
       visibility: () => milestonesLayer.milestones.first.earned.value || solarLayer.mercuryUpgrades.youGetAPile.bought.value
     }))
@@ -305,7 +305,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     createAdditiveModifier(() => ({
       enabled: basicUpgrades.totalUpgrade.bought,
       addend: () => {
-        return Decimal.add(totalTimeSinceReset.value, 1).log10().sqrt().clampMin(1);
+        return Decimal.add(totalTimeSinceReset.value, 1).log2().sqrt().clampMin(1);
       },
       description: "Seasoned Dust"
     }))
@@ -490,11 +490,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const reset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => {
-      if (milestonesLayer.milestones.five.earned.value) {
-        Object.keys(preresetBuyableLevels).forEach((buyable) => {
-          (preresetBuyableLevels as Record<string, number>)[buyable] = (repeatables as any)[buyable].amount.value;
-        });
-      }
+      Object.keys(preresetBuyableLevels).forEach((buyable) => {
+        (preresetBuyableLevels as Record<string, number>)[buyable] = (repeatables as any)[buyable].amount.value;
+      });
 
       return noPersist([
         basicUpgrades,
