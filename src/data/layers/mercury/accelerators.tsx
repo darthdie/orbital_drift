@@ -79,6 +79,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         .clampMin(0.1);
     }),
 
+    timerTickSpeedDisplay: computed((): Decimal => {
+      return Decimal.fromValue(dustAccelerator.timerMax.value).div(solarLayer.mercuryRetainedSpeedModifer.apply(1))
+    }),
+
     isAtLeastLevelOne: computed((): boolean => Decimal.gte(dustAccelerator.acceleratorLevel.value, 1)),
     isAtLeastLevelTwo: computed((): boolean => Decimal.gte(dustAccelerator.acceleratorLevel.value, 2)),
     isAtLeastLevelThree: computed((): boolean => Decimal.gte(dustAccelerator.acceleratorLevel.value, 3)),
@@ -109,7 +113,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     dustAcceleratorGainModifier: createSequentialModifier(() => [
       createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
-        enabled: () => dustAccelerator.isAtLeastLevelOne.value,
+        enabled: () => dustAccelerator.isAtLeastLevelOne.value && Decimal.gt(dustAccelerator.resource.value, 0),
         multiplier: () => {
           const mult = dustAccelerator.bonusLevels(2).clampMin(1);
           return Decimal.add(dustAccelerator.resource.value, 1).pow(0.2).times(mult).clampMin(1)
@@ -222,7 +226,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       dustAccelerator.timer.value = Decimal.add(
         dustAccelerator.timer.value,
         Decimal.dOne.times(solarLayer.mercuryRetainedSpeedModifer.apply(1)).times(diff)
-        // Decimal.times(1, diff)
       );
 
       if (Decimal.gte(dustAccelerator.timer.value, dustAccelerator.timerMax.value)) {
@@ -294,6 +297,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         .div(chunkAccelerator.intervalBuyableEffect.value)
         .div(chunkAccelerator.dustAcceleratorIntervalEffect.value)
         .div(timeAccelerator.levelTwoTimeRaiseEffect.value);
+    }),
+
+    timerTickSpeedDisplay: computed((): Decimal => {
+      return Decimal.fromValue(chunkAccelerator.timerMax.value).div(solarLayer.mercuryRetainedSpeedModifer.apply(1))
     }),
 
     dustAcceleratorIntervalEffect: computed(() => {
@@ -379,6 +386,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     },
 
     dustAcceleratorModifierEffect: computed((): Decimal => {
+      if (Decimal.lt(chunkAccelerator.resource.value, 1)) {
+        return Decimal.dOne;
+      }
+
       const extraLevels = chunkAccelerator.bonusLevels(1).clampMin(1);
       return Decimal.add(chunkAccelerator.resource.value, 2).log2().times(extraLevels).pow(chunkAccelerator.levelThreeRaiseEffect.value).clampMin(1);
     }),
@@ -469,8 +480,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     },
 
     acceleronTimerDivisionModifier: computed((): Decimal => {
+      if (Decimal.lt(timeAccelerator.resource.value, 1)) {
+        return Decimal.dOne;
+      }
+
       const extraLevels = timeAccelerator.bonusLevels(1).times(25);
-      return Decimal.add(timeAccelerator.resource.value, 1).add(extraLevels).log10().sqrt().pow(timeAccelerator.levelThreeRaiseEffect.value).clampMin(1);
+      return Decimal.add(timeAccelerator.resource.value, 10).add(extraLevels).log10().sqrt().pow(timeAccelerator.levelThreeRaiseEffect.value).clampMin(1);
     }),
 
     timerMax: computed((): Decimal => {
@@ -481,6 +496,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         // .div(timeAccelerator.intervalBuyableEffect.value);
         // .div(timeAccelerator.dustAcceleratorIntervalEffect.value);
+    }),
+
+    timerTickSpeedDisplay: computed((): Decimal => {
+      return Decimal.fromValue(timeAccelerator.timerMax.value).div(solarLayer.mercuryRetainedSpeedModifer.apply(1))
     }),
 
     levelBuyable: createRepeatable(() => ({
@@ -507,7 +526,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Auto Von Doom",
-          description: "Automate Accelerator Interval Buyables"
+          description: "Automate Accelerator interval buyables."
         }
       })),
       doomsDayClock: createUpgrade(() => ({
@@ -517,7 +536,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Doomsday Clock",
-          description: "Reduce interval based on collision time rate",
+          description: "Reduce interval based on Collision Time.",
           effectDisplay: (): string => `÷${format(timeAccelerator.doomsdayClockEffect.value)}`
         }
       })),
@@ -528,8 +547,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Final Countdown",
-          description: "Multiply Time Acceleron gain based on collision time rate",
-          effectDisplay: (): string => `÷${format(timeAccelerator.finalCountdownEffect.value)}`
+          description: "Multiply Time Acceleron gain based on Collision Time.",
+          effectDisplay: (): string => `x${format(timeAccelerator.finalCountdownEffect.value)}`
         }
       })),
       bringItHome: createUpgrade(() => ({
@@ -539,7 +558,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Bring It Home",
-          description: "Multiply Collision Time based on itself",
+          description: "Multiply Collision Time based on itself.",
           effectDisplay: (): string => `x${format(timeAccelerator.bringItHomeEffect.value)}`
         }
       }))
@@ -582,7 +601,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     chunkAcceleronGainModifier: createSequentialModifier(() => [
       createMultiplicativeModifier((): MultiplicativeModifierOptions => ({
-        enabled: timeAccelerator.isAtLeastLevelOne,
+        enabled: () => timeAccelerator.isAtLeastLevelOne.value && Decimal.gt(timeAccelerator.resource.value, 0),
         multiplier: () => {
           const extraLevels = timeAccelerator.bonusLevels(2).clampMin(1);
           return Decimal.add(timeAccelerator.resource.value, 2).log2().sqrt().times(extraLevels).pow(timeAccelerator.levelThreeRaiseEffect.value).clampMin(1);
@@ -671,7 +690,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       tab: createTab(() => ({
         display: () => (<>
           <h2>{format(dustAccelerator.resource.value)} Dust Accelerons</h2>
-          <h6>You are gaining {format(dustAccelerator.gainComputed.value)} every {format(dustAccelerator.timerMax.value)} seconds.</h6>
+          <h6>You are gaining {format(dustAccelerator.gainComputed.value)} every {format(dustAccelerator.timerTickSpeedDisplay.value)} seconds.</h6>
           <Spacer />
 
           {render(dustAccelerator.bar)}
@@ -703,7 +722,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       tab: createTab(() => ({
         display: () => (<>
           <h2>{format(chunkAccelerator.resource.value)} Chunk Accelerons</h2>
-          <h6>You are gaining {format(chunkAccelerator.gainComputed.value)} every {format(chunkAccelerator.timerMax.value)} seconds.</h6>
+          <h6>You are gaining {format(chunkAccelerator.gainComputed.value)} every {format(chunkAccelerator.timerTickSpeedDisplay.value)} seconds.</h6>
           <Spacer />
 
           {render(chunkAccelerator.bar)}
@@ -735,7 +754,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       tab: createTab(() => ({
         display: () => (<>
           <h2>{format(timeAccelerator.resource.value)} time Accelerons</h2>
-          <h6>You are gaining {format(timeAccelerator.gainComputed.value)} every {format(timeAccelerator.timerMax.value)} seconds.</h6>
+          <h6>You are gaining {format(timeAccelerator.gainComputed.value)} every {format(timeAccelerator.timerTickSpeedDisplay.value)} seconds.</h6>
           <Spacer />
 
           {render(timeAccelerator.bar)}
