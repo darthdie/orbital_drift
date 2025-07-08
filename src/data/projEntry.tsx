@@ -15,6 +15,7 @@ import Node from "components/Node.vue";
 import Spacer from "components/layout/Spacer.vue";
 import acceleratorsTab from './layers/mercury/accelerators';
 import mercuryMilestones from './layers/mercury/milestones';
+import venus from './layers/venus';
 
 /* planet mechanic themes
 mercury: acceleration
@@ -38,6 +39,9 @@ export const main = createLayer("main", layer => {
       // [dustLayer.treeNode, chunksLayer.treeNode],
       [mercury.treeNode],
       [solar.treeNode],
+    ]),
+    rightSideNodes: noPersist([
+      venus.treeNode
     ]),
     branches: [
       { startNode: solar.treeNode, endNode: mercury.treeNode },
@@ -98,7 +102,16 @@ export const main = createLayer("main", layer => {
 export const getInitialLayers = (
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   player: Partial<Player>
-): Array<Layer> => [main, solar, mercury, mercuryDustTab, mercuryChunksTab, acceleratorsTab, mercuryMilestones];
+): Array<Layer> => [
+  main,
+  solar,
+  mercury,
+  venus,
+  mercuryDustTab,
+  mercuryChunksTab,
+  acceleratorsTab,
+  mercuryMilestones
+];
 
 /**
  * A computed ref whose value is true whenever the game is over.
