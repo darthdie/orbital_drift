@@ -39,16 +39,32 @@ const layer = createLayer(id, baseLayer => {
     });
 
     const post20ScalingDivider = computed(() => {
-      return Decimal.sub(totalChunks.value, 19).times(25).clampMin(1);
+      return Decimal.sub(totalChunks.value, 19).add(10).pow(1.9).clampMin(1);
       // Decimal.fromValue(totalChunks.value).sub(19).times(15).clampMin(1)
       // return Decimal.times(Decimal.sub(Decimal.add(totalChunks.value, 1), 20), 15).clampMin(1)
     });
 
     const post10000ScalingDivisor = computed(() => {
       return Decimal.sub(totalChunks.value, 99999).pow(0.1).clampMin(1);
+    });
+
+    const post1000ScalingDivisor = computed(() => {
+      return Decimal.sub(totalChunks.value, 999).times(3).clampMin(1);
+    });
+
+    const post30ScalingDivisor = computed(() => {
+      return Decimal.sub(totalChunks.value, 29).add(10).pow(1.4).clampMin(1);
+    })
+
+    const post35ScalingDivisor = computed(() => {
+      return Decimal.sub(totalChunks.value, 34).add(1).pow(1.1).clampMin(1);
     })
 
     // * 15
+
+    const testDivisor = computed(() => {
+      return Decimal.pow(totalChunks.value, Decimal.pow(totalChunks.value, 0.6)).clampMin(1);
+    })
 
     return {
       formula: x => x
@@ -59,16 +75,20 @@ const layer = createLayer(id, baseLayer => {
         // .div()
         .step(1, f => f.div(30))
         .step(5, f => f.div(2))
+        // .step(10, f => f.cbrt().div(testDivisor)),
         .step(10, f => f.cbrt().div(post10ScalingDivider))
-        .step(20, f => f.sqrt().div(post20ScalingDivider)) //.div(totalChunks)
-        .step(30, f => f.sqrt())
+        .step(20, f => f.sqrt().div(post20ScalingDivider))
+        .step(30, f => f.sqrt().div(post30ScalingDivisor))
+        // .step(35, f => f.sqrt().div(post35ScalingDivisor))
         .step(100, f => f.div(500))
-        .step(100000, f => f.div(post10000ScalingDivisor).div(1e1)),
+        .step(1000, f => f.sqrt().div(post1000ScalingDivisor)),
+
+        // .step(100000, f => f.div(post10000ScalingDivisor).div(1e1)),
       baseResource: dustLayer.mercurialDust,
       currentGain: computed((): Decimal => {
         return Decimal.floor(conversion.formula.evaluate(dustLayer.totalMercurialDust.value))
-          .max(totalChunks.value)
-          .min(Decimal.add(totalChunks.value, 1))
+          .max(chunks.value)
+          .min(Decimal.add(chunks.value, 1))
       }),
       actualGain: computed((): Decimal => {
         // console.log({
@@ -83,7 +103,7 @@ const layer = createLayer(id, baseLayer => {
         // })
         return Decimal.sub(
           conversion.formula.evaluate(dustLayer.totalMercurialDust.value),
-          totalChunks.value
+          chunks.value
         ).floor().max(0).min(1).clampMax(1);
       }),
       gainResource: noPersist(chunks),

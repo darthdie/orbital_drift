@@ -217,7 +217,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       visibility: () => acceleratorsLayer.dustAccelerator.upgrades.first.bought.value,
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(mercurialDust),
-        cost: Decimal.fromNumber(1e50)
+        cost: Decimal.fromNumber(1e60)
       })),
       display: {
         title: "eyehatedinosaurs",

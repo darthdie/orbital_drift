@@ -274,7 +274,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     intervalBuyable: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(chunksLayer.chunks),
-        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(1.2).times(30).floor().evaluate(),
+        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(1.1).times(20).floor().evaluate(),
         requiresPay: false,
       })),
       clickableStyle: {
@@ -641,7 +641,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       }
 
       if (timeAccelerator.isAtLeastLevelThree.value) {
-        effects.push(<h5>Raising previous effects by ^{format(timeAccelerator.levelThreeRaiseEffect.value)}.</h5>)
+        effects.push(<h5>Raising above effects by ^{format(timeAccelerator.levelThreeRaiseEffect.value)}.</h5>)
       }
 
       return joinJSX(effects, <></>);
