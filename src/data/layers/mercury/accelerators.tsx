@@ -397,7 +397,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     chunkCostDivisionEffect: computed((): Decimal => {
       if (chunkAccelerator.isAtLeastLevelTwo.value) {
         const extraLevels = chunkAccelerator.bonusLevels(3).clampMin(1);
-        return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.2).cbrt().times(extraLevels).pow(chunkAccelerator.levelThreeRaiseEffect.value).clampMin(1);
+        return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.3).cbrt().times(extraLevels).pow(chunkAccelerator.levelThreeRaiseEffect.value).clampMin(1);
       }
 
       return Decimal.dOne;

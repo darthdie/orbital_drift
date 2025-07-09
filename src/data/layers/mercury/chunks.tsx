@@ -71,6 +71,7 @@ const layer = createLayer(id, baseLayer => {
         .mul(computedLovingChunks)
         .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
         .mul(fuckingChunksEffect)
+        .mul(cheapingChunksEffect)
         .div(1000) // starting cost
         // .div()
         .step(1, f => f.div(30))
@@ -80,7 +81,7 @@ const layer = createLayer(id, baseLayer => {
         .step(20, f => f.sqrt().div(post20ScalingDivider))
         .step(30, f => f.sqrt().div(post30ScalingDivisor))
         // .step(35, f => f.sqrt().div(post35ScalingDivisor))
-        .step(100, f => f.div(500))
+        .step(100, f => f.div(225))
         .step(1000, f => f.sqrt().div(post1000ScalingDivisor)),
 
         // .step(100000, f => f.div(post10000ScalingDivisor).div(1e1)),
@@ -162,6 +163,21 @@ const layer = createLayer(id, baseLayer => {
     return Decimal.dOne;
   });
 
+  const cheapingChunksEffect = computed(() : Decimal => {
+    if (upgrades.cheapingChunks.bought.value) {
+      return Decimal.sqrt(chunks.value).clampMin(1);
+    }
+
+    return Decimal.dOne;
+  });
+
+  // const dustingChunksModifer = createSequentialModifier(() => [
+  //   createAdditiveModifier((): AdditiveModifierOptions => ({
+  //     enabled: upgrades.dustingChunks.bought,
+  //     addend: () => Decimal.sqrt(totalChunks.value).clampMin(1)
+  //   }))
+  // ])
+
   const upgrades = {
     chuckingChunks: createUpgrade(() => ({
       requirements: createCostRequirement(() => ({
@@ -236,6 +252,32 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
       }
     })),
+
+    cheapingChunks: createUpgrade(() => ({
+      visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+      requirements: createCostRequirement(() => ({
+        resource: noPersist(chunks),
+        cost: Decimal.fromNumber(135)
+      })),
+      display: {
+        title: "Cheapin' Chunks",
+        description: "Reduce Chunk cost based on Chunks",
+        effectDisplay: () => `÷${format(cheapingChunksEffect.value)}`
+      }
+    })),
+
+    // dustingChunks: createUpgrade(() => ({
+    //   visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+    //   requirements: createCostRequirement(() => ({
+    //     resource: noPersist(chunks),
+    //     cost: Decimal.fromNumber(135)
+    //   })),
+    //   display: {
+    //     title: "Dustin' Chunks",
+    //     description: "Increase base Dust gain based on Chunks.",
+    //     effectDisplay: () => `÷${format(dustingChunksModifer.apply(0))}`
+    //   }
+    // }))
   };
 
   const treeNode = createLayerTreeNode(() => ({
@@ -296,6 +338,7 @@ const layer = createLayer(id, baseLayer => {
     collidingChunksEffect,
     autoChunker,
     showExclamation,
+    // dustingChunksModifer,
     display: () => (<>
       <h2>You have {format(chunks.value)} mercurial chunks</h2>
       <h4>You have condensed a total of {format(totalChunks.value)}</h4>
