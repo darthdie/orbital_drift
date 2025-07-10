@@ -98,7 +98,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Snorting Dust",
-        description: "Always gain 1% of Dust per second."
+        description: "Always gain 5% of Dust per second."
       }
     })),
     secretChunkStash: createUpgrade(() => ({
@@ -165,6 +165,7 @@ const layer = createLayer(id, baseLayer => {
     tabs,
     mercuryUpgrades,
     mercuryRetainedSpeedModifer,
+    mercurySolarFriedDustModifier,
     display: () => (
       <>
         <h2>You have {format(energy.value)} solar energy</h2>

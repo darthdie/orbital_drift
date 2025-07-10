@@ -48,7 +48,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "The Messenger God",
-        description: "Multiply Dust Time gain by x1.5.",
+        description: "Multiply Dust & Collision Time by x1.5.",
         effectDisplay: (): string => `x${format(messengerGodModifier.apply(1))}`
       }
     })),
@@ -60,7 +60,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Slippery Time",
-        description: "Multiplies Dust Time gain based on Dust Time.",
+        description: "Multiplies Dust Time based on Dust Time.",
         effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
       }
     })),
@@ -72,7 +72,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Collision Course",
-        description: "Raise Dust Time gain based on Dust.",
+        description: "Raise Dust & Collision Time based on Dust.",
         effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
       }
     })),
@@ -96,7 +96,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       })),
       display: {
         title: "Seasoned Dust",
-        description: "Increases base Dust Time gain based on Dust Time.",
+        description: "Increases base Dust Time based on Dust Time.",
         effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
       }
     })),
@@ -435,7 +435,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     dustMultiplierModifier,
     accumulatingDustModifier,
     acceleratorsLayer.dustAccelerator.dustGainMultiplierModifier,
-    // solarLayer.mercuryRetainedSpeedModifer,
+    solarLayer.mercurySolarFriedDustModifier,
     // ^
     dustPilesModifier,
     createExponentialModifier(() => ({
@@ -576,7 +576,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       return Decimal.mul(chunksLayer.totalChunks.value, 0.01).clampMin(0.01);
     }
 
-    return Decimal.fromNumber(0.01);
+    return Decimal.fromNumber(0.05);
   });
   const enablePassiveGeneration: ComputedRef<boolean> = computed<boolean>(() => {
     return chunksLayer.upgrades.grindingChunks.bought.value || solarLayer.mercuryUpgrades.snortingDust.bought.value;

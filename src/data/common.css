@@ -25,3 +25,10 @@
     height: 64px;
     width: 64px;
 }
+
+.fit-content .clickable {
+    min-height: 32px;
+    width: fit-content;
+    height: fit-content;
+    padding: 8px;
+}
