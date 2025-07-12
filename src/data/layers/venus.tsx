@@ -80,35 +80,6 @@ const PRIORITY_VOLCANICS = 0;
 const PRIORITY_BALANCED = 1;
 const PRIORITY_SPEED = 2;
 
-  function simulateXY(
-    startingLava: number = 10,
-    decayRate: number = 0.05,         // 5% per second
-    conversionTime: number = 3.75,    // seconds to convert 1 X
-    yPerX: number = 0.1,              // Y produced per X
-    dt: number = 0.01                 // simulation time step (in seconds)
-  ) {
-    let lava = startingLava;
-    let volcanics = 0;
-    const c = 1 / conversionTime;  // X consumed per second
-
-    while (lava > 0) {
-      // Step 1: Apply decay
-      lava *= (1 - decayRate * dt);
-
-      // Step 2: Calculate how much lava we can consume this step
-      let dX = Math.min(c * dt, lava);
-
-      // Step 3: Convert that X to Y
-      lava -= dX;
-      volcanics += yPerX * (dX / dt) * dt;
-
-      // Prevent tiny floating-point issues
-      if (lava < 1e-6) break;
-    }
-
-    return volcanics;
-  }
-
 const id = "V";
 const layer = createLayer(id, baseLayer => {
   const name = "Venus";
@@ -128,11 +99,20 @@ const layer = createLayer(id, baseLayer => {
       .div(lavaIsFloorEffect.value)
       .div(maficEffect.value)
       .div(hotPotEffect.value)
+      .pow(tephraPressureIntervalEffect.value)
   );
   const pressureChance = computed(() =>
-    Decimal.add(10, pressureChanceBuyableEffect.apply(0)).add(floorIsLavaEffect.value).add(bubblingEffect.value)
+    Decimal.add(10, pressureChanceBuyableEffect.apply(0))
+      .add(floorIsLavaEffect.value)
+      .add(bubblingEffect.value)
+      .add(luckyCastIron.value)
+      .pow(tephraPressureChanceEffect.value)
   );
-  const pressureGainMultiplier = computed(() => Decimal.times(1.3, pressureMultBuyableEffect.value));
+  const pressureGainMultiplier = computed(() =>
+    Decimal.times(1.3, pressureMultBuyableEffect.value)
+      .times(riceCookerEffect.value)
+      .pow(tephraPressureGainEffect.value)
+  );
   const eruptions = createResource<DecimalSource>(0);
   const pressureMax = computed(() => {
     const pow = Decimal.pow(2, eruptions.value);
@@ -150,19 +130,14 @@ const layer = createLayer(id, baseLayer => {
   const lavaConversionPrioritySpeedLossEffect = computed(() => Decimal.fromNumber(5));
   const lavaConversionPriorityVolcanicsSpeedEffect = computed(() => Decimal.fromNumber(8));
   const lavaConversionPriorityVolcanicsGainEffect = computed(() => Decimal.fromNumber(3));
-  // Speed should make it so you straight up lose some of your lava
-  // Volcanics should make it make it take longer than usual.
   const lavaConversionAmount = computed(() => {
-    const base = Decimal.fromNumber(0.1);
+    let base = Decimal.fromNumber(0.1);
 
-    switch (lavaConversionPriority.value) {
-      case PRIORITY_VOLCANICS:
-        return Decimal.times(base, lavaConversionPriorityVolcanicsGainEffect.value);
-      // case PRIORITY_SPEED:
-      //   return Decimal.div(base, lavaConversionPriorityVolcanicsGainEffect.value);
-      default:
-        return base;
+    if (lavaConversionPriority.value == PRIORITY_VOLCANICS) {
+      base = Decimal.times(base, lavaConversionPriorityVolcanicsGainEffect.value);
     }
+
+    return base.pow(tephraVolcanicsGainEffect.value);
   });
   const lavaConversionRateSeconds = computed(() => {
     const base = Decimal.fromNumber(15);
@@ -235,6 +210,13 @@ const layer = createLayer(id, baseLayer => {
     }
   }));
 
+  const planetMassBar = createBar(() => ({
+    direction: Direction.Right,
+    height: 18,
+    width: 256,
+    progress: () => Decimal.div(Decimal.ln(planetMass.value), Decimal.ln(planetMass[DefaultValue]))
+  }));
+
   const timeSinceLastEruption = persistent<Decimal>(new Decimal(0));;
 
   const testResourceX = ref<DecimalSource>(10);
@@ -265,15 +247,27 @@ const layer = createLayer(id, baseLayer => {
     pressureTicker(diff);
 
     if (lavaConversionEnabled.value && Decimal.gt(lava.value, 0) && Decimal.lt(volcanics.value, volcanicsMax.value)) {
-      const magmaAmount = Decimal.div(lavaConversionAmount.value, lavaConversionRateSeconds.value).times(diff);
-      volcanics.value = Decimal.min(Decimal.add(volcanics.value, magmaAmount), volcanicsMax.value);
-      lava.value = Decimal.max(Decimal.sub(lava.value, magmaAmount), Decimal.dZero);
+      const conversionRate = Decimal.div(1, lavaConversionRateSeconds.value);
+      const conversionAmount = Decimal.min(lava.value, Decimal.times(conversionRate, diff));
+      const producedVolcanics = Decimal.times(conversionAmount, lavaConversionAmount.value);
+
+      volcanics.value = Decimal.add(volcanics.value, producedVolcanics).clampMax(volcanicsMax.value);
+      lava.value = Decimal.sub(lava.value, conversionAmount);
 
       if (lavaConversionPriority.value == PRIORITY_SPEED) {
-        // Lose a % of current lava on conversion
-        const loss = Decimal.times(lava.value, Decimal.times(lavaConversionPrioritySpeedLossEffect.value, 0.01)).times(diff);
-        lava.value = Decimal.max(Decimal.sub(lava.value, loss), Decimal.dZero);
+        // %5 -> 0.05
+        const lossRate = Decimal.times(lavaConversionPrioritySpeedLossEffect.value, 0.01);
+        lava.value = Decimal.sub(lava.value, Decimal.times(lava.value, lossRate).times(diff));
       }
+      // const magmaAmount = Decimal.div(lavaConversionAmount.value, lavaConversionRateSeconds.value).times(diff);
+      // volcanics.value = Decimal.min(Decimal.add(volcanics.value, magmaAmount), volcanicsMax.value);
+      // lava.value = Decimal.max(Decimal.sub(lava.value, magmaAmount), Decimal.dZero);
+
+      // if (lavaConversionPriority.value == PRIORITY_SPEED) {
+      //   // Lose a % of current lava on conversion
+      //   const loss = Decimal.times(lava.value, Decimal.times(lavaConversionPrioritySpeedLossEffect.value, 0.01)).times(diff);
+      //   lava.value = Decimal.max(Decimal.sub(lava.value, loss), Decimal.dZero);
+      // }
     }
 
     if (Decimal.gt(testResourceX.value, 0)) {
@@ -288,20 +282,12 @@ const layer = createLayer(id, baseLayer => {
       if (testLoss) {
         testResourceX.value = Decimal.sub(testResourceX.value, Decimal.times(testResourceX.value, testLossRate).times(testDiff));
       }
-
-      // const conversionAmount = Decimal.div(0.1, Decimal.div(15, 4)).times(diff);
-      // testResourceY.value = Decimal.add(testResourceY.value, conversionAmount); // volcanics
-      // testResourceX.value = Decimal.max(Decimal.sub(testResourceX.value, conversionAmount), Decimal.dZero); // lava
-
-      // // 5 == 5%
-      // const loss = Decimal.times(testResourceX.value, Decimal.times(5, 0.01)).times(diff);
-      // testResourceX.value = Decimal.max(Decimal.sub(testResourceX.value, loss), Decimal.dZero);
-      console.log({
-        conversionAmount: conversionAmount.toString(),
-        producedVolcanics: producedVolcanics.toString(),
-        fakeVolcanics: testResourceY.value.toString(),
-        fakeLava: testResourceX.value.toString()
-      })
+      // console.log({
+      //   conversionAmount: conversionAmount.toString(),
+      //   producedVolcanics: producedVolcanics.toString(),
+      //   fakeVolcanics: testResourceY.value.toString(),
+      //   fakeLava: testResourceX.value.toString()
+      // })
     }
   });
 
@@ -364,7 +350,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "What're the odds?",
-        description: "Increase the chance for pressure to build",
+        description: "Increase the Pressure Build Chance.",
         effectDisplay: (): string => `+${format(pressureChanceBuyableEffect.apply(0))}%`
       }
     })),
@@ -376,7 +362,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "UNDER PRESSURE",
-        description: "Multiply the amount Pressure builds",
+        description: "Multiply Pressure Build gain",
         effectDisplay: (): string => `x${format(pressureMultBuyableEffect.value)}`
       }
     })),
@@ -388,7 +374,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Anxiety Inducing",
-        description: "Divide the pressure interval",
+        description: "Divide the Pressure Build interval",
         effectDisplay: (): string => `÷${format(pressureIntervalBuyableEffect.value)}`
       }
     })),
@@ -440,11 +426,23 @@ const layer = createLayer(id, baseLayer => {
     }
 
     return Decimal.dOne;
+  });
+
+  const riceCookerEffect = computed((): Decimal => {
+    if (pressureUpgrades.riceCooker.bought.value) {
+      return Decimal.pow(unref(lavaConversion.currentGain), 0.1).sqrt().clampMin(1);
+      // return Decimal.pow(pressureGainMultiplier.value, 0.1).clampMin(1);
+    }
+
+    return Decimal.dOne;
   })
+
+  const luckyCastIron = computed(() => pressureUpgrades.luckyCastIron.bought.value ? 7 : 0);
 
   // add some pressure cost upgrades
   // add some lava cost upgrades
 
+  // Should these upgrades buff the buyables?
   const pressureUpgrades = {
     bubbling: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
@@ -470,27 +468,27 @@ const layer = createLayer(id, baseLayer => {
       }
     })),
 
-        hotPot2: createUpgrade(() => ({
+    riceCooker: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromNumber(50)
       })),
       display: {
-        title: "Hot Pot",
-        description: "Divide Press Build Interval based on OOM of Pressure.",
-        effectDisplay: (): string => `+${format(hotPotEffect.value)}%`
+        title: "Rice Cooker",
+        description: `Multiply Pressure Build Gain based on pending ${lava.displayName}.`,
+        effectDisplay: (): string => `x${format(riceCookerEffect.value)}`
       }
     })),
 
-    hotPot3: createUpgrade(() => ({
+    luckyCastIron: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromNumber(250)
       })),
       display: {
-        title: "Hot Pot",
-        description: "Divide Press Build Interval based on OOM of Pressure.",
-        effectDisplay: (): string => `+${format(hotPotEffect.value)}%`
+        title: "Lucky Cast Iron",
+        description: "Add +7% to the base of 'What're the odds?'",
+        effectDisplay: (): string => `+${luckyCastIron.value}%`
       }
     })),
 
@@ -614,9 +612,9 @@ const layer = createLayer(id, baseLayer => {
     }))
   };
 
-  const tephraBuyableEffect = (repeatable: Repeatable) =>  {
+  const tephraBuyableEffect = (repeatable: Repeatable, powPerLevel = 0.1) =>  {
     if (Decimal.gt(repeatable.amount.value, 0)) {
-      return Decimal.times(repeatable.amount.value, 0.1).add(1);
+      return Decimal.times(repeatable.amount.value, powPerLevel).add(1);
     }
 
     return Decimal.dOne;
@@ -633,6 +631,14 @@ const layer = createLayer(id, baseLayer => {
   const tephraPressureGainEffect = computed(() => tephraBuyableEffect(tephraBuyables.pressureGain));
   const tephraLavaGainEffect = computed(() => tephraBuyableEffect(tephraBuyables.lavaGain));
   const tephraVolcanicsGainEffect = computed(() => tephraBuyableEffect(tephraBuyables.volcanicsGain));
+  const tephraPressureChanceEffect = computed(() => tephraBuyableEffect(tephraBuyables.pressureChance, 0.05));
+  const tephraPressureIntervalEffect = computed(() => {
+    if (Decimal.gt(tephraBuyables.pressureInterval.amount.value, 0)) {
+      return Decimal.sub(1, Decimal.times(tephraBuyables.pressureInterval.amount.value, 0.01));
+    }
+
+    return Decimal.dOne;
+  });
 
   // Each should raise a certain thing by ^1.01
   // Cost should probably be amount+1, then increasing post 10?
@@ -657,8 +663,32 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Rising",
-        description: `Raise Pressure Build Mult by 1.1 per level`,
+        description: `Raise Pressure Build Gain by 1.1 per level`,
         effectDisplay: (): string => `^${format(tephraPressureGainEffect.value)}`
+      }
+    })),
+
+    pressureChance: createRepeatable(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(tephra),
+        cost: tephaBuyCost(tephraBuyables.pressureChance.amount),
+      })),
+      display: {
+        title: "idk",
+        description: `Raise Pressure Chance by 1.05 per level`,
+        effectDisplay: (): string => `^${format(tephraPressureChanceEffect.value)}`
+      }
+    })),
+
+    pressureInterval: createRepeatable(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(tephra),
+        cost: tephaBuyCost(tephraBuyables.pressureInterval.amount),
+      })),
+      display: {
+        title: "idk 2",
+        description: `Raise Pressure Interval by ^0.01 per level`,
+        effectDisplay: (): string => `^${format(tephraPressureIntervalEffect.value)}`
       }
     })),
 
@@ -688,7 +718,7 @@ const layer = createLayer(id, baseLayer => {
   };
 
   const lavaConversion = createCumulativeConversion(() => ({
-    formula: x => x.log2().add(residualHeatEffect).if(() => pressureCapped.value, f => f.times(1.5)), //.times(evenFlowEffect),
+    formula: x => x.log2().add(residualHeatEffect).if(() => pressureCapped.value, f => f.times(1.5)).pow(tephraLavaGainEffect.value),
     baseResource: pressure,
     gainResource: lava,
     onConvert: () => {
@@ -702,7 +732,11 @@ const layer = createLayer(id, baseLayer => {
     baseResource: pressure,
     formula: x => Formula.variable(Decimal.dZero).if(() => pressureCapped.value, () => Formula.variable(Decimal.dOne)),
     convert: () => tephra.value = Decimal.add(tephra.value, 1)
-  }))
+  }));
+
+  const massDestructionAmount = computed(() => {
+    return Decimal.sub(0.99, Decimal.times(eruptions.value, 0.01));
+  })
 
   const convertPressureButton = createClickable(() => ({
     classes: {
@@ -727,11 +761,12 @@ const layer = createLayer(id, baseLayer => {
         <span>
           <h3>Explosive Eruption</h3>
           <br />
-          Reset The ENTIRE Pressure Tab for:<br />
-          {gainDisplay(lavaConversion)}<br />
-          {gainDisplay(tephraConversion)}<br />
-          Raise the Explosive Eruption requirement by ^2.<br />
-          BUT, iinterval will be multiplied by x{format(eruptionPenalityDisplay.value)}.
+          Reset The ENTIRE Pressure Tab for:<br/>
+          {gainDisplay(lavaConversion)}<br/>
+          {gainDisplay(tephraConversion)}<br/>
+          Destroy ^{format(massDestructionAmount.value)} of the planet's mass.<br/>
+          Raise Explosive Eruption requirement to ^2.<br />
+          Decrease interval by x{format(eruptionPenalityDisplay.value)}.
         </span>
       </>
     }),
@@ -741,6 +776,8 @@ const layer = createLayer(id, baseLayer => {
       }
 
       if (pressureCapped.value) {
+        planetMass.value = Decimal.pow(planetMass.value, massDestructionAmount.value); // must be before eruptions is increased
+
         lavaConversion.convert();
 
         tephraConversion.convert();
@@ -930,11 +967,10 @@ const layer = createLayer(id, baseLayer => {
     timeSinceLastEruption,
     lavaConversionPriority,
     tephraBuyables,
-    simulateXY,
     // lavaBuyables,
     display: () => <>
       <h2>{displayResource(planetMass)} Planet Mass</h2>
-      <h4>0% Until ?? Mass</h4>
+      {render(planetMassBar)}
       <Spacer />
 
       {render(tabs)}
