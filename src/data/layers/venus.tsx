@@ -390,7 +390,7 @@ const layer = createLayer(id, baseLayer => {
 
   const lavaIsFloorEffect = computed(() => {
     if (pressureUpgrades.lavaIsFloor.bought.value) {
-      return Decimal.pow(lava.value, 0.5).times(0.02).add(1);
+      return Decimal.pow(lava.value, 0.5).times(0.05).add(1).clampMin(1);
     }
 
     return Decimal.dOne;
@@ -421,7 +421,7 @@ const layer = createLayer(id, baseLayer => {
   })
 
   const maficEffect = computed(() => {
-    if (pressureUpgrades.mafic.bought.value) {
+    if (volcanicsUpgrades.mafic.bought.value) {
       return Decimal.pow(volcanics.value, 0.1).sqrt().clampMin(1);
     }
 
@@ -541,20 +541,6 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: (): string => `÷${format(boilingPotEffect.value)}`
       }
     })),
-
-    // move to volcanics tab?
-    mafic: createUpgrade(() => ({
-      visibility: () => Decimal.gt(lava.value, 0),
-      requirements: createCostRequirement((): CostRequirementOptions => ({
-        resource: noPersist(lava),
-        cost: Decimal.fromNumber(75)
-      })),
-      display: {
-        title: "Mafic",
-        description: `Soften Eruption penalty based on ${volcanics.displayName}`,
-        effectDisplay: (): string => `÷${format(maficEffect.value)}`
-      }
-    })),
   };
 
   // const evenFlowEffect = computed(() => {
@@ -619,6 +605,19 @@ const layer = createLayer(id, baseLayer => {
         effectDisplay: () => `x${format(residualHeatEffect.value)}`
       }
     })),
+
+    mafic: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(lava),
+        cost: Decimal.fromNumber(50)
+      })),
+      display: {
+        title: "Mafic",
+        description: `Soften Eruption penalty based on ${volcanics.displayName}`,
+        effectDisplay: (): string => `÷${format(maficEffect.value)}`
+      }
+    })),
   };
 
   const tephraBuyableEffect = (repeatable: Repeatable, powPerLevel = 0.1) =>  {
@@ -643,7 +642,7 @@ const layer = createLayer(id, baseLayer => {
   const tephraPressureChanceEffect = computed(() => tephraBuyableEffect(tephraBuyables.pressureChance, 0.05));
   const tephraPressureIntervalEffect = computed(() => {
     if (Decimal.gt(tephraBuyables.pressureInterval.amount.value, 0)) {
-      return Decimal.sub(1, Decimal.times(tephraBuyables.pressureInterval.amount.value, 0.01));
+      return Decimal.sub(1, Decimal.times(tephraBuyables.pressureInterval.amount.value, 0.01)).clampMin(1);
     }
 
     return Decimal.dOne;
@@ -843,8 +842,11 @@ const layer = createLayer(id, baseLayer => {
       effectDisplay = (<h6>Conversion is x{lavaConversionPrioritySpeedEffect.value} faster, but you will lose {format(lavaConversionPrioritySpeedLossEffect.value)}% of lava per second.</h6>)
     }
 
+    const maxPossibleVolcanics = Decimal.times(lava.value, lavaConversionAmount.value);
+
     return (<>
-      <h6>1 Lava will convert into {format(lavaConversionAmount.value)} Magma every {format(lavaConversionRateSeconds.value)} seconds.</h6>
+      <h6>1 {lava.displayName} will convert into {format(lavaConversionAmount.value)} {volcanics.displayName} every {format(lavaConversionRateSeconds.value)} seconds.</h6>
+      <h6>All {lava.displayName} converted would create {format(maxPossibleVolcanics)} {volcanics.displayName}. {lavaConversionPriority.value == PRIORITY_SPEED ? "(Ignoring Loss)" : null}</h6>
       {effectDisplay}
   </>)
   });
