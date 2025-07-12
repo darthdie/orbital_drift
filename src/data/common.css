@@ -32,3 +32,12 @@
     height: fit-content;
     padding: 8px;
 }
+
+.flex {
+    display: flex;
+}
+
+.mx-0 {
+    margin-left: 0;
+    margin-right: 0;
+}

@@ -558,7 +558,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
         display: {
           title: "Bring It Home",
-          description: "Multiply Collision Time based on itself.",
+          description: "Multiply Collision Time based on Time Accelerons.",
           effectDisplay: (): string => `x${format(timeAccelerator.bringItHomeEffect.value)}`
         }
       }))
