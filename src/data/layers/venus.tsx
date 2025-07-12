@@ -585,31 +585,40 @@ const layer = createLayer(id, baseLayer => {
     }
 
     return Decimal.dZero;
+  });
+
+  const undergroundLavaEffect = computed(() => {
+    if (volcanicsUpgrades.undergroundLava.bought.value) {
+      return Decimal.log10(pressure.value);
+    }
+
+    return Decimal.dZero;
   })
 
   const volcanicsUpgrades = {
-    // residualHeat: createUpgrade(() => ({
-    //   requirements: createCostRequirement((): CostRequirementOptions => ({
-    //     resource: noPersist(volcanics),
-    //     cost: Decimal.fromNumber(10)
-    //   })),
-    //   display: {
-    //     title: "Residual Heat",
-    //     description: `Increase base ${lava.displayName} gain based on ${volcanics.displayName}`,
-    //     effectDisplay: () => `x${format(residualHeatEffect.value)}`
-    //   }
-    // })),
-    residualHeat: createUpgrade(() => ({
+    undergroundLava: createUpgrade(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(volcanics),
         cost: Decimal.fromNumber(10)
+      })),
+      display: {
+        title: "Underground Lava",
+        description: `Keep log10 of ${pressure.displayName} on Explosive Eruptions.`,
+        effectDisplay: () => `x${format(undergroundLavaEffect.value)}`
+      }
+    })),
+
+    residualHeat: createUpgrade(() => ({
+      requirements: createCostRequirement((): CostRequirementOptions => ({
+        resource: noPersist(volcanics),
+        cost: Decimal.fromNumber(25)
       })),
       display: {
         title: "Residual Heat",
         description: `Increase base ${lava.displayName} gain based on ${volcanics.displayName}`,
         effectDisplay: () => `x${format(residualHeatEffect.value)}`
       }
-    }))
+    })),
   };
 
   const tephraBuyableEffect = (repeatable: Repeatable, powPerLevel = 0.1) =>  {
@@ -778,12 +787,18 @@ const layer = createLayer(id, baseLayer => {
       if (pressureCapped.value) {
         planetMass.value = Decimal.pow(planetMass.value, massDestructionAmount.value); // must be before eruptions is increased
 
+        const pressureToKeep = undergroundLavaEffect.value;
+
         lavaConversion.convert();
 
         tephraConversion.convert();
         eruptions.value = Decimal.add(eruptions.value, 1);
 
         pressureTabReset.reset();
+
+        if (Decimal.gt(pressureToKeep, 0)) {
+          pressure.value = pressureToKeep;
+        }
       } else {
         lavaConversion.convert();
       }
