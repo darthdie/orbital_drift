@@ -571,12 +571,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     display: "D"
   }));
 
-  const passiveGenerationPerSecondEffect = computed(() => {
-    if (chunksLayer.upgrades.grindingChunks.bought.value) {
-      return Decimal.mul(chunksLayer.totalChunks.value, 0.01).clampMin(0.01);
+  const passiveGenerationPerSecondEffect = computed((): Decimal => {
+    if (!enablePassiveGeneration) {
+      return Decimal.dZero;
     }
 
-    return Decimal.fromNumber(0.05);
+    const base = Decimal.fromNumber(0.05);
+    if (chunksLayer.upgrades.grindingChunks.bought.value) {
+      return Decimal.mul(chunksLayer.totalChunks.value, 0.01).add(base).clampMin(0.01);
+    }
+
+    return base;
   });
   const enablePassiveGeneration: ComputedRef<boolean> = computed<boolean>(() => {
     return chunksLayer.upgrades.grindingChunks.bought.value || solarLayer.mercuryUpgrades.snortingDust.bought.value;
@@ -588,7 +593,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
   setupPassiveGeneration(
     baseLayer,
     conversion,
-    () => enablePassiveGeneration.value ? passiveGenerationPerSecondEffect.value : 0,
+    () => passiveGenerationPerSecondEffect.value,
   );
 
   baseLayer.on("update", diff => {
@@ -621,6 +626,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     collisionCourseEffect,
     collisionCourseModifier,
     reset,
+    passiveGenerationPerSecondEffect,
     fullReset,
     display: () => (
       <>

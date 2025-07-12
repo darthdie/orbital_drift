@@ -199,7 +199,7 @@ const layer = createLayer(id, baseLayer => {
       display: {
         title: "Grindin' Chunks",
         description: "Gain dust per second equal to your total chunks",
-        effectDisplay: () => `${format(totalChunks.value)}%/s`
+        effectDisplay: () => `${format(Decimal.times(dustLayer.passiveGenerationPerSecondEffect.value, 100))}%/s`
       }
     })),
 

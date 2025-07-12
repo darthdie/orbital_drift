@@ -98,7 +98,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "Snorting Dust",
-        description: "Always gain 5% of Dust per second."
+        description: "Start Mercury resets with a base of 5% Dust per second."
       }
     })),
     secretChunkStash: createUpgrade(() => ({
