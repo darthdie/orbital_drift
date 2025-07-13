@@ -3,26 +3,32 @@ import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
-import { createResource, trackBest, trackTotal } from "features/resources/resource";
-import { createLayer } from "game/layers";
+import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
+import { createLayer, Layer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderGroupedObjects } from "util/vue";
 import mercuryLayer from './mercury';
+import venusLayer from './venus';
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
+import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
+import { ComputedRef, MaybeRef, unref } from "vue";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
   const name = "Solar";
   const color = "#FFCC33";
 
-  const energy = createResource<DecimalSource>(1, "solar energy");
+  const energy = createResource<DecimalSource>(1, "Solar Energy");
   const best = trackBest(energy);
   const totalEnergy = trackTotal(energy);
+  const solarRays = createResource<DecimalSource>(0, "Solar Rays");
+  const mercuryCores = createResource<DecimalSource>(0, "Mercury Cores");
+  const venusCores = createResource<DecimalSource>(0, "Venus Cores");
 
   const reset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => [layer]
@@ -60,6 +66,7 @@ const layer = createLayer(id, baseLayer => {
       },
       onComplete: () => {
         // retroactively give planet cores
+        mercuryCores.value = mercuryLayer.totalResets.value;
       }
     }))
   };
@@ -133,6 +140,14 @@ const layer = createLayer(id, baseLayer => {
     }))
   };
 
+  const createPlanetCoreSummary = (body: SupportedBodies, layer: {color?: MaybeRef<string>}, resource: Resource) => {
+    const color = unref(layer.color);
+    return <div class="flex" style={{gap: "8px", color: color}}>
+      <CelestialBodyIcon body={body} color={color}>Mercury</CelestialBodyIcon>
+        {format(resource.value)}
+    </div>;
+  }
+
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
@@ -142,7 +157,16 @@ const layer = createLayer(id, baseLayer => {
     rays: () => ({
       display: "Rays",
       visibility: milestones.second.earned,
-      tab: createTab(() => ({display: () => <>{Object.values(milestones).map(a => render(a))}</>}))
+      tab: createTab(() => ({display: () => <>
+        <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
+        <hr style={{width: "256px", margin: "auto", background: "#997a1f"}}/>
+        <div class="flex" style="gap: 32px;">
+          {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
+          {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
+
+          <div class="flex" style="flex: 1;"></div>
+        </div>
+      </>}))
     }),
     mercury: () => ({
       display: "Mercury",
@@ -163,12 +187,6 @@ const layer = createLayer(id, baseLayer => {
     })
   });
 
-  // const reset = createReset(() => ({
-  //   thingsToReset: (): Record<string, unknown> => [
-  //     mercuryUpgrades,
-  //   ]
-  // }))
-
   return {
     name,
     energy,
@@ -181,9 +199,12 @@ const layer = createLayer(id, baseLayer => {
     mercuryUpgrades,
     mercuryRetainedSpeedModifer,
     mercurySolarFriedDustModifier,
+    mercuryCores,
+    venusCores,
+    solarRays,
     display: () => (
       <>
-        <h2>You have {format(energy.value)} solar energy</h2>
+        <h2>You have {format(energy.value)} {energy.displayName}</h2>
         <h4>You have made a total of {format(totalEnergy.value)}</h4>
         <Spacer/>
         {render(tabs)}

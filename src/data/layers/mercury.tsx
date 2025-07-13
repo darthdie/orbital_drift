@@ -50,6 +50,7 @@ const layer = createLayer(id, baseLayer => {
 
   const maxCollisionTime = Decimal.times(1e88, 84600)
   const collisionTime = createResource<DecimalSource>(maxCollisionTime);
+  const totalResets = createResource<DecimalSource>(0);
 
   const collisionTimeProgressBar = createBar(() => ({
     progress: () => {
@@ -169,6 +170,8 @@ const layer = createLayer(id, baseLayer => {
     },
     onClick: () => {
       solarLayer.energy.value = Decimal.add(solarLayer.energy.value, 1);
+      solarLayer.mercuryCores.value = Decimal.add(solarLayer.mercuryCores.value, 1);
+      totalResets.value = Decimal.add(totalResets.value, 1);
       accelerators.fullReset();
       milestones.fullReset();
       chunksTab.fullReset();
@@ -197,6 +200,7 @@ const layer = createLayer(id, baseLayer => {
     collisionTimeGainComputed,
     display: () => renderDisplay(),
     treeNode,
+    totalResets
   };
 });
 

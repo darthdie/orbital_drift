@@ -1,11 +1,11 @@
 <template>
-    <span class="celestial-body-icon">{{bodyIcon}}</span>
+    <span class="celestial-body-icon" :style="{color: color}">{{bodyIcon}}</span>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 
-type SupportedBodies = "Moon" | "Sun" | "Venus" | "Mercury" | "Mars" | "Jupiter" | "Saturn" | "Uranus" | "Neptune" | "Ceres" | "Earth" | "Palas" | "Juno" | "5 Astrea" | "Vesta" | "Palas" | "Pluto" | "Sedna" | "Eris" | "Makemake" | "Orcus" | "Ixion" | "Moon";
+export type SupportedBodies = "Moon" | "Sun" | "Venus" | "Mercury" | "Mars" | "Jupiter" | "Saturn" | "Uranus" | "Neptune" | "Ceres" | "Earth" | "Palas" | "Juno" | "5 Astrea" | "Vesta" | "Palas" | "Pluto" | "Sedna" | "Eris" | "Makemake" | "Orcus" | "Ixion" | "Moon";
 const BodyLetterMapping: Record<SupportedBodies, string> = {
     "Moon": "A",
     "Sun": "B",
@@ -34,7 +34,7 @@ const BodyLetterMapping: Record<SupportedBodies, string> = {
     // "Moon": "Z",
 }
 
-const { body } = defineProps<{ body: SupportedBodies }>();
+const { body, color } = defineProps<{ body: SupportedBodies, color?: string }>();
 
 const bodyIcon = computed(() => BodyLetterMapping[body]);
 
