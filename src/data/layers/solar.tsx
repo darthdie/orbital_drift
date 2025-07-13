@@ -154,7 +154,13 @@ const layer = createLayer(id, baseLayer => {
     visibility: true,
     nodes: {
       test: {
-        display: "HELLO"
+        display: {
+          title: "HELLO"
+        },
+        requirements: createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: Decimal.fromNumber(5)
+        }))
         // display: MaybeGetter<Renderable>;
         // requirements?: Requirements;
         // requiredNodes?: string[]
@@ -231,6 +237,7 @@ const layer = createLayer(id, baseLayer => {
     mercuryCores,
     venusCores,
     solarRays,
+    skillTree,
     display: () => (
       <>
         <h2>You have {format(energy.value)} {energy.displayName}</h2>
