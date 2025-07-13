@@ -10,7 +10,7 @@ import Decimal, { format, formatWhole } from "util/bignum";
 import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { Renderable, VueFeature, vueFeatureMixin, VueFeatureOptions } from "util/vue";
-import type { MaybeRef, MaybeRefOrGetter, Ref } from "vue";
+import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref, StyleValue } from "vue";
 import { ref, shallowRef, unref } from "vue";
 
 /** A symbol used to identify {@link TreeNode} features. */
@@ -133,6 +133,7 @@ export interface TreeOptions extends VueFeatureOptions {
     resetPropagation?: ResetPropagation;
     /** A function that is called when a node within the tree is reset. */
     onReset?: (node: TreeNode) => void;
+    treeRowStyle?: MaybeRefOrGetter<CSSProperties>;
 }
 
 export interface Tree extends VueFeature {
@@ -175,6 +176,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
             resetPropagation,
             onReset,
             style: _style,
+            treeRowStyle,
             ...props
         } = options;
 
@@ -192,6 +194,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
                     leftSideNodes={tree.leftSideNodes}
                     rightSideNodes={tree.rightSideNodes}
                     branches={tree.branches}
+                    treeRowStyle={tree.treeRowStyle}
                 />
             )),
             branches,
@@ -201,6 +204,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
             leftSideNodes: processGetter(leftSideNodes),
             rightSideNodes: processGetter(rightSideNodes),
             links: branches == null ? [] : noPersist(branches),
+            treeRowStyle: unref(processGetter(treeRowStyle)),
             resetPropagation,
             onReset,
             reset: function (node: TreeNode) {

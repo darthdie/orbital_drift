@@ -68,6 +68,7 @@ function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc: () => 
 
     const requirements: Requirements = [
       createBooleanRequirement(() => !bought.value),
+      // TODO: Move this into its own requirement handled by the caller, and make the creator of the tree pass it?
       createBooleanRequirement(() => requiredNodes?.every(node => treeNodes[node].bought.value) ?? true),
       ...(Array.isArray(_requirements) ? _requirements : _requirements ? [_requirements] : [])
     ];
@@ -108,6 +109,9 @@ function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc: () => 
       classes: () => ({ "skill-tree-node": true, bought: bought.value }),
       bought,
       requirements,
+      // style: {
+      //   margin: "25px",
+      // },
       canClick: () => {
         return requirementsMet(requirements);
       },
@@ -148,7 +152,10 @@ export function createSkillTree<T extends SkillTreeOptions>(optionsFunc: () => T
               }))
             ]
             : acc;
-        }, [])
+        }, []),
+        treeRowStyle: {
+          margin: "25px auto"
+        }
     }));
 
     const treeNodes = Object.keys(nodes).reduce<Partial<Record<string, SkillTreeNode>>>((acc, curr) => {

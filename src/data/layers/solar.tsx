@@ -6,7 +6,7 @@ import { createReset } from "features/reset";
 import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer, Layer } from "game/layers";
 import { noPersist } from "game/persistence";
-import { createCostRequirement, createCountRequirement } from "game/requirements";
+import { createBooleanRequirement, createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderGroupedObjects } from "util/vue";
@@ -19,6 +19,8 @@ import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon
 import { ComputedRef, MaybeRef, unref } from "vue";
 import { blankTreeNode, createSkillTree } from "data/createSkillTree";
 import "./solar.css";
+import Board from "game/boards/Board.vue";
+import { createTreeNode } from "features/trees/tree";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -41,7 +43,7 @@ const layer = createLayer(id, baseLayer => {
     color,
     reset
   }));
-  
+
   const mercuryUnlockUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
       resource: noPersist(energy),
@@ -51,7 +53,7 @@ const layer = createLayer(id, baseLayer => {
       description: (): string => mercuryUnlockUpgrade.bought.value ? "Mercury Unlocked" : "Unlock Mercury"
     }
   }));
-  
+
   const milestones = {
     first: createAchievement(() => ({
       requirements: createCountRequirement(totalEnergy, 2),
@@ -142,11 +144,11 @@ const layer = createLayer(id, baseLayer => {
     }))
   };
 
-  const createPlanetCoreSummary = (body: SupportedBodies, layer: {color?: MaybeRef<string>}, resource: Resource) => {
+  const createPlanetCoreSummary = (body: SupportedBodies, layer: { color?: MaybeRef<string> }, resource: Resource) => {
     const color = unref(layer.color);
-    return <div class="flex" style={{gap: "8px", color: color}}>
+    return <div class="flex" style={{ gap: "8px", color: color }}>
       <CelestialBodyIcon body={body} color={color}>Mercury</CelestialBodyIcon>
-        {format(resource.value)}
+      {format(resource.value)}
     </div>;
   }
 
@@ -175,33 +177,93 @@ const layer = createLayer(id, baseLayer => {
       }
     },
     rows: [
-      [blankTreeNode, "test", blankTreeNode],
-      ["leftTest", blankTreeNode, "rightTest"]
+      [blankTreeNode, blankTreeNode, "test", blankTreeNode, blankTreeNode],
+      [blankTreeNode, "leftTest", blankTreeNode, "rightTest", blankTreeNode]
     ]
   }));
+
+  // const nodes = createTreeNode(() => ({}));
+
+  // const links = () => (
+  //   <>
+  //     {nodes.value
+  //       .reduce(
+  //         (acc, curr) => [
+  //           ...acc,
+  //           // Replace this with your own logic for determining links to draw
+  //           ...curr.links.map(l => ({ from: curr, to: nodesById.value[l] }))
+  //         ],
+  //         [] as { from: NodePosition; to: NodePosition }[]
+  //       )
+  //       .map(link => (
+  //         <line
+  //           stroke="white"
+  //           stroke-width={4}
+  //           // Note how we handle adding dragDelta to the node being dragged. You may consider writing a utility function to help with this process
+  //           x1={
+  //             nodeBeingDragged.value === link.from.id
+  //               ? dragDelta.value.x + link.from.x
+  //               : link.from.x
+  //           }
+  //           y1={
+  //             nodeBeingDragged.value === link.from.id
+  //               ? dragDelta.value.y + link.from.y
+  //               : link.from.y
+  //           }
+  //           x2={
+  //             nodeBeingDragged.value === link.to.id
+  //               ? dragDelta.value.x + link.to.x
+  //               : link.to.x
+  //           }
+  //           y2={
+  //             nodeBeingDragged.value === link.to.id
+  //               ? dragDelta.value.y + link.to.y
+  //               : link.to.y
+  //           }
+  //         />
+  //       ))}
+  //   </>
+  // );
+
+  const testUpgrade = createUpgrade(() => ({
+    requirements: [],
+    style: {transform: "transform: translate(0px, 0px);"},
+    display: {
+      title: "HELLO",
+      description: "does stuff"
+    }
+  }))
+
+  const board = <Board style={{height: "100%"}}>
+    {render(testUpgrade)}
+  </Board>;
 
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
       visibility: milestones.first.earned,
-      tab: createTab(() => ({display: () => <>{Object.values(milestones).map(a => render(a))}</>}))
+      tab: createTab(() => ({ display: () => <>{Object.values(milestones).map(a => render(a))}</> }))
     }),
     rays: () => ({
       display: "Rays",
       visibility: milestones.second.earned,
-      tab: createTab(() => ({display: () => <>
-        <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
-        <hr style={{width: "256px", margin: "auto", background: "#997a1f"}}/>
-        <div class="flex" style="gap: 32px;">
-          {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
-          {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
+      tab: createTab(() => ({
+        style: {height: "100%"},
+        display: () => <>
+          <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
+          <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
+          <div class="flex" style="gap: 32px;">
+            {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
+            {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
 
-          <div class="flex" style="flex: 1;"></div>
-        </div>
-        <Spacer/>
-        <Spacer/>
-        {render(skillTree.tree)}
-      </>}))
+            <div class="flex" style="flex: 1;"></div>
+          </div>
+          <Spacer />
+          <Spacer />
+          {/* {render(skillTree.tree)} */}
+          {render(board)}
+        </>
+      }))
     }),
     mercury: () => ({
       display: "Mercury",
@@ -220,7 +282,7 @@ const layer = createLayer(id, baseLayer => {
         </>)
       }))
     })
-  });
+  }, () => ({style: {height: "100%"}}));
 
   return {
     name,
@@ -238,11 +300,13 @@ const layer = createLayer(id, baseLayer => {
     venusCores,
     solarRays,
     skillTree,
+    testUpgrade,
+    board,
     display: () => (
       <>
         <h2>You have {format(energy.value)} {energy.displayName}</h2>
         <h4>You have made a total of {format(totalEnergy.value)}</h4>
-        <Spacer/>
+        <Spacer />
         {render(tabs)}
       </>
     ),

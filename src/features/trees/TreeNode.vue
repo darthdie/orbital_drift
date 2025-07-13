@@ -27,8 +27,7 @@
 <script setup lang="tsx">
 import { MaybeGetter } from "util/computed";
 import { render, Renderable, setupHoldToClick } from "util/vue";
-import { compile, computed, MaybeRef, toRef, unref } from "vue";
-import Tooltip from "wrappers/tooltips/Tooltip.vue";
+import { computed, MaybeRef, unref } from "vue";
 
 const props = defineProps<{
     canClick?: MaybeRef<boolean>;
