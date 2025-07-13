@@ -32,6 +32,8 @@ import { JSX } from "vue/jsx-runtime";
 import Toggle from "components/fields/Toggle.vue";
 import { createUpgrade } from "features/clickables/upgrade";
 import Slider from "components/fields/Slider.vue";
+import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 
 /*
 Pressure -> Molten Lava | Eruption
@@ -827,6 +829,8 @@ const layer = createLayer(id, baseLayer => {
   const treeNode = createLayerTreeNode(() => ({
     visibility: true,
     layerID: id,
+    display: () => <CelestialBodyIcon body={"Venus"}/>,
+    wrapper: <Tooltip display="Venus" direction={Direction.Left}></Tooltip>,
     color,
     reset
   }));

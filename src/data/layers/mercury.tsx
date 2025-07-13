@@ -24,6 +24,8 @@ import { Direction } from "util/common";
 import milestones from './mercury/milestones';
 import accelerators from './mercury/accelerators';
 import { createClickable } from "features/clickables/clickable";
+import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -110,6 +112,8 @@ const layer = createLayer(id, baseLayer => {
   const treeNode = createLayerTreeNode(() => ({
     visibility: unlocked,
     layerID: id,
+    display: () => <CelestialBodyIcon body={"Mercury"}/>,
+    wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
     color,
     reset
   }));
@@ -145,10 +149,11 @@ const layer = createLayer(id, baseLayer => {
   })
 
   const regularDisplay = computed(() => (<>
+    <h2>Mercury</h2><br/>
     {Decimal.lt(collisionTime.value, 86400) ? (
-      <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
+      <h3>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h3>
     ) : (
-      <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
+      <h3>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h3>
     )}
 
     <h4>-{format(collisionTimeGainComputed.value)}/s</h4>

@@ -51,6 +51,16 @@ const layer = createLayer(id, baseLayer => {
         requirement: "2 Solar Energy",
         optionsDisplay: "Unlock Solar Milestones and Solar Mercury Upgrades"
       }
+    })),
+    second: createAchievement(() => ({
+      requirements: createCountRequirement(totalEnergy, 4),
+      display: {
+        requirement: "4 Solar Energy",
+        optionsDisplay: "Unlock Planet Cores & Solar Rays"
+      },
+      onComplete: () => {
+        // retroactively give planet cores
+      }
     }))
   };
 
@@ -127,6 +137,11 @@ const layer = createLayer(id, baseLayer => {
     milestones: () => ({
       display: "Milestones",
       visibility: milestones.first.earned,
+      tab: createTab(() => ({display: () => <>{Object.values(milestones).map(a => render(a))}</>}))
+    }),
+    rays: () => ({
+      display: "Rays",
+      visibility: milestones.second.earned,
       tab: createTab(() => ({display: () => <>{Object.values(milestones).map(a => render(a))}</>}))
     }),
     mercury: () => ({

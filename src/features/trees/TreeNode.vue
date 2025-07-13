@@ -1,37 +1,41 @@
 <template>
-    <button
-        :style="{
-            backgroundColor: unref(color),
-            boxShadow: `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${unref(
-                glowColor
-            )}`
-        }"
-        :class="{
-            treeNode: true,
-            can: unref(canClick)
-        }"
-        @click="e => emits('click', e)"
-        @mousedown="start"
-        @mouseleave="stop"
-        @mouseup="stop"
-        @touchstart.passive="start"
-        @touchend.passive="stop"
-        @touchcancel.passive="stop"
-    >
-        <Component />
-    </button>
+    <wrapper>
+        <button
+            :style="{
+                backgroundColor: unref(color),
+                boxShadow: `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${unref(
+                    glowColor
+                )}`
+            }"
+            :class="{
+                treeNode: true,
+                can: unref(canClick)
+            }"
+            @click="e => emits('click', e)"
+            @mousedown="start"
+            @mouseleave="stop"
+            @mouseup="stop"
+            @touchstart.passive="start"
+            @touchend.passive="stop"
+            @touchcancel.passive="stop"
+        >
+            <Component />
+        </button>
+    </wrapper>
 </template>
 
 <script setup lang="tsx">
 import { MaybeGetter } from "util/computed";
 import { render, Renderable, setupHoldToClick } from "util/vue";
-import { MaybeRef, toRef, unref } from "vue";
+import { compile, computed, MaybeRef, toRef, unref } from "vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 
 const props = defineProps<{
     canClick?: MaybeRef<boolean>;
     display?: MaybeGetter<Renderable>;
     color?: MaybeRef<string>;
     glowColor?: MaybeRef<string>;
+    wrapper?: MaybeGetter<Renderable>;
 }>();
 
 const emits = defineEmits<{
@@ -41,6 +45,8 @@ const emits = defineEmits<{
 
 const Component = () => props.display == null ? <></> :
     render(props.display, el => <div>{el}</div>);
+
+const wrapper = computed(() => props.wrapper ?? <div></div>);
 
 const { start, stop } = setupHoldToClick(() => emits("hold"));
 </script>

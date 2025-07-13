@@ -36,6 +36,7 @@ export interface TreeNodeOptions extends VueFeatureOptions {
     onClick?: (e?: MouseEvent | TouchEvent) => void;
     /** A function that is called when the tree node is held down. */
     onHold?: VoidFunction;
+    wrapper?: MaybeGetter<Renderable>;
 }
 
 /**
@@ -67,7 +68,7 @@ export interface TreeNode extends VueFeature {
 export function createTreeNode<T extends TreeNodeOptions>(optionsFunc?: () => T) {
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { canClick, color, display, glowColor, onClick, onHold, ...props } = options;
+        const { canClick, color, display, glowColor, onClick, onHold, wrapper, ...props } = options;
 
         const treeNode = {
             type: TreeNodeType,
@@ -80,12 +81,14 @@ export function createTreeNode<T extends TreeNodeOptions>(optionsFunc?: () => T)
                     onHold={treeNode.onHold}
                     color={treeNode.color}
                     glowColor={treeNode.glowColor}
+                    wrapper={treeNode.wrapper}
                 />
             )),
             canClick: processGetter(canClick) ?? true,
             color: processGetter(color),
             display,
             glowColor: processGetter(glowColor),
+            wrapper,
             onClick:
                 onClick == null
                     ? undefined
