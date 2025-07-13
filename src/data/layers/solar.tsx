@@ -17,6 +17,8 @@ import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { ComputedRef, MaybeRef, unref } from "vue";
+import { blankTreeNode, createSkillTree } from "data/createSkillTree";
+import "./solar.css";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -148,6 +150,30 @@ const layer = createLayer(id, baseLayer => {
     </div>;
   }
 
+  const skillTree = createSkillTree(() => ({
+    visibility: true,
+    nodes: {
+      test: {
+        display: "HELLO"
+        // display: MaybeGetter<Renderable>;
+        // requirements?: Requirements;
+        // requiredNodes?: string[]
+      },
+      leftTest: {
+        display: "what up chicken butt",
+        requiredNodes: ["test"]
+      },
+      rightTest: {
+        display: "right?",
+        requiredNodes: ["test"]
+      }
+    },
+    rows: [
+      [blankTreeNode, "test", blankTreeNode],
+      ["leftTest", blankTreeNode, "rightTest"]
+    ]
+  }));
+
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
@@ -166,6 +192,9 @@ const layer = createLayer(id, baseLayer => {
 
           <div class="flex" style="flex: 1;"></div>
         </div>
+        <Spacer/>
+        <Spacer/>
+        {render(skillTree.tree)}
       </>}))
     }),
     mercury: () => ({

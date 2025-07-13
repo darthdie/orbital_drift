@@ -1,0 +1,8 @@
+.skill-tree-node .treeNode {
+    width: fit-content;
+    height: fit-content;
+    padding: 12px;
+    border-radius: 0;
+    font-size: 16px;
+    max-width: 256px;
+}
