@@ -17,7 +17,7 @@ import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { ComputedRef, MaybeRef, unref } from "vue";
-import { blankTreeNode, createSkillTree } from "data/createSkillTree";
+import { blankTreeNode, createBoughtNodeRequirement, createSkillTree, createSkillTree2, createSkillTreeNode2, SkillTree2, SkillTreeNodeOptions2, SkillTreeOptions2 } from "data/createSkillTree";
 import "./solar.css";
 import Board from "game/boards/Board.vue";
 import { createTreeNode } from "features/trees/tree";
@@ -152,35 +152,35 @@ const layer = createLayer(id, baseLayer => {
     </div>;
   }
 
-  const skillTree = createSkillTree(() => ({
-    visibility: true,
-    nodes: {
-      test: {
-        display: {
-          title: "HELLO"
-        },
-        requirements: createCostRequirement(() => ({
-          resource: noPersist(solarRays),
-          cost: Decimal.fromNumber(5)
-        }))
-        // display: MaybeGetter<Renderable>;
-        // requirements?: Requirements;
-        // requiredNodes?: string[]
-      },
-      leftTest: {
-        display: "what up chicken butt",
-        requiredNodes: ["test"]
-      },
-      rightTest: {
-        display: "right?",
-        requiredNodes: ["test"]
-      }
-    },
-    rows: [
-      [blankTreeNode, blankTreeNode, "test", blankTreeNode, blankTreeNode],
-      [blankTreeNode, "leftTest", blankTreeNode, "rightTest", blankTreeNode]
-    ]
-  }));
+  // const skillTree = createSkillTree(() => ({
+  //   visibility: true,
+  //   nodes: {
+  //     test: {
+  //       display: {
+  //         title: "HELLO"
+  //       },
+  //       requirements: createCostRequirement(() => ({
+  //         resource: noPersist(solarRays),
+  //         cost: Decimal.fromNumber(5)
+  //       }))
+  //       // display: MaybeGetter<Renderable>;
+  //       // requirements?: Requirements;
+  //       // requiredNodes?: string[]
+  //     },
+  //     leftTest: {
+  //       display: "what up chicken butt",
+  //       requiredNodes: ["test"]
+  //     },
+  //     rightTest: {
+  //       display: "right?",
+  //       requiredNodes: ["test"]
+  //     }
+  //   },
+  //   rows: [
+  //     [blankTreeNode, blankTreeNode, "test", blankTreeNode, blankTreeNode],
+  //     [blankTreeNode, "leftTest", blankTreeNode, "rightTest", blankTreeNode]
+  //   ]
+  // }));
 
   // const nodes = createTreeNode(() => ({}));
 
@@ -225,18 +225,85 @@ const layer = createLayer(id, baseLayer => {
   //   </>
   // );
 
-  const testUpgrade = createUpgrade(() => ({
-    requirements: [],
-    style: {transform: "transform: translate(0px, 0px);"},
-    display: {
-      title: "HELLO",
-      description: "does stuff"
-    }
-  }))
+  // const testUpgrade = createUpgrade(() => ({
+  //   requirements: [],
+  //   style: {transform: "transform: translate(0px, 0px);", minHeight: "0px"},
+  //   display: {
+  //     title: "HELLO",
+  //     description: "does stuff"
+  //   }
+  // }))
 
-  const board = <Board style={{height: "100%"}}>
-    {render(testUpgrade)}
-  </Board>;
+  // const board = <Board style={{height: "100%"}}>
+  //   {render(testUpgrade)}
+  // </Board>;
+
+  const skillTree2 = createSkillTree2({
+    test: createSkillTreeNode2(() => ({
+      display: "HELLO"
+    })),
+    test2: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+      display: "Test 2"
+    })),
+    test3: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+      display: "Test 3"
+    })),
+    test4: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test2", "test3"]),
+      display: "Test 4"
+    })),
+    test5: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
+      display: "Test 5"
+    })),
+    test6: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
+      display: "Test 6"
+    })),
+    test7: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
+      display: "Test 7"
+    })),
+    // test2: createUpgrade(() => ({
+    // requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+    // display: "Test 2"
+    // })),
+    // test3: createUpgrade(() => ({
+    //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+    //   display: "Test 3"
+    // }))
+  },
+    (): SkillTreeOptions2 => ({
+      visibility: true,
+      rows: [
+        ["test"],
+        ["test2", "test3"],
+        ["test4"],
+        ["test5", "test6", "test7"]
+      ],
+      // rows: [
+      //   ["test"],
+      //   ["test2", "test3"]
+      // ],
+      // nodes: {
+      //   test: createUpgrade(() => ({
+      //     requirements: [],
+      //     display: "TEST!"
+      //   })),
+      // test2: createUpgrade(() => ({
+      //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+      //   display: "Test 2"
+      // })),
+      // test3: createUpgrade(() => ({
+      //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
+      //   display: "Test 3"
+      // }))
+      // },
+      style: { height: "100%" }
+    })
+  );
 
   const tabs = createTabFamily({
     milestones: () => ({
@@ -248,7 +315,7 @@ const layer = createLayer(id, baseLayer => {
       display: "Rays",
       visibility: milestones.second.earned,
       tab: createTab(() => ({
-        style: {height: "100%"},
+        style: { height: "100%" },
         display: () => <>
           <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
           <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
@@ -261,7 +328,8 @@ const layer = createLayer(id, baseLayer => {
           <Spacer />
           <Spacer />
           {/* {render(skillTree.tree)} */}
-          {render(board)}
+          {/* {render(board)} */}
+          {render(skillTree2)}
         </>
       }))
     }),
@@ -282,7 +350,7 @@ const layer = createLayer(id, baseLayer => {
         </>)
       }))
     })
-  }, () => ({style: {height: "100%"}}));
+  }, () => ({ style: { height: "100%" } }));
 
   return {
     name,
@@ -299,9 +367,9 @@ const layer = createLayer(id, baseLayer => {
     mercuryCores,
     venusCores,
     solarRays,
-    skillTree,
-    testUpgrade,
-    board,
+    skillTree2,
+    // testUpgrade,
+    // board,
     display: () => (
       <>
         <h2>You have {format(energy.value)} {energy.displayName}</h2>

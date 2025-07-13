@@ -1,7 +1,7 @@
 <template>
     <panZoom
         selector=".stage"
-        :options="{ initialZoom: 1, minZoom: 0.1, maxZoom: 10, zoomDoubleClickSpeed: 1 }"
+        :options="{ initialZoom: 1, minZoom: 0.1, maxZoom: 10, zoomDoubleClickSpeed: 1, autoCenter: true }"
         ref="stage"
         @init="onInit"
         @mousemove="(e: MouseEvent) => emit('drag', e)"
@@ -15,7 +15,7 @@
             @mousedown="(e: MouseEvent) => emit('mouseDown', e)"
             @touchstart="(e: TouchEvent) => emit('mouseDown', e)"
         />
-        <div class="stage">
+        <div class="stage" ref="actualStage">
             <slot />
         </div>
     </panZoom>
@@ -28,6 +28,8 @@ import { computed, ref } from "vue";
 // Required to make sure panzoom component gets registered:
 import "./board";
 
+// const { centerOn } = definepr
+
 defineExpose({
     panZoomInstance: computed(() => stage.value?.panZoomInstance)
 });
@@ -39,12 +41,33 @@ const emit = defineEmits<{
 }>();
 
 const stage = ref<{ panZoomInstance: PanZoom } & ComponentPublicInstance<HTMLElement>>();
+const actualStage = ref<HTMLElement>();
 
 function onInit(panzoomInstance: PanZoom) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     panzoomInstance.setTransformOrigin(null);
-    panzoomInstance.moveTo(0, stage.value?.$el.clientHeight / 2);
+    // panzoomInstance.moveTo(0, stage.value?.$el.clientHeight / 2);
+    // (stage.value?.$el as HTMLElement).firstChild
+    panzoomInstance.moveTo(stage.value?.$el.clientWidth / 3, 0)
+    // debugger;
+    // const child = actualStage.value?.querySelector(".feature");
+    // panzoomInstance.centerOn(child);
+
+    // let element = document.querySelector('#scene');
+
+    // var s = (stage.value?.$el.offsetWidth /2) - (actualStage.value?.offsetWidth ?? 1 / 2);
+    // panzoomInstance.moveTo(s, 0);
+    // panzoomInstance.centerOn(actualStage.value)
+
+    // const screenSize = {
+    //     "w": Math.max(stage.value?.$el.clientWidth, stage.value?.$el.innerWidth || 0),
+    //     "h": Math.max(stage.value?.$el.clientHeight, stage.value?.$el.innerHeight || 0)
+    // };
+    // let initalZoom = (screenSize.w / elemWid < screenSize.h / elemHei) ? screenSize.w / elemWid  : screenSize.h / elemHei;
+    // panzoomObj.zoomAbs(0, 0, initalZoom);
+    // panzoomObj.moveTo((screenSize.w - elemWid * initalZoom) / 2, (screenSize.h - elemHei * initalZoom) / 2);
+    
 }
 </script>
 
