@@ -4,9 +4,9 @@ import { createAchievement } from "features/achievements/achievement";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
-import { createLayer, Layer } from "game/layers";
+import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
-import { createBooleanRequirement, createCostRequirement, createCountRequirement } from "game/requirements";
+import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderGroupedObjects } from "util/vue";
@@ -16,11 +16,9 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
-import { ComputedRef, MaybeRef, unref } from "vue";
-import { blankTreeNode, createBoughtNodeRequirement, createSkillTree, createSkillTree2, createSkillTreeNode2, SkillTree2, SkillTreeNodeOptions2, SkillTreeOptions2 } from "data/createSkillTree";
+import { MaybeRef, unref } from "vue";
+import { createBoughtNodeRequirement, createSkillTree, createSkillTreeNode, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
 import "./solar.css";
-import Board from "game/boards/Board.vue";
-import { createTreeNode } from "features/trees/tree";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -152,117 +150,39 @@ const layer = createLayer(id, baseLayer => {
     </div>;
   }
 
-  // const skillTree = createSkillTree(() => ({
-  //   visibility: true,
-  //   nodes: {
-  //     test: {
-  //       display: {
-  //         title: "HELLO"
-  //       },
-  //       requirements: createCostRequirement(() => ({
-  //         resource: noPersist(solarRays),
-  //         cost: Decimal.fromNumber(5)
-  //       }))
-  //       // display: MaybeGetter<Renderable>;
-  //       // requirements?: Requirements;
-  //       // requiredNodes?: string[]
-  //     },
-  //     leftTest: {
-  //       display: "what up chicken butt",
-  //       requiredNodes: ["test"]
-  //     },
-  //     rightTest: {
-  //       display: "right?",
-  //       requiredNodes: ["test"]
-  //     }
-  //   },
-  //   rows: [
-  //     [blankTreeNode, blankTreeNode, "test", blankTreeNode, blankTreeNode],
-  //     [blankTreeNode, "leftTest", blankTreeNode, "rightTest", blankTreeNode]
-  //   ]
-  // }));
-
-  // const nodes = createTreeNode(() => ({}));
-
-  // const links = () => (
-  //   <>
-  //     {nodes.value
-  //       .reduce(
-  //         (acc, curr) => [
-  //           ...acc,
-  //           // Replace this with your own logic for determining links to draw
-  //           ...curr.links.map(l => ({ from: curr, to: nodesById.value[l] }))
-  //         ],
-  //         [] as { from: NodePosition; to: NodePosition }[]
-  //       )
-  //       .map(link => (
-  //         <line
-  //           stroke="white"
-  //           stroke-width={4}
-  //           // Note how we handle adding dragDelta to the node being dragged. You may consider writing a utility function to help with this process
-  //           x1={
-  //             nodeBeingDragged.value === link.from.id
-  //               ? dragDelta.value.x + link.from.x
-  //               : link.from.x
-  //           }
-  //           y1={
-  //             nodeBeingDragged.value === link.from.id
-  //               ? dragDelta.value.y + link.from.y
-  //               : link.from.y
-  //           }
-  //           x2={
-  //             nodeBeingDragged.value === link.to.id
-  //               ? dragDelta.value.x + link.to.x
-  //               : link.to.x
-  //           }
-  //           y2={
-  //             nodeBeingDragged.value === link.to.id
-  //               ? dragDelta.value.y + link.to.y
-  //               : link.to.y
-  //           }
-  //         />
-  //       ))}
-  //   </>
-  // );
-
-  // const testUpgrade = createUpgrade(() => ({
-  //   requirements: [],
-  //   style: {transform: "transform: translate(0px, 0px);", minHeight: "0px"},
-  //   display: {
-  //     title: "HELLO",
-  //     description: "does stuff"
-  //   }
-  // }))
-
-  // const board = <Board style={{height: "100%"}}>
-  //   {render(testUpgrade)}
-  // </Board>;
-
-  const skillTree2 = createSkillTree2({
-    test: createSkillTreeNode2(() => ({
+  const skillTree2 = createSkillTree({
+    test: createSkillTreeNode(() => ({
       display: "HELLO"
     })),
-    test2: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+    test2: createSkillTreeNode((): SkillTreeNodeOptions => ({
       requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
       display: "Test 2"
     })),
-    test3: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+    test3: createSkillTreeNode((): SkillTreeNodeOptions => ({
       requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
       display: "Test 3"
     })),
-    test4: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+    test4: createSkillTreeNode((): SkillTreeNodeOptions => ({
       requirements: createBoughtNodeRequirement(skillTree2, ["test2", "test3"]),
       display: "Test 4"
     })),
-    test5: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+    test5: createSkillTreeNode((): SkillTreeNodeOptions => ({
       requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
       display: "Test 5"
     })),
-    test6: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
-      display: "Test 6"
+    test6: createSkillTreeNode((): SkillTreeNodeOptions => ({
+      requirements: [
+        createBoughtNodeRequirement(skillTree2, ["test4"]),
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: Decimal.fromNumber(5)
+        }))
+      ],
+      display: {
+        title: "Test 6"
+      }
     })),
-    test7: createSkillTreeNode2((): SkillTreeNodeOptions2 => ({
+    test7: createSkillTreeNode((): SkillTreeNodeOptions => ({
       requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
       display: "Test 7"
     })),
@@ -275,7 +195,7 @@ const layer = createLayer(id, baseLayer => {
     //   display: "Test 3"
     // }))
   },
-    (): SkillTreeOptions2 => ({
+    (): SkillTreeOptions => ({
       visibility: true,
       rows: [
         ["test"],
