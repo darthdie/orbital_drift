@@ -17,8 +17,9 @@ import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { MaybeRef, unref } from "vue";
-import { createBoughtNodeRequirement, createSkillTree, createSkillTreeNode, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
+import { blankTreeNode, createBoughtNodeRequirement, createSkillTree, createSkillTreeNode, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
 import "./solar.css";
+import Test from "data/Test.vue";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -225,6 +226,35 @@ const layer = createLayer(id, baseLayer => {
     })
   );
 
+  const mercurySkillTree = createSkillTree({
+    free: createSkillTreeNode(() => ({
+      display: {
+        title: "Unlock Mercury Tree"
+      }
+    })),
+    snortingDust: createSkillTreeNode((): SkillTreeNodeOptions => ({
+      requirements: [
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: 1
+        })),
+        createBoughtNodeRequirement(mercurySkillTree, ["free"])
+      ],
+      display: {
+        title: "Snorting Dust",
+        description: "Start Mercury resets with a base of 5% Dust per second."
+      }
+    }))
+  }, () => ({
+    visibility: true,
+    rows: [
+      // ??, ??
+      ["free"],
+      ["snortingDust", blankTreeNode]
+    ],
+    style: { height: "100%" }
+  }));
+
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
@@ -256,10 +286,11 @@ const layer = createLayer(id, baseLayer => {
     mercury: () => ({
       display: "Mercury",
       tab: createTab(() => ({
+        style: { height: "100%" },
         display: () => (<>
           {render(mercuryUnlockUpgrade)}
 
-          {
+          {/* {
             milestones.first.earned.value ?
               <>
                 <h5>Upgrades</h5>
@@ -267,6 +298,8 @@ const layer = createLayer(id, baseLayer => {
               </>
               : null
           }
+          <Spacer/> */}
+          {render(mercurySkillTree)}
         </>)
       }))
     })
@@ -288,6 +321,7 @@ const layer = createLayer(id, baseLayer => {
     venusCores,
     solarRays,
     skillTree2,
+    mercurySkillTree,
     // testUpgrade,
     // board,
     display: () => (

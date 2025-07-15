@@ -80,7 +80,7 @@ export function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc:
       createBooleanRequirement(() => !bought.value),
       ...(Array.isArray(_requirements) ? _requirements : _requirements ? [_requirements] : [])
     ];
-    console.log(requirements.length)
+
     let display: any;
     if (typeof _display === "object" && !isJSXElement(_display)) {
       const { title, description, effectDisplay } = _display;
@@ -159,14 +159,12 @@ export function createSkillTree<T extends SkillTreeOptions>(
     const { rows, ...props } = options;
 
     for (var row = 0; row < rows.length; row++) {
-      console.log({ row: row });
       const columns = rows[row];
 
       const CELL_HEIGHT = 186;
       const yOffset = row > 0 ? `${row * CELL_HEIGHT}px` : "0px";
 
       for (let column = 0; column < columns.length; column++) {
-        console.log({ column: column });
         const cell = columns[column];
         if (typeof cell != 'string') {
           continue;
@@ -189,33 +187,29 @@ export function createSkillTree<T extends SkillTreeOptions>(
       }
     }
 
-    const links = createLinks(() => ({
-      links: () => Object.values(treeNodes).flatMap(node => {
-        if (BlankSkillTreeNodeType in node) {
-          return [];
-        }
+    const links = computed(() => Object.values(treeNodes).flatMap(node => {
+      if (BlankSkillTreeNodeType in node) {
+        return [];
+      }
+      const requirements = Array.isArray(node.requirements) ? node.requirements : [node.requirements];
+      const nodes: string[] = requirements.flatMap((r: any) => r.requiredNodes ?? []);
 
-        const requirements = Array.isArray(node.requirements) ? node.requirements : [node.requirements];
-        const nodes: string[] = requirements.flatMap((r: any) => r.requiredNodes ?? []);
+      if (nodes.length === 0) {
+        return [];
+      }
 
-        if (nodes.length === 0) {
-          return [];
-        }
+      return nodes.map(requiredNodeName => {
+        const requiredNode = treeNodes[requiredNodeName];
 
-        return nodes.map(requiredNodeName => {
-          const requiredNode = treeNodes[requiredNodeName];
-
-          const link: Link = { startNode: node, endNode: requiredNode };
-          return link;
-        });
-      })
+        const link: Link = { startNode: { id: node.id }, endNode: { id: requiredNode.id} };
+        return link;
+      });
     }));
 
     return {
       ...(props as Omit<typeof props, keyof VueFeature | keyof SkillTreeOptions>),
       ...vueFeatureMixin("skill-tree", options, () => (
-        <Board style={{ height: "100%", display: "relative" }}>
-          {render(links)}
+        <Board style={{ height: "100%", display: "relative", overflow: "hidden" }} links={links.value}>
           {Object.values(treeNodes).map(n => render(n))}
         </Board>
       )),

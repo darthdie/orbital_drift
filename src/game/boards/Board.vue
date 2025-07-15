@@ -1,7 +1,7 @@
 <template>
     <panZoom
         selector=".stage"
-        :options="{ initialZoom: 1, minZoom: 0.1, maxZoom: 10, zoomDoubleClickSpeed: 1, autoCenter: true }"
+        :options="{ initialZoom: 0.8, minZoom: 0.1, maxZoom: 10, zoomDoubleClickSpeed: 1 }"
         ref="stage"
         @init="onInit"
         @mousemove="(e: MouseEvent) => emit('drag', e)"
@@ -16,6 +16,7 @@
             @touchstart="(e: TouchEvent) => emit('mouseDown', e)"
         />
         <div class="stage" ref="actualStage">
+            <LinksVue v-if="links" :links="unref(links)" ref="linksComponent"></LinksVue>
             <slot />
         </div>
     </panZoom>
@@ -24,11 +25,13 @@
 <script setup lang="ts">
 import type { PanZoom } from "panzoom";
 import type { ComponentPublicInstance } from "vue";
-import { computed, ref } from "vue";
+import { computed, reactive, ref, unref } from "vue";
 // Required to make sure panzoom component gets registered:
 import "./board";
+import { Link } from "features/links/links";
+import LinksVue from "features/links/Links.vue";
 
-// const { centerOn } = definepr
+const { links } = defineProps<{ links?: Link[] }>();
 
 defineExpose({
     panZoomInstance: computed(() => stage.value?.panZoomInstance)
@@ -38,37 +41,18 @@ const emit = defineEmits<{
     (event: "mouseDown", e: MouseEvent | TouchEvent): void;
     (event: "mouseUp", e: MouseEvent | TouchEvent): void;
     (event: "mouseLeave", e: MouseEvent | TouchEvent): void;
+    (event: "zoom", e: Event): void;
 }>();
 
 const stage = ref<{ panZoomInstance: PanZoom } & ComponentPublicInstance<HTMLElement>>();
 const actualStage = ref<HTMLElement>();
+const linksComponent = ref<typeof LinksVue>();
 
 function onInit(panzoomInstance: PanZoom) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    panzoomInstance.setTransformOrigin(null);
-    // panzoomInstance.moveTo(0, stage.value?.$el.clientHeight / 2);
-    // (stage.value?.$el as HTMLElement).firstChild
+    panzoomInstance.setTransformOrigin(null as any);
     panzoomInstance.moveTo(stage.value?.$el.clientWidth / 3, 0)
-    // debugger;
-    // const child = actualStage.value?.querySelector(".feature");
-    // panzoomInstance.centerOn(child);
-
-    // let element = document.querySelector('#scene');
-
-    // var s = (stage.value?.$el.offsetWidth /2) - (actualStage.value?.offsetWidth ?? 1 / 2);
-    // panzoomInstance.moveTo(s, 0);
-    // panzoomInstance.centerOn(actualStage.value)
-
-    // const screenSize = {
-    //     "w": Math.max(stage.value?.$el.clientWidth, stage.value?.$el.innerWidth || 0),
-    //     "h": Math.max(stage.value?.$el.clientHeight, stage.value?.$el.innerHeight || 0)
-    // };
-    // let initalZoom = (screenSize.w / elemWid < screenSize.h / elemHei) ? screenSize.w / elemWid  : screenSize.h / elemHei;
-    // panzoomObj.zoomAbs(0, 0, initalZoom);
-    // panzoomObj.moveTo((screenSize.w - elemWid * initalZoom) / 2, (screenSize.h - elemHei * initalZoom) / 2);
-    
 }
+
 </script>
 
 <style scoped>
@@ -89,8 +73,8 @@ function onInit(panzoomInstance: PanZoom) {
 </style>
 
 <style>
-.vue-pan-zoom-item {
-    overflow: hidden;
+svg {
+    overflow: visible;
 }
 
 .vue-pan-zoom-scene {

@@ -1,20 +1,15 @@
 <template>
-    <line
-        stroke-width="15px"
-        stroke="white"
-        v-bind="linkProps"
-        :x1="startPosition.x"
-        :y1="startPosition.y"
-        :x2="endPosition.x"
-        :y2="endPosition.y"
-    />
+  <div
+    v-if="startPos && endPos"
+    class="html-line"
+    :style="lineStyle"
+  ></div>
 </template>
 
 <script setup lang="ts">
-import type { Link } from "features/links/links";
-import type { FeatureNode } from "game/layers";
-import { kebabifyObject } from "util/vue";
-import { computed } from "vue";
+import { FeatureNode } from 'game/layers';
+import { computed, CSSProperties, nextTick, watch } from 'vue';
+import { Link } from './links';
 
 const props = defineProps<{
     link: Link;
@@ -23,37 +18,55 @@ const props = defineProps<{
     boundingRect: DOMRect | undefined;
 }>();
 
-const startPosition = computed(() => {
-    const rect = props.startNode.rect;
-    const boundingRect = props.boundingRect;
-    const position = boundingRect
-        ? {
-              x: rect.x + rect.width / 2 - boundingRect.x,
-              y: rect.y + rect.height / 2 - boundingRect.y
-          }
-        : { x: 0, y: 0 };
-    if (props.link.offsetStart) {
-        position.x += props.link.offsetStart.x;
-        position.y += props.link.offsetStart.y;
+const startPos = computed(() => {
+        if (!props.boundingRect) {
+        return null;
     }
-    return position;
+    console.log({ rect: props.boundingRect.x, y: props.boundingRect.y })
+    const r = props.startNode.rect;
+const boundingRect = props.boundingRect ?? {x: 0, y: 0};
+  return {
+    x: r.x + r.width / 2 - boundingRect.x + (props.link.offsetStart?.x || 0),
+    y: r.y + r.height / 2 - boundingRect.y + (props.link.offsetStart?.y || 0),
+  };
 });
 
-const endPosition = computed(() => {
-    const rect = props.endNode.rect;
-    const boundingRect = props.boundingRect;
-    const position = boundingRect
-        ? {
-              x: rect.x + rect.width / 2 - boundingRect.x,
-              y: rect.y + rect.height / 2 - boundingRect.y
-          }
-        : { x: 0, y: 0 };
-    if (props.link.offsetEnd) {
-        position.x += props.link.offsetEnd.x;
-        position.y += props.link.offsetEnd.y;
+const endPos = computed(() => {
+    if (!props.boundingRect) {
+        return null;
     }
-    return position;
+    const r = props.endNode.rect;
+const boundingRect = props.boundingRect ?? {x: 0, y: 0};
+  return {
+    x: r.x + r.width / 2 - boundingRect.x + (props.link.offsetEnd?.x || 0),
+    y: r.y + r.height / 2 - boundingRect.y + (props.link.offsetEnd?.y || 0),
+  };
 });
 
-const linkProps = computed(() => kebabifyObject(props.link as unknown as Record<string, unknown>));
+const lineStyle = computed(() => {
+  if (!startPos.value || !endPos.value) return {};
+
+  const dx = endPos.value.x - startPos.value.x;
+  const dy = endPos.value.y - startPos.value.y;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+
+  return {
+    position: 'absolute',
+    top: '0px',
+    left: '0px',
+    width: `${length}px`,
+    height: '2px',
+    backgroundColor: 'black',
+    transform: `translate(${startPos.value.x}px, ${startPos.value.y}px) rotate(${angleDeg}deg)`,
+    transformOrigin: '0 0',
+    pointerEvents: 'none',
+    zIndex: 0,
+  } as CSSProperties;
+});
+
 </script>
+
+<style scoped>
+
+</style>

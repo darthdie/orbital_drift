@@ -1,5 +1,5 @@
 <template>
-    <svg v-if="validLinks" v-bind="$attrs">
+    <template v-if="validLinks" v-bind="$attrs">
         <LinkVue
             v-for="(link, index) in validLinks"
             :key="index"
@@ -8,24 +8,27 @@
             :startNode="nodes[link.startNode.id]!"
             :endNode="nodes[link.endNode.id]!"
         />
-    </svg>
+        
+    </template>
     <div ref="resizeListener" class="resize-listener" />
 </template>
 
 <script setup lang="ts">
 import type { FeatureNode } from "game/layers";
 import { BoundsInjectionKey, NodesInjectionKey } from "game/layers";
-import { computed, inject, MaybeRef, onMounted, ref, shallowRef, unref, watch } from "vue";
+import { computed, inject, MaybeRef, nextTick, onActivated, onBeforeUnmount, onMounted, onUpdated, Ref, ref, shallowRef, unref, watch } from "vue";
 import LinkVue from "./Link.vue";
 import { Link } from "./links";
 
-const props = defineProps<{ links: MaybeRef<Link[]> }>();
+const { links } = defineProps<{ links: MaybeRef<Link[]> }>();
 
 function updateBounds() {
     boundingRect.value = resizeListener.value?.getBoundingClientRect();
 }
 
-const resizeObserver = new ResizeObserver(updateBounds);
+const resizeObserver = new ResizeObserver(() => {
+    updateBounds()
+});
 const resizeListener = shallowRef<HTMLElement | null>(null);
 
 const nodes = inject(NodesInjectionKey, ref<Record<string, FeatureNode | undefined>>({}));
@@ -37,16 +40,23 @@ onMounted(() => {
     if (resListener != null) {
         resizeObserver.observe(resListener);
     }
+  
     updateBounds();
 });
+
 
 const validLinks = computed(() => {
     const n = nodes.value;
     return (
-        unref(props.links)?.filter(link =>
+        unref(links)?.filter(link =>
             n[link.startNode.id]?.rect && n[link.endNode.id]?.rect) ?? []
     );
 });
+
+defineExpose({
+    updateBounds
+})
+
 </script>
 
 <style scoped>
