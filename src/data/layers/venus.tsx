@@ -7,8 +7,8 @@ import { createResource, displayResource, Resource, trackTotal } from "features/
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render, renderGroupedObjects, renderRow } from "util/vue";
-import { createLayerTreeNode } from "../common";
-import { computed, ComputedRef, ref, unref } from "vue";
+import { createLayerTreeNode, createResetButton } from "../common";
+import { computed, ComputedRef, Ref, ref, unref } from "vue";
 import Decimal, { format } from "util/bignum";
 import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
@@ -118,11 +118,11 @@ const layer = createLayer(id, baseLayer => {
   const pressureCapped = computed(() => Decimal.eq(pressure.value, pressureMax.value));
 
   const volcanics = createResource<DecimalSource>(0, "Volcanics");
-  const volcanicsMax = computed(() => Decimal.fromNumber(100));
+  const volcanicsMax = computed(() => Decimal.fromNumber(100).times(Decimal.times(volcanicsCapIncreases.value, 2).clampMin(1)));
 
   const lava = createResource<DecimalSource>(0, "Lava");
   const lavaTotal = trackTotal(lava);
-  const lavaMax = computed(() => Decimal.fromNumber(250));
+  const lavaMax = computed(() => Decimal.fromNumber(250).times(Decimal.times(lavaCapIncreases.value, 2).clampMin(1)));
   const lavaConversionPrioritySpeedEffect = computed(() => Decimal.fromNumber(4));
   const lavaConversionPriorityVolcanicsSpeedEffect = computed(() => Decimal.fromNumber(8));
   const lavaConversionPriorityVolcanicsGainEffect = computed(() => Decimal.fromNumber(3));
@@ -506,6 +506,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     floorIsLava: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(lava),
         cost: Decimal.fromNumber(15)
@@ -519,6 +520,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     lavaIsFloor: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(lava),
         cost: Decimal.fromNumber(25)
@@ -532,6 +534,7 @@ const layer = createLayer(id, baseLayer => {
 
     // pressure cost?
     extraKick: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(lava),
         cost: Decimal.fromNumber(35)
@@ -556,6 +559,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     diamonds: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromNumber(1e10)
@@ -568,6 +572,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     sevens: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromNumber(1e100)
@@ -580,6 +585,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     SSssSssssSSS3: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromMantissaExponent(1, 1000)
@@ -592,6 +598,7 @@ const layer = createLayer(id, baseLayer => {
     })),
 
     SSssSssssSSS4: createUpgrade(() => ({
+      visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(pressure),
         cost: Decimal.fromMantissaExponent(1, 10000)
@@ -679,7 +686,7 @@ const layer = createLayer(id, baseLayer => {
 
   const residualHeatEffect = computed(() => {
     if (volcanicsUpgrades.residualHeat.bought.value) {
-      return Decimal.sqrt(volcanics.value).clampMin(1);
+      return Decimal.log2(volcanics.value).sqrt().clampMin(1);
     }
 
     return Decimal.dZero;
@@ -714,7 +721,7 @@ const layer = createLayer(id, baseLayer => {
       display: {
         title: "Residual Heat",
         description: `Increase base ${lava.displayName} gain based on ${volcanics.displayName}`,
-        effectDisplay: () => `x${format(residualHeatEffect.value)}`
+        effectDisplay: () => `+${format(residualHeatEffect.value)}`
       }
     })),
 
@@ -733,7 +740,7 @@ const layer = createLayer(id, baseLayer => {
     // mafic: createUpgrade(() => ({
     //   requirements: createCostRequirement((): CostRequirementOptions => ({
     //     resource: noPersist(volcanics),
-    //     cost: Decimal.fromNumber(50)
+    //     cost: Decimal.fromNumber(100)
     //   })),
     //   display: {
     //     title: "Mafic",
@@ -963,7 +970,7 @@ const layer = createLayer(id, baseLayer => {
     canClick: computed(() => Decimal.gte(unref(lavaConversion.actualGain), 1))
   }));
 
-  const reset = createReset(() => ({
+  const fullReset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => [layer, pressureBuyables, pressureUpgrades, tephraBuyables, volcanicsUpgrades, tephraGenerators],
     onReset: () => {
       pressure.value = pressure[DefaultValue];
@@ -975,6 +982,11 @@ const layer = createLayer(id, baseLayer => {
     }
   }));
 
+  const fullResetButton = createClickable(() => ({
+    display: "HARD RESET",
+    onClick: () => fullReset.reset()
+  }))
+
   const pressureTabReset = createReset(() => ({
     thingsToReset: (): Record<string, unknown>[] => [pressureBuyables, pressureUpgrades]
   }))
@@ -985,7 +997,7 @@ const layer = createLayer(id, baseLayer => {
     display: () => <CelestialBodyIcon body={"Venus"} />,
     wrapper: <Tooltip display="Venus" direction={Direction.Left}></Tooltip>,
     color,
-    reset
+    reset: fullReset
   }));
 
   const lavaConversionEnabled = ref(false);
@@ -1012,7 +1024,7 @@ const layer = createLayer(id, baseLayer => {
     </>)
   });
 
-  const createResourceDisplay = (resource: Resource, resourceCap: ComputedRef<DecimalSource>) => {
+  const createResourceDisplay = (resource: Resource, resourceCap: ComputedRef<DecimalSource>, capIncreases: Ref<DecimalSource>) => {
     const increaseCap = createClickable(() => ({
       canClick: () => Decimal.eq(resource.value, resourceCap.value),
       classes: {"squashed-clickable": true, "flex": true},
@@ -1027,7 +1039,8 @@ const layer = createLayer(id, baseLayer => {
           return;
         }
 
-        lava.value = 0;
+        resource.value = 0;
+        capIncreases.value = Decimal.add(capIncreases.value, 1);
       }
     }));
 
@@ -1060,8 +1073,11 @@ const layer = createLayer(id, baseLayer => {
     </div>);
   };
 
-  const lavaDisplay = createResourceDisplay(lava, lavaMax);
-  const volcanicsDisplay = createResourceDisplay(volcanics, volcanicsMax);
+  const lavaCapIncreases = createResource<DecimalSource>(0);
+  const volcanicsCapIncreases = createResource<DecimalSource>(0);
+
+  const lavaDisplay = createResourceDisplay(lava, lavaMax, lavaCapIncreases);
+  const volcanicsDisplay = createResourceDisplay(volcanics, volcanicsMax, volcanicsCapIncreases);
 
   const tabs = createTabFamily({
     pressure: () => ({
@@ -1167,8 +1183,8 @@ const layer = createLayer(id, baseLayer => {
   return {
     name,
     color,
-    magma: volcanics,
-    magmaMax: volcanicsMax,
+    volcanics,
+    volcanicsMax,
     lava,
     lavaTotal,
     planetMass,
@@ -1177,18 +1193,20 @@ const layer = createLayer(id, baseLayer => {
     treeNode,
     pressureBuyables,
     pressureUpgrades,
-    ash: tephra,
-    ashTotal: tephraTotal,
+    tephra,
+    tephraTotal,
     eruptions,
     tabs,
-    reset,
-    lavaUpgrades: volcanicsUpgrades,
+    fullReset,
+    volcanicsUpgrades,
     timeSinceLastEruption,
     lavaConversionPriority,
     tephraBuyables,
     volcanicsBuyables,
     tephraGenerators,
     autoLava,
+    lavaCapIncreases,
+    volcanicsCapIncreases,
     display: () => <>
       <h2>{displayResource(planetMass)} Planet Mass</h2>
       {render(planetMassBar)}

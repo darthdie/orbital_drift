@@ -1,5 +1,5 @@
 import { Visibility } from "features/feature";
-import { createTreeNode } from "features/trees/tree";
+import { createTree, createTreeNode } from "features/trees/tree";
 import Board from "game/boards/Board.vue";
 import { Persistent, persistent } from "game/persistence";
 import { createBooleanRequirement, displayRequirements, payRequirements, Requirement, Requirements, requirementsMet } from "game/requirements";
@@ -69,7 +69,7 @@ export function createBoughtNodeRequirement(tree: SkillTree, requiredNodes: stri
   });
 }
 
-export function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc: () => T): SkillTreeNode {
+export function createSkillTreeNodeOld<T extends SkillTreeNodeOptions>(optionsFunc: () => T): SkillTreeNode {
   const bought = persistent<boolean>(false);
   return createLazyProxy(() => {
 
@@ -150,7 +150,7 @@ export function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc:
   });
 }
 
-export function createSkillTree<T extends SkillTreeOptions>(
+export function createSkillTreeOld<T extends SkillTreeOptions>(
   treeNodes: Record<string, SkillTreeNode>,
   optionsFunc?: () => T
 ): SkillTree {
@@ -206,11 +206,14 @@ export function createSkillTree<T extends SkillTreeOptions>(
       });
     }));
 
+
     return {
       ...(props as Omit<typeof props, keyof VueFeature | keyof SkillTreeOptions>),
       ...vueFeatureMixin("skill-tree", options, () => (
         <Board style={{ height: "100%", display: "relative", overflow: "hidden" }} links={links.value}>
-          {Object.values(treeNodes).map(n => render(n))}
+          {Object.values(treeNodes).map(n => <foreignObject>
+            {render(n)}
+          </foreignObject>)}
         </Board>
       )),
       type: SkillTreeType,

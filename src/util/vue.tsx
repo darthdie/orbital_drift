@@ -148,7 +148,7 @@ export function renderGroupedObjects(
     const chunkedObjects = chunkArray(normalizedObjects, groupSize);
 
     return render((<>
-        <div class="table">
+        <div class="table grouped-table">
             {
                 chunkedObjects
                 .map(group => <>

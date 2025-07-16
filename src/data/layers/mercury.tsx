@@ -58,10 +58,6 @@ const layer = createLayer(id, baseLayer => {
         1,
         Decimal.div(Decimal.ln(collisionTimeGainComputed.value), Decimal.ln(maxCollisionTime))
       )
-      // return Decimal.sub(
-      //   1,
-      //   Decimal.div(collisionTimeGainComputed.value.e, maxCollisionTime.e)
-      // )
     },
     width: 512,
     height: 10,

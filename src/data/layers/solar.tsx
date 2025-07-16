@@ -17,9 +17,11 @@ import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { MaybeRef, unref } from "vue";
-import { blankTreeNode, createBoughtNodeRequirement, createSkillTree, createSkillTreeNode, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
+import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
 import "./solar.css";
 import Test from "data/Test.vue";
+import { createSkillTree, createSkillTreeNode } from "data/features/skill_tree/skillTree";
+import { createClickable } from "features/clickables/clickable";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -151,88 +153,13 @@ const layer = createLayer(id, baseLayer => {
     </div>;
   }
 
-  const skillTree2 = createSkillTree({
-    test: createSkillTreeNode(() => ({
-      display: "HELLO"
-    })),
-    test2: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-      display: "Test 2"
-    })),
-    test3: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-      display: "Test 3"
-    })),
-    test4: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test2", "test3"]),
-      display: "Test 4"
-    })),
-    test5: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
-      display: "Test 5"
-    })),
-    test6: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: [
-        createBoughtNodeRequirement(skillTree2, ["test4"]),
-        createCostRequirement(() => ({
-          resource: noPersist(solarRays),
-          cost: Decimal.fromNumber(5)
-        }))
-      ],
-      display: {
-        title: "Test 6"
-      }
-    })),
-    test7: createSkillTreeNode((): SkillTreeNodeOptions => ({
-      requirements: createBoughtNodeRequirement(skillTree2, ["test4"]),
-      display: "Test 7"
-    })),
-    // test2: createUpgrade(() => ({
-    // requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-    // display: "Test 2"
-    // })),
-    // test3: createUpgrade(() => ({
-    //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-    //   display: "Test 3"
-    // }))
-  },
-    (): SkillTreeOptions => ({
-      visibility: true,
-      rows: [
-        ["test"],
-        ["test2", "test3"],
-        ["test4"],
-        ["test5", "test6", "test7"]
-      ],
-      // rows: [
-      //   ["test"],
-      //   ["test2", "test3"]
-      // ],
-      // nodes: {
-      //   test: createUpgrade(() => ({
-      //     requirements: [],
-      //     display: "TEST!"
-      //   })),
-      // test2: createUpgrade(() => ({
-      //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-      //   display: "Test 2"
-      // })),
-      // test3: createUpgrade(() => ({
-      //   requirements: createBoughtNodeRequirement(skillTree2, ["test"]),
-      //   display: "Test 3"
-      // }))
-      // },
-      style: { height: "100%" }
-    })
-  );
-
-  const mercurySkillTree = createSkillTree({
-    free: createSkillTreeNode(() => ({
+  const mercurySkillTree = createSkillTreeOld({
+    free: createSkillTreeNodeOld(() => ({
       display: {
         title: "Unlock Mercury Tree"
       }
     })),
-    snortingDust: createSkillTreeNode((): SkillTreeNodeOptions => ({
+    snortingDust: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
       requirements: [
         createCostRequirement(() => ({
           resource: noPersist(solarRays),
@@ -244,15 +171,137 @@ const layer = createLayer(id, baseLayer => {
         title: "Snorting Dust",
         description: "Start Mercury resets with a base of 5% Dust per second."
       }
-    }))
+    })),
+    idk3: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["free"])],
+      display: {
+        title: "idk3",
+      }
+    })),
+    idk3_3: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["snortingDust"])],
+      display: {
+        title: "idk3_3",
+      }
+    })),
+    idk3_4: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3"])],
+      display: {
+        title: "idk3_4",
+      }
+    })),
+    idk4: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_3"])],
+      display: {
+        title: "idk4",
+      }
+    })),
+    idk5: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_4"])],
+      display: {
+        title: "idk5",
+      }
+    })),
+    idk4_3: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4"])],
+      display: {
+        title: "idk4_3",
+      }
+    })),
+    idk4_4: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk5"])],
+      display: {
+        title: "idk4_4",
+      }
+    })),
+    idk6: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_3"])],
+      display: {
+        title: "idk6",
+      }
+    })),
+    idk7: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_4"])],
+      display: {
+        title: "idk7",
+      }
+    })),
+    idk8: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk6", "idk7"])],
+      display: {
+        title: "idk8",
+      }
+    })),
+    idk9: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
+      display: {
+        title: "idk9",
+      }
+    })),
+    idk10: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk8"])],
+      display: {
+        title: "idk10",
+      }
+    })),
+    idk11: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
+      display: {
+        title: "idk11",
+      }
+    })),
+    mastery: createSkillTreeNodeOld((): SkillTreeNodeOptions => ({
+      requirements: [
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: 50
+        })),
+        createBoughtNodeRequirement(mercurySkillTree, ["idk10"])
+      ],
+      display: {
+        title: "Unlock Mastery",
+      }
+    })),
   }, () => ({
     visibility: true,
     rows: [
       // ??, ??
       ["free"],
-      ["snortingDust", blankTreeNode]
+      ["snortingDust", blankTreeNode, "idk3"],
+      ["idk3_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk3_4"],
+      ["idk4", blankTreeNode, blankTreeNode, blankTreeNode, blankTreeNode, blankTreeNode, "idk5"],
+      ["idk4_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk4_4"],
+      ["idk6", blankTreeNode, "idk7"],
+      ["idk8"],
+      ["idk9", "idk10", "idk11"],
+      ["mastery"]
     ],
     style: { height: "100%" }
+  }));
+
+  const nodes = {
+    hello: createClickable(() => ({
+      display: "Hello!"
+    })),
+    hello2: createClickable(() => ({
+      display: "Hello 2!"
+    })),
+    hello3: createClickable(() => ({
+      display: "Hello 3!"
+    }))
+  }
+
+  const solarTree = createSkillTree(() => ({
+    nodes: noPersist([
+      [
+        nodes.hello,
+      ],
+      [nodes.hello2, nodes.hello3 ]
+    ]),
+    branches: [
+      { startNode: nodes.hello, endNode: nodes.hello2 },
+      { startNode: nodes.hello, endNode: nodes.hello3 },
+    ]
   }));
 
   const tabs = createTabFamily({
@@ -277,9 +326,7 @@ const layer = createLayer(id, baseLayer => {
           </div>
           <Spacer />
           <Spacer />
-          {/* {render(skillTree.tree)} */}
-          {/* {render(board)} */}
-          {render(skillTree2)}
+          {render(solarTree)}
         </>
       }))
     }),
@@ -290,15 +337,6 @@ const layer = createLayer(id, baseLayer => {
         display: () => (<>
           {render(mercuryUnlockUpgrade)}
 
-          {/* {
-            milestones.first.earned.value ?
-              <>
-                <h5>Upgrades</h5>
-                {renderGroupedObjects(mercuryUpgrades, 3)}
-              </>
-              : null
-          }
-          <Spacer/> */}
           {render(mercurySkillTree)}
         </>)
       }))
@@ -320,8 +358,8 @@ const layer = createLayer(id, baseLayer => {
     mercuryCores,
     venusCores,
     solarRays,
-    skillTree2,
     mercurySkillTree,
+    solarTree,
     // testUpgrade,
     // board,
     display: () => (
