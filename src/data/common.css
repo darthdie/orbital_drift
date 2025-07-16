@@ -61,26 +61,30 @@
     }
 
 .cappable-resource-container {
-    /* border-radius: 8px 8px 0 0; */
     border-radius: 0 0 8px 8px;
     border: 2px solid var(--raised-background);
-    /* overflow: hidden; */
     margin: 0;
     flex: 1;
 
-    /* display: flex;
-    flex-direction: column; */
-
     .title {
-        /* border-bottom: 1px solid var(--raised-background); */
-        /* margin-bottom: 2px; */
         padding-bottom: 2px;
     }
 
     .feature .bar .border {
-        /* border-color: none; */
         border-top: 2px solid var(--raised-background);
-        /* border-bottom: 1px solid var(--raised-background); */
         border-bottom: none;
+    }
+
+    .resource-display {
+        background: var(--raised-background);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+    }
+
+    .increase-cap-action .clickable {
+        border-radius: 0 0 8px 8px;
     }
 }

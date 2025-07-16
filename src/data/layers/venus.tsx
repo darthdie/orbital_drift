@@ -1053,12 +1053,10 @@ const layer = createLayer(id, baseLayer => {
     return computed(() => <div class="cappable-resource-container">
       <h3 class="title">{resource.displayName}</h3>
       {render(bar)}
-      <div class="flex">
-        <div style="flex: 1">{render(increaseCap)}</div>
-        <div style="flex: 1; background: var(--raised-background); margin: 0; display: flex; align-items: center; justify-content: center;">
-          <h4>{format(resource.value)}/{format(resourceCap.value)}</h4>
-        </div>
+      <div class="resource-display">
+        <h4>{format(resource.value)}/{format(resourceCap.value)}</h4>
       </div>
+      <div class="increase-cap-action">{render(increaseCap)}</div>
     </div>);
   };
 
