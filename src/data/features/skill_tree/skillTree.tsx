@@ -6,9 +6,17 @@ import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import SkillTreeVue from './SkillTree.vue';
 import SkillTreeNodeVue from './SkillTreeNode.vue';
+import { createBooleanRequirement } from "game/requirements";
 
 export const SkillTreeNodeType = Symbol("SkillTreeNode");
 export const SkillTreeType = Symbol("SkillTree");
+
+type SkillTreeNodeRequirementNode = VueFeature & { bought: Persistent<boolean> };
+export function createSkillTreeNodeRequirement(nodes: SkillTreeNodeRequirementNode | SkillTreeNodeRequirementNode[]) {
+  const processedNodes = Array.isArray(nodes) ? nodes : [nodes];
+
+  return createBooleanRequirement(() => processedNodes.every(n => n.bought.value));
+}
 
 /**
  * An object that configures a {@link TreeNode}.

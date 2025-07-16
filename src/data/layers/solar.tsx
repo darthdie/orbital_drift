@@ -1,7 +1,7 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
-import { createUpgrade } from "features/clickables/upgrade";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
@@ -20,7 +20,7 @@ import { MaybeRef, unref } from "vue";
 import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
 import "./solar.css";
 import Test from "data/Test.vue";
-import { createSkillTree, createSkillTreeNode } from "data/features/skill_tree/skillTree";
+import { createSkillTree, createSkillTreeNode, createSkillTreeNodeRequirement } from "data/features/skill_tree/skillTree";
 import { createClickable } from "features/clickables/clickable";
 
 const id = "S";
@@ -280,27 +280,50 @@ const layer = createLayer(id, baseLayer => {
   }));
 
   const nodes = {
-    hello: createClickable(() => ({
-      display: "Hello!"
+    mercury: createUpgrade((): UpgradeOptions => ({
+      display: "Mercury",
+      requirements: [
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: 1
+        })),
+      ]
     })),
-    hello2: createClickable(() => ({
-      display: "Hello 2!"
+    venus: createUpgrade((): UpgradeOptions => ({
+      display: {
+        title: "Venus",
+        description: "Unlock Venus"
+      },
+      requirements: [
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: 3
+        })),
+        createSkillTreeNodeRequirement(nodes.mercury)
+      ]
     })),
-    hello3: createClickable(() => ({
-      display: "Hello 3!"
+    earth: createUpgrade((): UpgradeOptions => ({
+      visibility: false,
+      display: "??",
+      requirements: [
+        createCostRequirement(() => ({
+          resource: noPersist(solarRays),
+          cost: 3
+        })),
+        createSkillTreeNodeRequirement(nodes.venus)
+      ]
     }))
   }
 
   const solarTree = createSkillTree(() => ({
     nodes: noPersist([
-      [
-        nodes.hello,
-      ],
-      [nodes.hello2, nodes.hello3 ]
+      [nodes.mercury],
+      [nodes.venus],
+      [nodes.earth]
     ]),
     branches: [
-      { startNode: nodes.hello, endNode: nodes.hello2 },
-      { startNode: nodes.hello, endNode: nodes.hello3 },
+      { startNode: nodes.mercury, endNode: nodes.venus },
+      { startNode: nodes.venus, endNode: nodes.earth },
     ]
   }));
 
