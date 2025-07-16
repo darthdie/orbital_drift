@@ -3,12 +3,12 @@
  * @hidden
  */
 import { createReset } from "features/reset";
-import { createResource, displayResource, trackTotal } from "features/resources/resource";
+import { createResource, displayResource, Resource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render, renderGroupedObjects, renderRow } from "util/vue";
 import { createLayerTreeNode } from "../common";
-import { computed, ref, unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
 import Decimal, { format } from "util/bignum";
 import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
@@ -1012,6 +1012,59 @@ const layer = createLayer(id, baseLayer => {
     </>)
   });
 
+  const createResourceDisplay = (resource: Resource, resourceCap: ComputedRef<DecimalSource>) => {
+    const increaseCap = createClickable(() => ({
+      canClick: () => Decimal.eq(resource.value, resourceCap.value),
+      classes: {"squashed-clickable": true, "flex": true},
+      display: {
+        title: "Increase Cap",
+        description: <>
+          Reset {resource.displayName} to double cap.
+        </>,
+      },
+      onClick: () => {
+        if (unref(increaseCap.canClick) != true) {
+          return;
+        }
+
+        lava.value = 0;
+      }
+    }));
+
+    const bar = createBar(() => ({
+      direction: Direction.Right,
+      height: 14,
+      width: '100%',
+      style: {
+        overflow: 'hidden',
+      },
+      borderStyle: {
+        borderRadius: '0',
+      },
+      progress: () => {
+        if (Decimal.gt(resourceCap.value, 1e10)) {
+          return Decimal.div(Decimal.ln(resource.value), Decimal.ln(resourceCap.value))
+        }
+
+        return Decimal.div(resource.value, resourceCap.value);
+      }
+    }));
+
+    return computed(() => <div class="cappable-resource-container">
+      <h3 class="title">{resource.displayName}</h3>
+      {render(bar)}
+      <div class="flex">
+        <div style="flex: 1">{render(increaseCap)}</div>
+        <div style="flex: 1; background: var(--raised-background); margin: 0; display: flex; align-items: center; justify-content: center;">
+          <h4>{format(resource.value)}/{format(resourceCap.value)}</h4>
+        </div>
+      </div>
+    </div>);
+  };
+
+  const lavaDisplay = createResourceDisplay(lava, lavaMax);
+  const volcanicsDisplay = createResourceDisplay(volcanics, volcanicsMax);
+
   const tabs = createTabFamily({
     pressure: () => ({
       display: "Pressure",
@@ -1049,29 +1102,14 @@ const layer = createLayer(id, baseLayer => {
       visibility: () => Decimal.gt(lavaTotal.value, 0),
       tab: createTab(() => ({
         display: () => (<>
-          {renderRow(
-            <>
-              <div>
-                <h4>Lava</h4>
-                <h4>{format(lava.value)}/{format(lavaMax.value)}</h4>
-                <Spacer height="8px" />
+          <div class="flex" style="gap: 12px;">
+            {render(lavaDisplay.value)}
 
-                {render(lavaBar)}
-              </div>
-            </>,
-            <Spacer width="20px" />,
-            <div>-&gt;</div>,
-            <Spacer width="20px" />,
-            <>
-              <div>
-                <h4>Volcanics</h4>
-                <h4>{format(volcanics.value)}/{format(volcanicsMax.value)}</h4>
-                <Spacer height="8px" />
+            <div>-&gt;</div>
 
-                {render(magmaBar)}
-              </div>
-            </>
-          )}
+            {render(volcanicsDisplay.value)}
+          </div>
+
           <Spacer />
 
           <h4>Converter Priority</h4>
@@ -1090,6 +1128,8 @@ const layer = createLayer(id, baseLayer => {
 
           {/* The checker complains, but it works fine... */}
           {render(lavaConversionPriorityEffectsDisplay as any)}
+
+          <Spacer/>
 
           <div style="display: flex; justify-content: center;">
             <Toggle
