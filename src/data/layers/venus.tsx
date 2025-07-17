@@ -8,9 +8,9 @@ import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render, renderGroupedObjects, renderRow } from "util/vue";
 import { createLayerTreeNode, createResetButton } from "../common";
-import { computed, ComputedRef, Ref, ref, unref } from "vue";
+import { computed, ComputedRef, Ref, ref, unref, watch } from "vue";
 import Decimal, { format } from "util/bignum";
-import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
+import { DefaultValue, noPersist, Persistent, persistent, PersistentState, SkipPersistence } from "game/persistence";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -97,7 +97,7 @@ const layer = createLayer(id, baseLayer => {
       .div(lavaIsFloorEffect.value)
       .div(maficEffect.value)
       .div(hotPotEffect.value)
-      // .pow(tephraPressureIntervalEffect.value)
+      .pow(tephraPressureIntervalEffect.value)
   );
   const pressureChance = computed(() =>
     Decimal.add(10, pressureChanceBuyableEffect.apply(0))
@@ -289,12 +289,6 @@ const layer = createLayer(id, baseLayer => {
       if (testLoss) {
         testResourceX.value = Decimal.sub(testResourceX.value, Decimal.times(testResourceX.value, testLossRate).times(testDiff));
       }
-      // console.log({
-      //   conversionAmount: conversionAmount.toString(),
-      //   producedVolcanics: producedVolcanics.toString(),
-      //   fakeVolcanics: testResourceY.value.toString(),
-      //   fakeLava: testResourceX.value.toString()
-      // })
     }
   });
 
@@ -357,7 +351,7 @@ const layer = createLayer(id, baseLayer => {
       })),
       display: {
         title: "What're the odds?",
-        description: "Increase the Pressure Build Chance.",
+        description: "Increase the Pressure Build Chance by 0.25% per level.",
         effectDisplay: (): string => `+${format(pressureChanceBuyableEffect.apply(0))}%`
       }
     })),
@@ -537,7 +531,7 @@ const layer = createLayer(id, baseLayer => {
       visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(lava),
-        cost: Decimal.fromNumber(35)
+        cost: Decimal.fromNumber(75)
       })),
       display: {
         title: "Lil' Extra Kick",
@@ -549,7 +543,7 @@ const layer = createLayer(id, baseLayer => {
       visibility: () => Decimal.gt(lava.value, 0),
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(lava),
-        cost: Decimal.fromNumber(50)
+        cost: Decimal.fromNumber(125)
       })),
       display: {
         title: "Boiling Pot",
@@ -867,22 +861,28 @@ const layer = createLayer(id, baseLayer => {
     lavaGenerator: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(tephra),
-        cost: Formula.variable(tephraGenerators.lavaGenerator.amount).add(1)
+        cost: Formula.variable(tephraGenerators.lavaGenerator.amount).add(3)
       })),
       display: {
         title: "Effusive Tunnels",
-        description: `Gain 0.01% of pending ${lava.displayName}/s`,
+        description: `Gain 0.005% of pending ${lava.displayName}/s`,
         effectDisplay: () => `${lavaGeneraterEffect.value}/s`
       }
     }))
   }
 
   const lavaConversion = createCumulativeConversion(() => ({
-    formula: x => x.log2().add(residualHeatEffect).if(() => pressureCapped.value, f => f.times(1.5)).pow(tephraLavaGainEffect.value).clampMax(lavaMax),
+    formula: x => x.log2().add(residualHeatEffect).if(() => pressureCapped.value, f => f.times(1.5)).pow(tephraLavaGainEffect.value).clampMax(lavaMax.value),
     baseResource: pressure,
-    gainResource: lava,
-    onConvert: () => {
+    gainResource: noPersist(lava),
+    onConvert: (amountGained: DecimalSource) => {
+      console.log({
+        gain: amountGained.toString(),
+        lava: lava.value.toString(),
+        capped: Decimal.min(lava.value, lavaMax.value).toString()
+      })
       pressure.value = 1;
+      lava.value = Decimal.min(lava.value, lavaMax.value);
     },
   }));
 
@@ -897,7 +897,7 @@ const layer = createLayer(id, baseLayer => {
   });
 
   const tephraConversion = createIndependentConversion(() => ({
-    gainResource: tephra,
+    gainResource: noPersist(tephra),
     baseResource: pressure,
     formula: x => Formula.variable(Decimal.dZero).if(() => pressureCapped.value, () => Formula.variable(Decimal.dOne)),
     convert: () => tephra.value = Decimal.add(tephra.value, 1)

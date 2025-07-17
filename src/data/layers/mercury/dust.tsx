@@ -458,7 +458,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         // .step(1000, f => f.div(Formula.variable(oom).div(4)));
       },
       baseResource: timeSinceReset,
-      gainResource: mercurialDust,
+      gainResource: noPersist(mercurialDust),
       currentGain: computed((): Decimal => {
         if (Decimal.lt(timeSinceReset.value, 10)) {
           return Decimal.dZero;
