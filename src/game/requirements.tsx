@@ -7,7 +7,7 @@ import { joinJSX, Renderable } from "util/vue";
 import { computed, MaybeRef, MaybeRefOrGetter, unref } from "vue";
 import Formula, { calculateCost, calculateMaxAffordable } from "./formulas/formulas";
 import type { GenericFormula, InvertibleIntegralFormula } from "./formulas/types";
-import { DefaultValue, Persistent } from "./persistence";
+import { DefaultValue, Persistent, SkipPersistence } from "./persistence";
 
 /**
  * An object that can be used to describe a requirement to perform some purchase or other action.
@@ -115,6 +115,8 @@ export interface CostRequirement extends Requirement {
      * @see {@link cost} for restrictions on maximizing support.
      */
     pay?: (amount?: DecimalSource) => void;
+
+    [SkipPersistence]: boolean;
 }
 
 /**
@@ -136,6 +138,7 @@ export function createCostRequirement<T extends CostRequirementOptions>(optionsF
         } = options;
 
         const requirement = {
+            [SkipPersistence]: true,
             resource,
             visibility: processGetter(visibility) ?? Visibility.Visible,
             cost: processGetter(cost),
@@ -255,6 +258,7 @@ export function createCountRequirement(
         const refRequired = processGetter(required);
 
         return {
+            [SkipPersistence]: true,
             requirementMet: computed(() => Decimal.gte(unref(refCount), unref(refRequired))),
             requiresPay: false,
             visibility: false
@@ -270,6 +274,7 @@ export function createVisibilityRequirement(
     visibility: MaybeRef<Visibility | boolean>
 ): Requirement {
     return createLazyProxy(() => ({
+        [SkipPersistence]: true,
         requirementMet: computed(() => isVisible(visibility)),
         visibility: Visibility.None,
         requiresPay: false
@@ -289,6 +294,7 @@ export function createBooleanRequirement(
         const partialDisplay =
             display == null ? undefined : typeof display === "function" ? display : () => display;
         return {
+            [SkipPersistence]: true,
             requirementMet: processGetter(requirement),
             partialDisplay,
             display: display == null ? undefined : () => <>Req: {partialDisplay}</>,
