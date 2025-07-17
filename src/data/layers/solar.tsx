@@ -1,7 +1,7 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
-import { createUpgrade, Upgrade, UpgradeOptions } from "features/clickables/upgrade";
+import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
@@ -9,7 +9,7 @@ import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render, renderGroupedObjects } from "util/vue";
+import { render } from "util/vue";
 import mercuryLayer from './mercury';
 import venusLayer from './venus';
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -17,11 +17,9 @@ import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { MaybeRef, unref } from "vue";
-import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions, SkillTreeOptions } from "data/createSkillTree";
+import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions } from "data/createSkillTree";
 import "./solar.css";
-import Test from "data/Test.vue";
-import { createSkillTree, createSkillTreeNode, createSkillTreeNodeRequirement } from "data/features/skill_tree/skillTree";
-import { createClickable } from "features/clickables/clickable";
+import { createSkillTree, createSkillTreeNodeRequirement } from "data/features/skill_tree/skillTree";
 
 const id = "S";
 const layer = createLayer(id, baseLayer => {
@@ -42,6 +40,7 @@ const layer = createLayer(id, baseLayer => {
   const treeNode = createLayerTreeNode(() => ({
     layerID: id,
     color,
+    display: () => <CelestialBodyIcon body="Sun"/>,
     reset
   }));
 

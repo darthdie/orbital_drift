@@ -6,7 +6,7 @@ import { createReset } from "features/reset";
 import { createResource, displayResource, Resource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
-import { render, renderGroupedObjects, renderRow } from "util/vue";
+import { joinJSX, render, renderGroupedObjects, renderRow } from "util/vue";
 import { createLayerTreeNode, createResetButton } from "../common";
 import { computed, ComputedRef, Ref, ref, unref, watch } from "vue";
 import Decimal, { format } from "util/bignum";
@@ -914,16 +914,26 @@ const layer = createLayer(id, baseLayer => {
       "fit-content": true
     },
     display: ((): JSX.Element => {
-      const gainDisplay = (conversion: Conversion) => (<><b>
-        {displayResource(conversion.gainResource, Decimal.max(unref(conversion.actualGain), 1))}
-      </b>{" "}
-        {conversion.gainResource.displayName}</>)
+      const gainDisplay = (conversion: Conversion, cap: DecimalSource) => {
+        const capped = Decimal.gte(unref(conversion.currentGain), cap);
+        const willBeCapped = Decimal.gte(Decimal.add(unref(conversion.currentGain), conversion.gainResource.value), cap);
+        const gain = willBeCapped ?
+          Decimal.sub(cap, conversion.gainResource.value) :
+          Decimal.max(unref(conversion.currentGain), 1);
+
+        const cappedDisplay = capped ? "(capped)" : willBeCapped ? "(after cap)" : null;
+        return joinJSX([
+          <b>{displayResource(conversion.gainResource, gain)}</b>,
+          <> </>,
+          <>{conversion.gainResource.displayName} {cappedDisplay}</>
+        ], <></>)
+      }
 
       if (!pressureCapped.value) {
         return (
           <span>
             <h3>Effusive Eruption</h3><br />
-            Reset Pressure for {gainDisplay(lavaConversion)} { lavaGainCapped.value ? "(capped)" : null }
+            Reset Pressure for {gainDisplay(lavaConversion, lavaMax.value)}
           </span>
         );
       }
@@ -933,8 +943,8 @@ const layer = createLayer(id, baseLayer => {
           <h3>Explosive Eruption</h3>
           <br />
           Reset The ENTIRE Pressure Tab for:<br />
-          {gainDisplay(lavaConversion)} { lavaGainCapped.value ? "(capped)" : null }<br />
-          {gainDisplay(tephraConversion)}<br />
+          {gainDisplay(lavaConversion, lavaMax.value)}<br />
+          {gainDisplay(tephraConversion, 999)}<br />
           Destroy ^{format(massDestructionAmount.value)} of the planet's mass.<br />
           Raise Explosive Eruption requirement to ^2.<br />
           Decrease interval by x{format(eruptionPenalityDisplay.value)}.
@@ -1027,7 +1037,7 @@ const layer = createLayer(id, baseLayer => {
   const createResourceDisplay = (resource: Resource, resourceCap: ComputedRef<DecimalSource>, capIncreases: Ref<DecimalSource>) => {
     const increaseCap = createClickable(() => ({
       canClick: () => Decimal.eq(resource.value, resourceCap.value),
-      classes: {"squashed-clickable": true, "flex": true},
+      classes: { "squashed-clickable": true, "flex": true },
       display: {
         title: "Increase Cap",
         description: <>
@@ -1143,7 +1153,7 @@ const layer = createLayer(id, baseLayer => {
           {/* The checker complains, but it works fine... */}
           {render(lavaConversionPriorityEffectsDisplay as any)}
 
-          <Spacer/>
+          <Spacer />
 
           <div style="display: flex; justify-content: center;">
             <Toggle
