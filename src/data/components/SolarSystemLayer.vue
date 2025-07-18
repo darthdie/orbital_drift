@@ -2,18 +2,14 @@
     <div id="circle-orbit-container">
         <div id="sun"></div>
 
-        <div id="inner-orbit">
-            <div class="inner-orbit-circles"></div>
-        </div>
-
-        <div id="middle-orbit">
-            <div class="middle-orbit-circles"></div>
-        </div>
-
-        <div id="outer-orbit">
-            <div class="outer-orbit-circles"></div>
-        </div>
-
+        <div id="mercury"></div>
+        <div id="venus"></div>
+        <div id="earth"></div>
+        <div id="mars"></div>
+        <div id="jupiter"></div>
+        <div id="saturn"></div>
+        <div id="uranus"></div>
+        <div id="neptune"></div>
     </div>
     <RightNodes v-if="rightSideNodes" />
     <Links v-if="branches" :links="unref(branches)" />
@@ -33,8 +29,38 @@ const RightNodes = () => props.rightSideNodes == null ? <></> :
     <span class="side-nodes small">
         {unref(props.rightSideNodes).map(node => render(node))}
     </span>;
-
 </script>
+
+<style>
+/* Animation times to simulate irl orbits */
+:root {
+    --base-orbit-time: 8; /* number of seconds for mercury, the fastest one */
+    --mercury-conversion: calc(88 / var(--base-orbit-time)); /* 8.8 currently */
+
+    /* irl_orbit_time / conversion */
+    --large-planet-time-divisor: 4;
+    --mercury-time: calc(88s / var(--mercury-conversion));
+    --venus-time: calc(225s / var(--mercury-conversion));
+    --earth-time: calc(365s / var(--mercury-conversion));
+    --mars-time: calc(687s / var(--mercury-conversion));
+    --jupiter-time: calc(calc(4333s / var(--large-planet-time-divisor)) / var(--mercury-conversion));
+    --saturn-time: calc(calc(10759s / var(--large-planet-time-divisor)) / var(--mercury-conversion));
+    --uranus-time: calc(calc(30687s / var(--large-planet-time-divisor)) / var(--mercury-conversion));
+    --neptune-time: calc(calc(60190s / var(--large-planet-time-divisor)) / var(--mercury-conversion));
+
+    --earth-planet-size: 35px;
+    --mercury-planet-size: calc(var(--earth-planet-size) / 3); /* 1/3 of earth */
+    --venus-planet-size: calc(var(--earth-planet-size) * 0.8); /* slight smaller than earth */
+    --mars-planet-size: calc(var(--earth-planet-size) / 2);
+    --jupiter-planet-size: calc(var(--earth-planet-size) * 4); /* 11x earth */
+    --saturn-planet-size: calc(var(--earth-planet-size) * 3); /* 9x earth */
+    --uranus-planet-size: calc(var(--earth-planet-size) * 2); /* 4x earth */
+    --neptune-planet-size: calc(var(--earth-planet-size) * 1.9); /* slightly smaller than uranus */
+}
+
+/* Mercury = (earth / 3) =  */
+
+</style>
 
 <style scoped>
 .side-nodes {
@@ -57,106 +83,142 @@ const RightNodes = () => props.rightSideNodes == null ? <></> :
     font-size: 30px;
 }
 
+
 /* ---------- Container for the orbiting circles animation ---------- */
+
+
+@property --angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes revolve {
+  from { --angle: 0deg; }
+  to { --angle: 360deg; }
+}
+
 #circle-orbit-container {
-    position: relative;
-    top: 25px;
-    left: 25px;
-    height: 300px;
-    width: 300px;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+
+    > div {
+        grid-area: 1/1;
+    }
 }
 
 #sun {
-    position: absolute;
-    /* 112.5 = (size of sun) + (width of container / 2) */
-    top: 112.5px;
-    left: 112.5px;
-    width: 75px;
-    height: 75px;
     border-radius: 100%;
     background-color: #FFCC33;
+    padding: 30px;
+
+    box-shadow: -4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px #FFCC33;
 }
 
-/* ---------- Inner orbit - This is the circles closest to the central point ---------- */
-#inner-orbit {
-    position: absolute;
-    top: 75px;
-    left: 75px;
-    width: 150px;
-    height: 150px;
-    /* border: 2px #4A437F dashed; */
+#mercury {
+    --amplitude: 60px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--mercury-time) linear infinite;
+
+    height: var(--mercury-planet-size);
+    width: var(--mercury-planet-size);
     border-radius: 100%;
-    -webkit-animation: spin-right 10s linear infinite;
-    animation: spin-right 10s linear infinite;
+    background-color: #8c8c94;
 }
 
-/* ---------- Repeating styles for the inner orbiting circles ---------- */
-.inner-orbit-circles {
-    position: absolute;
-    top: 62px;
-    left: -6px;
-    height: 10px;
-    width: 10px;
-    border-radius: 100%;
-    background-color: #9F98E6;
-}
+#venus {
+    --amplitude: 100px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--venus-time) linear infinite;
 
-/* ---------- Middle orbit - This is the circles second closest to the central point ---------- */
-#middle-orbit {
-    position: absolute;
-    top: 35px;
-    left: 35px;
-    width: 225px;
-    height: 225px;
-    /* border: 2px #4A437F dashed; */
-    border-radius: 100%;
-    -webkit-animation: spin-right 15s linear infinite;
-    animation: spin-right 15s linear infinite;
-}
-
-/* ---------- Repeating styles for the inner orbiting circles ---------- */
-.middle-orbit-circles {
-    position: absolute;
-    top: 25px;
-    left: 17px;
-    height: 20px;
-    width: 20px;
+    height: var(--venus-planet-size);
+    width: var(--venus-planet-size);
     border-radius: 100%;
     background-color: #4A437F;
 }
 
-/* ---------- Outer orbit - This is the circles furthest away from the central point ---------- */
-#outer-orbit {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 294px;
-    height: 294px;
-    /* border: 2px #4A437F dashed; */
+#earth {
+    --amplitude: 150px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--earth-time) linear infinite;
+
+    height: var(--earth-planet-size);
+    width: var(--earth-planet-size);
     border-radius: 100%;
-    -webkit-animation: spin-right 20s linear infinite;
-    animation: spin-right 20s linear infinite;
+    background-color: #384e1d;
 }
 
-/* ---------- Repeating styles for the outer orbiting circles ---------- */
-.outer-orbit-circles {
-    position: absolute;
-    top: -17px;
-    left: 125px;
-    height: 30px;
-    width: 30px;
+#mars {
+    --amplitude: 195px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--mars-time) linear infinite;
+
+    height: var(--mars-planet-size);
+    width: var(--mars-planet-size);
     border-radius: 100%;
-    background-color: #00FFCA;
+    background-color: #c1440e;
 }
 
-/* ---------- Animation ---------- */
-@-webkit-keyframes spin-right {
-    100% {
-        -webkit-transform: rotate(360deg);
-        -moz-transform: rotate(360deg);
-        -ms-transform: rotate(360deg);
-        -o-transform: rotate(360deg);
-        transform: rotate(360deg);
-    }
+#jupiter {
+    --amplitude: 295px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--jupiter-time) linear infinite;
+
+    height: var(--jupiter-planet-size);
+    width: var(--jupiter-planet-size);
+    border-radius: 100%;
+    background-color: #d8ca9d;
+}
+
+#saturn {
+    --amplitude: 440px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--saturn-time) linear infinite;
+
+    height: var(--saturn-planet-size);
+    width: var(--saturn-planet-size);
+    border-radius: 100%;
+    background-color:#c3924f;
+}
+
+#uranus {
+    --amplitude: 550px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--uranus-time) linear infinite;
+
+    height: var(--uranus-planet-size);
+    width: var(--uranus-planet-size);
+    border-radius: 100%;
+    background-color:#c6d3e3;
+}
+
+#neptune {
+    --amplitude: 635px;
+    --x: calc(cos(var(--angle)) * var(--amplitude));
+    --y: calc(sin(var(--angle)) * var(--amplitude));
+    translate: var(--x) var(--y);
+    animation: revolve var(--neptune-time) linear infinite;
+
+    height: var(--neptune-planet-size);
+    width: var(--neptune-planet-size);
+    border-radius: 100%;
+    background-color:#274687;
 }
 </style>
