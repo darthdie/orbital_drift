@@ -10,7 +10,7 @@ import Decimal, { format, formatWhole } from "util/bignum";
 import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { Renderable, VueFeature, vueFeatureMixin, VueFeatureOptions } from "util/vue";
-import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref, StyleValue } from "vue";
+import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref } from "vue";
 import { ref, shallowRef, unref } from "vue";
 
 /** A symbol used to identify {@link TreeNode} features. */

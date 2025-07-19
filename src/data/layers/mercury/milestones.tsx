@@ -1,5 +1,5 @@
 import { createAchievement } from "features/achievements/achievement";
-import { BaseLayer, createLayer } from "game/layers";
+import { createLayer } from "game/layers";
 import { computed } from "vue";
 import chunksTab from "./chunks";
 import { createCountRequirement } from "game/requirements";
@@ -28,7 +28,7 @@ const layer = createLayer(id, () => {
     ]);
 
     const fourthMilestoneModifier = computed(() => {
-        if (milestones.four.earned.value) {
+        if (milestones.four.earned.value === true) {
             return Decimal.add(chunksTab.totalChunks.value, 1).slog().pow(0.5).clampMin(1);
         }
 

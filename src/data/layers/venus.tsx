@@ -6,7 +6,7 @@ import { createReset } from "features/reset";
 import { createResource, displayResource, Resource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
-import { joinJSX, render, renderGroupedObjects } from "util/vue";
+import { joinJSX, render, Renderable, renderGroupedObjects } from "util/vue";
 import { createLayerTreeNode } from "../common";
 import { computed, ComputedRef, Ref, ref, unref } from "vue";
 import Decimal, { format } from "util/bignum";
@@ -1018,7 +1018,7 @@ const layer = createLayer(id, baseLayer => {
     const tephraConversion = createIndependentConversion(() => ({
         gainResource: noPersist(tephra),
         baseResource: pressure,
-        formula: x =>
+        formula: () =>
             Formula.variable(Decimal.dZero).if(
                 () => pressureCapped.value,
                 () => Formula.variable(Decimal.dOne)
@@ -1136,11 +1136,6 @@ const layer = createLayer(id, baseLayer => {
         }
     }));
 
-    const fullResetButton = createClickable(() => ({
-        display: "HARD RESET",
-        onClick: () => fullReset.reset()
-    }));
-
     const pressureTabReset = createReset(() => ({
         thingsToReset: (): Record<string, unknown>[] => [pressureBuyables, pressureUpgrades]
     }));
@@ -1157,7 +1152,7 @@ const layer = createLayer(id, baseLayer => {
     const lavaConversionEnabled = ref(false);
     const lavaConversionPriority = persistent<number>(1);
 
-    const lavaConversionPriorityEffectsDisplay = computed(() => {
+    const lavaConversionPriorityEffectsDisplay = computed<Renderable>(() => {
         const effectDisplay = [];
         if (lavaConversionPriority.value === PRIORITY_VOLCANICS) {
             effectDisplay.push(
@@ -1212,7 +1207,7 @@ const layer = createLayer(id, baseLayer => {
                 description: <>Reset {resource.displayName} to double cap.</>
             },
             onClick: () => {
-                if (unref(increaseCap.canClick) != true) {
+                if (unref(increaseCap.canClick) === false) {
                     return;
                 }
 
@@ -1335,7 +1330,7 @@ const layer = createLayer(id, baseLayer => {
                         </div>
 
                         {/* The checker complains, but it works fine... */}
-                        {render(lavaConversionPriorityEffectsDisplay as any)}
+                        {render(lavaConversionPriorityEffectsDisplay.value)}
 
                         <Spacer />
 
