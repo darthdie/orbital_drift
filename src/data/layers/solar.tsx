@@ -1,7 +1,7 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
-import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
@@ -16,7 +16,7 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
-import { computed, MaybeRef, unref } from "vue";
+import { computed, MaybeRef, unref, watch } from "vue";
 import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions } from "data/createSkillTree";
 import "./solar.css";
 import { createSkillTree, createSkillTreeNodeRequirement } from "data/features/skill_tree/skillTree";
@@ -267,7 +267,7 @@ const layer = createLayer(id, baseLayer => {
     style: { height: "100%" }
   }));
 
-  const nodes = {
+  const solarSystemUpgrades: Record<string, Upgrade> = {
     mercury: createUpgrade((): UpgradeOptions => ({
       display: {
         title: "Mercury",
@@ -290,7 +290,7 @@ const layer = createLayer(id, baseLayer => {
           resource: noPersist(solarRays),
           cost: 3
         })),
-        createSkillTreeNodeRequirement(nodes.mercury)
+        createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
       ]
     })),
     earth: createUpgrade((): UpgradeOptions => ({
@@ -301,29 +301,27 @@ const layer = createLayer(id, baseLayer => {
           resource: noPersist(solarRays),
           cost: 3
         })),
-        createSkillTreeNodeRequirement(nodes.venus)
+        createSkillTreeNodeRequirement(solarSystemUpgrades.venus)
       ]
     }))
   }
 
   const solarSystemTree = createSkillTree(() => ({
     nodes: noPersist([
-      [nodes.mercury],
-      [nodes.venus],
-      [nodes.earth]
+      [solarSystemUpgrades.mercury],
+      [solarSystemUpgrades.venus],
+      [solarSystemUpgrades.earth]
     ]),
-    branches: [
-      { startNode: nodes.mercury, endNode: nodes.venus },
-      { startNode: nodes.venus, endNode: nodes.earth },
-    ]
+    branches: noPersist([
+      { startNode: solarSystemUpgrades.mercury, endNode: solarSystemUpgrades.venus },
+      { startNode: solarSystemUpgrades.venus, endNode: solarSystemUpgrades.earth },
+    ])
   }));
 
   const displayGlow = computed(() => {
-    // Can any of the solar rays tree be bought?
-    return Object.values(nodes).some(u => u.canPurchase.value);
+    // Can any of the solar system tree be bought?
+    return Object.values(solarSystemUpgrades).some(u => u.canPurchase.value);
   });
-
-  // const color = computed(() => displayGlow)
 
   const treeNode = createLayerTreeNode(() => ({
     layerID: id,
@@ -399,7 +397,7 @@ const layer = createLayer(id, baseLayer => {
     solarRays,
     mercurySkillTree,
     solarSystemTree,
-    nodes,
+    solarSystemUpgrades,
     // testUpgrade,
     // board,
     display: () => (

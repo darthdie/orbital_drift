@@ -79,12 +79,16 @@ const PRIORITY_VOLCANICS = 0;
 const PRIORITY_BALANCED = 1;
 const PRIORITY_SPEED = 2;
 
+// TODO:
+// Move lava generator out of Tephra and into Volcanics tab.
+// Add an upgrade to unlock it.
+
 const id = "V";
 const layer = createLayer(id, baseLayer => {
   const name = "Venus";
   const color = "#f8e2b0";
 
-  const unlocked = computed(() => solarLayer.nodes.venus.bought.value);
+  const unlocked = computed(() => solarLayer.solarSystemUpgrades.venus.bought.value);
 
   const planetMass = createResource<DecimalSource>(Decimal.fromNumber(2e256), "Planet Mass");
 

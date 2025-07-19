@@ -22,7 +22,7 @@
 <script setup lang="tsx">
 import { MaybeGetter } from "util/computed";
 import { render, Renderable, setupHoldToClick } from "util/vue";
-import { computed, MaybeRef, unref } from "vue";
+import { computed, MaybeRef, reactive, unref } from "vue";
 
 const props = defineProps<{
     canClick?: MaybeRef<boolean>;
@@ -44,10 +44,13 @@ const wrapper = computed(() => props.wrapper ?? <div></div>);
 
 const { start, stop } = setupHoldToClick(() => emits("hold"));
 
-const styles = computed(() => ({
-    backgroundColor: unref(props.color),
-    boxShadow: `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${unref(props.glowColor)}`
-}))
+const styles = computed(() => {
+    const glowColor = unref(props.glowColor);
+    return {
+        backgroundColor: unref(props.color),
+        boxShadow: glowColor ? `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${glowColor}` : 'none'
+    };
+})
 
 </script>
 

@@ -120,8 +120,12 @@ onMounted(() => {
     let pausedTime = 0;
 
     function getSunCenter() {
-        const sunRect = sun.value!.getBoundingClientRect();
-        const containerRect = orbitContainer.value!.getBoundingClientRect();
+        if (!sun.value || !orbitContainer.value) {
+            return null;
+
+        }
+        const sunRect = sun.value.getBoundingClientRect();
+        const containerRect = orbitContainer.value.getBoundingClientRect();
         return {
             x: sunRect.left - containerRect.left + sunRect.width / 2,
             y: sunRect.top - containerRect.top + sunRect.height / 2,
@@ -140,6 +144,10 @@ onMounted(() => {
         const elapsed = timestamp - startTime - pausedTime;
 
         const sunCenter = getSunCenter();
+        if (!sunCenter) {
+            requestAnimationFrame(animate);
+            return;
+        }
 
         planets.forEach(planet => {
             if (!planet.element.value) {
@@ -161,6 +169,10 @@ onMounted(() => {
 
     function initializePositions() {
         const sunCenter = getSunCenter();
+        if (!sunCenter) {
+            return;
+        }
+
         planets.forEach(planet => {
             if (!planet.element.value) {
                 return;
