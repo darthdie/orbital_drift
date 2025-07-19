@@ -283,7 +283,7 @@ export function createSequentialModifier<
                       (
                           modifiers
                               .filter(m => unref(m.enabled) !== false)
-                              .map(m => unref(m.description) || "??")
+                              .map(m => unref(m.description))
                               .filter(d => d) as MaybeGetter<Renderable>[]
                       ).map(m => render(m))
                 : undefined

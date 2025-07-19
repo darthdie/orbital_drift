@@ -19,13 +19,6 @@ import {
 } from "game/modifiers";
 import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
 import { computed } from "vue";
-import {
-    blankTreeNode,
-    createBoughtNodeRequirement,
-    createSkillTreeOld,
-    createSkillTreeNodeOld,
-    SkillTreeNodeOptions
-} from "data/createSkillTree";
 import "./solar.css";
 import {
     createSkillTree,
@@ -165,172 +158,172 @@ const layer = createLayer(id, () => {
     //     );
     // };
 
-    const mercurySkillTree = createSkillTreeOld(
-        {
-            free: createSkillTreeNodeOld(() => ({
-                display: {
-                    title: "Unlock Mercury Tree"
-                }
-            })),
-            snortingDust: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [
-                        createCostRequirement(() => ({
-                            resource: noPersist(solarRays),
-                            cost: 1
-                        })),
-                        createBoughtNodeRequirement(mercurySkillTree, ["free"])
-                    ],
-                    display: {
-                        title: "Snorting Dust",
-                        description: "Start Mercury resets with a base of 5% Dust per second."
-                    }
-                })
-            ),
-            idk3: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["free"])],
-                    display: {
-                        title: "idk3"
-                    }
-                })
-            ),
-            idk3_3: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["snortingDust"])],
-                    display: {
-                        title: "idk3_3"
-                    }
-                })
-            ),
-            idk3_4: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3"])],
-                    display: {
-                        title: "idk3_4"
-                    }
-                })
-            ),
-            idk4: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_3"])],
-                    display: {
-                        title: "idk4"
-                    }
-                })
-            ),
-            idk5: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_4"])],
-                    display: {
-                        title: "idk5"
-                    }
-                })
-            ),
-            idk4_3: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4"])],
-                    display: {
-                        title: "idk4_3"
-                    }
-                })
-            ),
-            idk4_4: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk5"])],
-                    display: {
-                        title: "idk4_4"
-                    }
-                })
-            ),
-            idk6: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_3"])],
-                    display: {
-                        title: "idk6"
-                    }
-                })
-            ),
-            idk7: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_4"])],
-                    display: {
-                        title: "idk7"
-                    }
-                })
-            ),
-            idk8: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk6", "idk7"])],
-                    display: {
-                        title: "idk8"
-                    }
-                })
-            ),
-            idk9: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
-                    display: {
-                        title: "idk9"
-                    }
-                })
-            ),
-            idk10: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk8"])],
-                    display: {
-                        title: "idk10"
-                    }
-                })
-            ),
-            idk11: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
-                    display: {
-                        title: "idk11"
-                    }
-                })
-            ),
-            mastery: createSkillTreeNodeOld(
-                (): SkillTreeNodeOptions => ({
-                    requirements: [
-                        createCostRequirement(() => ({
-                            resource: noPersist(solarRays),
-                            cost: 50
-                        })),
-                        createBoughtNodeRequirement(mercurySkillTree, ["idk10"])
-                    ],
-                    display: {
-                        title: "Unlock Mastery"
-                    }
-                })
-            )
-        },
-        () => ({
-            visibility: true,
-            rows: [
-                // ??, ??
-                ["free"],
-                ["snortingDust", blankTreeNode, "idk3"],
-                ["idk3_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk3_4"],
-                [
-                    "idk4",
-                    blankTreeNode,
-                    blankTreeNode,
-                    blankTreeNode,
-                    blankTreeNode,
-                    blankTreeNode,
-                    "idk5"
-                ],
-                ["idk4_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk4_4"],
-                ["idk6", blankTreeNode, "idk7"],
-                ["idk8"],
-                ["idk9", "idk10", "idk11"],
-                ["mastery"]
-            ],
-            style: { height: "100%" }
-        })
-    );
+    // const mercurySkillTree = createSkillTreeOld(
+    //     {
+    //         free: createSkillTreeNodeOld(() => ({
+    //             display: {
+    //                 title: "Unlock Mercury Tree"
+    //             }
+    //         })),
+    //         snortingDust: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [
+    //                     createCostRequirement(() => ({
+    //                         resource: noPersist(solarRays),
+    //                         cost: 1
+    //                     })),
+    //                     createBoughtNodeRequirement(mercurySkillTree, ["free"])
+    //                 ],
+    //                 display: {
+    //                     title: "Snorting Dust",
+    //                     description: "Start Mercury resets with a base of 5% Dust per second."
+    //                 }
+    //             })
+    //         ),
+    //         idk3: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["free"])],
+    //                 display: {
+    //                     title: "idk3"
+    //                 }
+    //             })
+    //         ),
+    //         idk3_3: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["snortingDust"])],
+    //                 display: {
+    //                     title: "idk3_3"
+    //                 }
+    //             })
+    //         ),
+    //         idk3_4: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3"])],
+    //                 display: {
+    //                     title: "idk3_4"
+    //                 }
+    //             })
+    //         ),
+    //         idk4: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_3"])],
+    //                 display: {
+    //                     title: "idk4"
+    //                 }
+    //             })
+    //         ),
+    //         idk5: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_4"])],
+    //                 display: {
+    //                     title: "idk5"
+    //                 }
+    //             })
+    //         ),
+    //         idk4_3: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4"])],
+    //                 display: {
+    //                     title: "idk4_3"
+    //                 }
+    //             })
+    //         ),
+    //         idk4_4: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk5"])],
+    //                 display: {
+    //                     title: "idk4_4"
+    //                 }
+    //             })
+    //         ),
+    //         idk6: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_3"])],
+    //                 display: {
+    //                     title: "idk6"
+    //                 }
+    //             })
+    //         ),
+    //         idk7: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_4"])],
+    //                 display: {
+    //                     title: "idk7"
+    //                 }
+    //             })
+    //         ),
+    //         idk8: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk6", "idk7"])],
+    //                 display: {
+    //                     title: "idk8"
+    //                 }
+    //             })
+    //         ),
+    //         idk9: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
+    //                 display: {
+    //                     title: "idk9"
+    //                 }
+    //             })
+    //         ),
+    //         idk10: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk8"])],
+    //                 display: {
+    //                     title: "idk10"
+    //                 }
+    //             })
+    //         ),
+    //         idk11: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
+    //                 display: {
+    //                     title: "idk11"
+    //                 }
+    //             })
+    //         ),
+    //         mastery: createSkillTreeNodeOld(
+    //             (): SkillTreeNodeOptions => ({
+    //                 requirements: [
+    //                     createCostRequirement(() => ({
+    //                         resource: noPersist(solarRays),
+    //                         cost: 50
+    //                     })),
+    //                     createBoughtNodeRequirement(mercurySkillTree, ["idk10"])
+    //                 ],
+    //                 display: {
+    //                     title: "Unlock Mastery"
+    //                 }
+    //             })
+    //         )
+    //     },
+    //     () => ({
+    //         visibility: true,
+    //         rows: [
+    //             // ??, ??
+    //             ["free"],
+    //             ["snortingDust", blankTreeNode, "idk3"],
+    //             ["idk3_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk3_4"],
+    //             [
+    //                 "idk4",
+    //                 blankTreeNode,
+    //                 blankTreeNode,
+    //                 blankTreeNode,
+    //                 blankTreeNode,
+    //                 blankTreeNode,
+    //                 "idk5"
+    //             ],
+    //             ["idk4_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk4_4"],
+    //             ["idk6", blankTreeNode, "idk7"],
+    //             ["idk8"],
+    //             ["idk9", "idk10", "idk11"],
+    //             ["mastery"]
+    //         ],
+    //         style: { height: "100%" }
+    //     })
+    // );
 
     const solarSystemUpgrades = {
         mercury: createUpgrade(
@@ -471,7 +464,6 @@ const layer = createLayer(id, () => {
         mercuryCores,
         venusCores,
         solarRays,
-        mercurySkillTree,
         solarSystemTree,
         solarSystemUpgrades,
         // testUpgrade,
