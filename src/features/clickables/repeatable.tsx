@@ -226,12 +226,13 @@ export function setupAutoPurchaseRepeatable(
         ? computed(autoActive)
         : autoActive;
 
-    const buyLimit: MaybeRef<number> = !limit ? Number.MAX_SAFE_INTEGER : processGetter(limit);
+    const buyLimit: DecimalSource =
+        unref(limit) === undefined ? Number.MAX_SAFE_INTEGER : unref(processGetter(limit!));
 
     layer.on("update", () => {
         if (unref(isAutoActive)) {
             repeatables.forEach(repeatable => {
-                if (Decimal.gte(repeatable.amount.value, unref(buyLimit))) {
+                if (Decimal.gte(repeatable.amount.value, buyLimit)) {
                     return;
                 }
 

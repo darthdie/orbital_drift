@@ -1,6 +1,6 @@
 import { createReset } from "features/reset";
 import { createLayer } from "game/layers";
-import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
+import { createLayerTreeNode, createResetButton } from "data/common";
 import { createIndependentConversion } from "features/conversion";
 import dustLayer from "./dust";
 import { createResource, trackTotal } from "features/resources/resource";
@@ -8,11 +8,10 @@ import { noPersist } from "game/persistence";
 import { computed, unref, watch } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render, renderGroupedObjects, renderRow } from "util/vue";
+import { render, renderGroupedObjects } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
-import Column from "components/layout/Column.vue";
 import {
     AdditiveModifierOptions,
     createAdditiveModifier,
@@ -110,7 +109,7 @@ const layer = createLayer(id, () => {
 
     const autoChunker = createLazyProxy(() => {
         watch(dustLayer.mercurialDust, () => {
-            if (!upgrades.autoChunks.bought.value || !unref(resetButton.canClick)) {
+            if (upgrades.autoChunks.bought.value || unref(resetButton.canClick) === false) {
                 return;
             }
 

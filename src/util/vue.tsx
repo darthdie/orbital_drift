@@ -126,7 +126,7 @@ export function joinJSX(objects: RenderableObjectsArray, joiner: JSX.Element): J
 export function classNames(classes: Record<string, boolean>): string[] {
     return Object.keys(classes)
         .map(key => (classes[key] ? key : null))
-        .filter(className => !!className) as string[];
+        .filter(className => className != null) as string[];
 }
 
 export function renderGroupedObjects(

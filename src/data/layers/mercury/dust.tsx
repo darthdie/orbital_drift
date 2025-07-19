@@ -327,8 +327,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: () => `^${format(dustPilesEffect.value, 1)}`
                 },
                 visibility: () =>
-                    milestonesLayer.milestones.first.earned.value ||
-                    solarLayer.mercuryUpgrades.youGetAPile.bought.value
+                    milestonesLayer.milestones.first.earned.value === true ||
+                    solarLayer.mercuryUpgrades.youGetAPile.bought.value === true
             })
         )
     };
@@ -563,7 +563,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             totalTimeSinceReset.value = Decimal.dZero;
             mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
-            if (milestonesLayer.milestones.five.earned.value) {
+            if (milestonesLayer.milestones.five.earned.value === true) {
                 Object.keys(preresetBuyableLevels).forEach(buyable => {
                     (repeatables as Record<string, Repeatable>)[buyable].amount.value = Decimal.min(
                         (preresetBuyableLevels as Record<string, number>)[buyable],
@@ -572,7 +572,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 });
             }
 
-            if (milestonesLayer.milestones.second.earned.value) {
+            if (milestonesLayer.milestones.second.earned.value === true) {
                 Object.values(basicUpgrades)
                     .slice(0, milestonesLayer.completedMilestonesCount.value)
                     .forEach(u => (u.bought.value = true));
@@ -594,7 +594,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     };
 
     watch(milestonesLayer.completedMilestonesCount, count => {
-        if (!milestonesLayer.milestones.second.earned.value) {
+        if (milestonesLayer.milestones.second.earned.value === false) {
             return;
         }
 
