@@ -1,1 +1,0 @@
-var e={exports:{}};e.exports=n;e.exports.addWheelListener=n;e.exports.removeWheelListener=o;function n(r,t,s){r.addEventListener("wheel",t,s)}function o(r,t,s){r.removeEventListener("wheel",t,s)}var h=e.exports;export{h as w};
