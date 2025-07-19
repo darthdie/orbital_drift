@@ -46,7 +46,7 @@ const layer = createLayer(id, baseLayer => {
   const name = "Mercury";
   const color = "#8c8c94";
 
-  const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
+  const unlocked = noPersist(solarLayer.solarSystemUpgrades.mercury.bought);
 
   const maxCollisionTime = Decimal.times(1e88, 84600)
   const collisionTime = createResource<DecimalSource>(maxCollisionTime);

@@ -267,7 +267,7 @@ const layer = createLayer(id, baseLayer => {
     style: { height: "100%" }
   }));
 
-  const solarSystemUpgrades: Record<string, Upgrade> = {
+  const solarSystemUpgrades = {
     mercury: createUpgrade((): UpgradeOptions => ({
       display: {
         title: "Mercury",
