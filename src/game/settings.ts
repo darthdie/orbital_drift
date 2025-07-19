@@ -29,7 +29,7 @@ const state = reactive<Partial<Settings>>({
     active: "",
     saves: [],
     showTPS: true,
-    theme: Themes.Nordic,
+    theme: Themes.Drift,
     unthrottled: false,
     alignUnits: false,
     showHealthWarning: true
@@ -65,7 +65,7 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Nordic,
+        theme: Themes.Drift,
         unthrottled: false,
         alignUnits: false,
         showHealthWarning: true
