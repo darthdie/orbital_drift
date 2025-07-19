@@ -127,7 +127,7 @@ const layer = createLayer(id, baseLayer => {
   const lavaConversionPriorityVolcanicsSpeedEffect = computed(() => Decimal.fromNumber(8));
   const lavaConversionPriorityVolcanicsGainEffect = computed(() => Decimal.fromNumber(3));
   const lavaConversionAmount = computed(() => {
-    let base = Decimal.fromNumber(0.1).add(buckForYourBangEffect.value);
+    let base = Decimal.fromNumber(0.5).add(buckForYourBangEffect.value);
 
     if (lavaConversionPriority.value == PRIORITY_VOLCANICS) {
       base = Decimal.times(base, lavaConversionPriorityVolcanicsGainEffect.value);
@@ -156,7 +156,7 @@ const layer = createLayer(id, baseLayer => {
       case PRIORITY_SPEED:
         return Decimal.fromNumber(5);
       case PRIORITY_BALANCED:
-        return Decimal.fromNumber(3);
+        return Decimal.fromNumber(0.1);
       default:
         return Decimal.dZero;
     }

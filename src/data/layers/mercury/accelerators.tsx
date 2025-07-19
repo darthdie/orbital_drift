@@ -42,6 +42,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     gainComputed: computed((): Decimal => {
       return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1))
         .times(chunkAccelerator.dustAcceleratorModifierEffect.value)
+        .times(dustAccelerator.dustyJeansEffect.value)
         // .times(solarLayer.mercuryRetainedSpeedModifer.apply(1));
     }),
 
@@ -182,6 +183,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
       }
     })),
 
+    dustyJeansEffect: computed((): Decimal => {
+      if (dustAccelerator.upgrades.dustyJeans.bought.value) {
+        return Decimal.log2(dustAccelerator.resource.value).clampMin(1);
+      }
+
+      return Decimal.dOne;
+    }),
+
     upgrades: {
       second: createUpgrade(() => ({
         requirements: createCostRequirement((): CostRequirementOptions => ({
@@ -216,6 +225,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           description: "Unlock more Dust upgrades"
         }
       })),
+
+      dustyJeans: createUpgrade(() => ({
+        requirements: createCostRequirement((): CostRequirementOptions => ({
+          resource: dustAccelerator.resource,
+          cost: 1000 // ??
+        })),
+        display: {
+          title: "Dusty Jeans",
+          description: "Boost Dust Acceleron gain based on Dust Accelerons.",
+          effectDisplay: (): string => `x${format(dustAccelerator.dustyJeansEffect.value)}`
+        }
+      }))
     },
 
     tick: (diff: number) => {
@@ -274,7 +295,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     intervalBuyable: createRepeatable(() => ({
       requirements: createCostRequirement((): CostRequirementOptions => ({
         resource: noPersist(chunksLayer.chunks),
-        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(1.1).times(20).floor().evaluate(),
+        cost: () => Formula.variable(chunkAccelerator.intervalBuyable.amount.value).pow_base(1.1).times(18).floor().evaluate(),
         requiresPay: false,
       })),
       clickableStyle: {
@@ -368,7 +389,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
           title: "Time go brrr",
           description: "Unlock Time Accelerons"
         }
-      }))
+      })),
     },
 
     isAtLeastLevelOne: computed((): boolean => Decimal.gte(chunkAccelerator.acceleratorLevel.value, 1)),
@@ -463,7 +484,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     resource: createResource<DecimalSource>(0, "time Accelerons"),
 
     gainComputed: computed((): Decimal => {
-      return Decimal.times(1, timeAccelerator.finalCountdownEffect.value); //.times(solarLayer.mercuryRetainedSpeedModifer.apply(1));
+      return Decimal.times(1, timeAccelerator.finalCountdownEffect.value).times(chunksLayer.speedingChunksEffect.value);
     }),
 
     bar: createBar(() => ({
@@ -583,7 +604,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     bringItHomeEffect: computed((): Decimal => {
       if (timeAccelerator.upgrades.bringItHome.bought.value) {
         // return Decimal.dOne;
-        return Decimal.add(timeAccelerator.resource.value, 1).pow(0.1).cbrt().clampMin(1);
+        return Decimal.add(timeAccelerator.resource.value, 1).pow(0.15).sqrt().clampMin(1);
       }
 
       return Decimal.dOne;

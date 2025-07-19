@@ -557,7 +557,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
   const resetButton = createResetButton(() => ({
     conversion,
-    tree: main.tree,
     treeNode,
     showNextAt: false,
     resetDescription: () => `Reset Dust Time & Collision Time for `
