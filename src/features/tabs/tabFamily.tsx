@@ -94,7 +94,8 @@ export function createTabFamily<T extends TabFamilyOptions>(
     const selected = persistent(Object.keys(tabs)[0], false);
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { buttonContainerClasses, buttonContainerStyle, buttonStyle, floating, ...props } = options;
+        const { buttonContainerClasses, buttonContainerStyle, buttonStyle, floating, ...props } =
+            options;
 
         const tabFamily = {
             type: TabFamilyType,

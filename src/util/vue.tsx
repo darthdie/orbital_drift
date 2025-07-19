@@ -98,17 +98,18 @@ export function renderRow(...objects: RenderableObjectsArray): JSX.Element {
 }
 
 export function renderStyledRow(style: string, klass: string, objects: RenderableObjectsArray) {
-    return <Row style={style} class={klass}>{objects.map(obj => render(obj))}</Row>;
+    return (
+        <Row style={style} class={klass}>
+            {objects.map(obj => render(obj))}
+        </Row>
+    );
 }
 
 export function renderCol(...objects: RenderableObjectsArray): JSX.Element {
     return <Col>{objects.map(obj => render(obj))}</Col>;
 }
 
-export function joinJSX(
-    objects: RenderableObjectsArray,
-    joiner: JSX.Element
-): JSX.Element {
+export function joinJSX(objects: RenderableObjectsArray, joiner: JSX.Element): JSX.Element {
     return objects.reduce<JSX.Element>(
         (acc, curr) => (
             <>
@@ -124,7 +125,7 @@ export function joinJSX(
 // | Array<{string: boolean}>
 export function classNames(classes: Record<string, boolean>): string[] {
     return Object.keys(classes)
-        .map(key => classes[key] ? key : null)
+        .map(key => (classes[key] ? key : null))
         .filter(className => !!className) as string[];
 }
 
@@ -136,31 +137,26 @@ export function renderGroupedObjects(
 ) {
     const mergeAdjacent = true;
 
-    const classes = [
-        ...classNames({ "row": true, "mergeAdjacent": mergeAdjacent }),
-        klass
-    ];
+    const classes = [...classNames({ row: true, mergeAdjacent: mergeAdjacent }), klass];
 
-    const normalizedObjects = objects instanceof Array ?
-        objects :
-        Object.values(objects);
+    const normalizedObjects = objects instanceof Array ? objects : Object.values(objects);
 
     const chunkedObjects = chunkArray(normalizedObjects, groupSize);
 
-    return render((<>
-        <div class="table grouped-table">
-            {
-                chunkedObjects
-                .map(group => <>
-                    <div style={style} class={classes}>
-                        {group.map(object => render(object))}
-                    </div>
-                </>)
-            }
-        </div>
-    </>));
+    return render(
+        <>
+            <div class="table grouped-table">
+                {chunkedObjects.map(group => (
+                    <>
+                        <div style={style} class={classes}>
+                            {group.map(object => render(object))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </>
+    );
 }
-
 
 export function isJSXElement(element: unknown): element is JSX.Element {
     return (

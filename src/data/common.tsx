@@ -144,7 +144,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                             )}
                         </b>{" "}
                         {conversion.gainResource.displayName}
-                        {unref(resetButton.showNextAt) != false ? (
+                        {unref(resetButton.showNextAt) !== false ? (
                             <div>
                                 <br />
                                 {unref(conversion.buyMax) ? "Next:" : "Req:"}{" "}
@@ -526,7 +526,7 @@ export function setupSelectable<T>() {
 }
 
 export function chunkArray<T>(arr: T[], size: number) {
-  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-    arr.slice(i * size, i * size + size)
-  );
+    return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+        arr.slice(i * size, i * size + size)
+    );
 }
