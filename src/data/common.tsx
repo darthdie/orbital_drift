@@ -144,7 +144,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                             )}
                         </b>{" "}
                         {conversion.gainResource.displayName}
-                        {unref(resetButton.showNextAt) != false ? (
+                        {unref(resetButton.showNextAt) !== false ? (
                             <div>
                                 <br />
                                 {unref(conversion.buyMax) ? "Next:" : "Req:"}{" "}

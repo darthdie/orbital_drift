@@ -1,19 +1,14 @@
 import { createReset } from "features/reset";
 import { createLayer } from "game/layers";
-import { main } from "data/projEntry";
 import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
-import {
-    createCumulativeConversion,
-    createIndependentConversion,
-    setupPassiveGeneration
-} from "features/conversion";
+import { createIndependentConversion } from "features/conversion";
 import dustLayer from "./dust";
 import { createResource, trackTotal } from "features/resources/resource";
 import { noPersist } from "game/persistence";
 import { computed, unref, watch } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render, renderRow } from "util/vue";
+import { render, renderGroupedObjects, renderRow } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
@@ -21,9 +16,7 @@ import Column from "components/layout/Column.vue";
 import {
     AdditiveModifierOptions,
     createAdditiveModifier,
-    createExponentialModifier,
-    createSequentialModifier,
-    ExponentialModifierOptions
+    createSequentialModifier
 } from "game/modifiers";
 import mercuryLayer from "../mercury";
 import { createLazyProxy } from "util/proxies";
@@ -31,7 +24,7 @@ import acceleratorsLayer from "./accelerators";
 import solarLayer from "../solar";
 
 const id = "Mc";
-const layer = createLayer(id, baseLayer => {
+const layer = createLayer(id, () => {
     const name = "Mercury Chunks";
     const color = "#68696d";
 
@@ -58,8 +51,6 @@ const layer = createLayer(id, baseLayer => {
             }
 
             return Decimal.sub(chunks.value, 19).add(10).pow(1.9).clampMin(1);
-            // Decimal.fromValue(totalChunks.value).sub(19).times(15).clampMin(1)
-            // return Decimal.times(Decimal.sub(Decimal.add(totalChunks.value, 1), 20), 15).clampMin(1)
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -76,21 +67,6 @@ const layer = createLayer(id, baseLayer => {
             return Decimal.sub(chunks.value, 29).add(10).pow(1.4).clampMin(1);
         });
 
-        const post35ScalingDivisor = computed(() => {
-            if (Decimal.lt(chunks.value, 35)) {
-                return Decimal.dOne;
-            }
-            return Decimal.sub(chunks.value, 34).add(1).pow(1.1).clampMin(1);
-        });
-
-        const post400ScalingDivisor = computed(() => {
-            if (Decimal.lt(chunks.value, 400)) {
-                return Decimal.dOne;
-            }
-
-            return Decimal.sub(chunks.value, 399).times(1.5);
-        });
-
         return {
             formula: x =>
                 x
@@ -105,7 +81,6 @@ const layer = createLayer(id, baseLayer => {
                     .step(20, f => f.sqrt().div(post20ScalingDivider))
                     .step(30, f => f.sqrt().div(post30ScalingDivisor))
                     .step(100, f => f.div(350).pow(0.7))
-                    // .step(400, f => f.div(post400ScalingDivisor))
                     .step(1000, f => f.sqrt().div(post1000ScalingDivisor)),
             baseResource: dustLayer.mercurialDust,
             gainResource: noPersist(chunks),
@@ -133,9 +108,9 @@ const layer = createLayer(id, baseLayer => {
         };
     });
 
-    const autoChunker = createLazyProxy(_ => {
+    const autoChunker = createLazyProxy(() => {
         watch(dustLayer.mercurialDust, () => {
-            if (!upgrades.autoChunks.bought.value || !resetButton.canClick) {
+            if (!upgrades.autoChunks.bought.value || !unref(resetButton.canClick)) {
                 return;
             }
 
@@ -396,11 +371,7 @@ const layer = createLayer(id, baseLayer => {
                 <Spacer />
                 <h3>Upgrades</h3>
                 <Spacer />
-                <Column>
-                    {chunkArray(Object.values(upgrades), 4).map(group =>
-                        renderRow.apply(null, group)
-                    )}
-                </Column>
+                {renderGroupedObjects(upgrades, 4)}
             </>
         )
     };

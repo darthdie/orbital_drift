@@ -1,4 +1,4 @@
-import { createResource, Resource, trackTotal } from "features/resources/resource";
+import { createResource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import { DefaultValue, noPersist } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -10,32 +10,18 @@ import {
     createMultiplicativeModifier,
     createExponentialModifier,
     MultiplicativeModifierOptions,
-    ExponentialModifierOptions,
-    Modifier,
-    createModifierSection,
-    ModifierSectionOptions
+    ExponentialModifierOptions
 } from "game/modifiers";
-import { render, renderGroupedObjects, renderRow, renderStyledRow, VueFeature } from "util/vue";
-import {
-    createRepeatable,
-    Repeatable,
-    RepeatableOptions,
-    setupAutoPurchaseRepeatable
-} from "features/clickables/repeatable";
+import { render, renderGroupedObjects } from "util/vue";
+import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
-import {
-    createCostRequirement,
-    CostRequirementOptions,
-    createVisibilityRequirement,
-    Requirements
-} from "game/requirements";
-import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
+import { createCostRequirement, CostRequirementOptions } from "game/requirements";
+import { createUpgrade } from "features/clickables/upgrade";
 import { format } from "util/break_eternity";
 import { createCumulativeConversion, setupPassiveGeneration } from "features/conversion";
-import { chunkArray, createLayerTreeNode, createResetButton } from "data/common";
+import { createLayerTreeNode, createResetButton } from "data/common";
 import { createReset } from "features/reset";
 import mercury from "../mercury";
-import { main } from "data/projEntry";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { InvertibleIntegralFormula } from "game/formulas/types";
@@ -290,10 +276,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Align the Stars",
                 description: "Increase base Dust Time gain by +1",
-                effectDisplay: () => {
-                    const c: any = baseDustAmountModifier.apply(0);
-                    return `+${c}/s`;
-                }
+                effectDisplay: (): string => `+${format(baseDustAmountModifier.apply(0))}/s`
             }
         })),
 
@@ -308,10 +291,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Salted Dust",
                 description: "Increase base Dust gain by 1",
-                effectDisplay: () => {
-                    const c: any = baseDustGainModifier.apply(0);
-                    return `+${format(c)}`;
-                }
+                effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
             }
         })),
 
@@ -328,10 +308,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Enriched Dust",
                 description: "Multiply Dust gain by x1.1",
-                effectDisplay: () => {
-                    const c: any = dustMultiplierModifier.apply(1);
-                    return `x${format(c, 1)}`;
-                }
+                effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
             }
         })),
 
@@ -562,7 +539,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }))
     ]);
 
-    const preresetBuyableLevels = {
+    const preresetBuyableLevels: Record<string, DecimalSource> = {
         baseDustTime: 0,
         baseDustGain: 0,
         dustMultiplier: 0,
@@ -572,7 +549,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const reset = createReset(() => ({
         thingsToReset: (): Record<string, unknown>[] => {
             Object.keys(preresetBuyableLevels).forEach(buyable => {
-                (preresetBuyableLevels as Record<string, number>)[buyable] = (repeatables as any)[
+                preresetBuyableLevels[buyable] = (repeatables as Record<string, Repeatable>)[
                     buyable
                 ].amount.value;
             });
@@ -588,7 +565,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
             if (milestonesLayer.milestones.five.earned.value) {
                 Object.keys(preresetBuyableLevels).forEach(buyable => {
-                    (repeatables as any)[buyable].amount.value = Decimal.min(
+                    (repeatables as Record<string, Repeatable>)[buyable].amount.value = Decimal.min(
                         (preresetBuyableLevels as Record<string, number>)[buyable],
                         chunksLayer.totalChunks.value
                     );

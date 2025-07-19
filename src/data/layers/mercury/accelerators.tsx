@@ -25,7 +25,7 @@ import {
 } from "game/modifiers";
 import { createTabFamily, TabFamilyOptions } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade, setupAutoPurchase } from "features/clickables/upgrade";
+import { createUpgrade } from "features/clickables/upgrade";
 import chunksLayer from "./chunks";
 import mercuryLayer from "../mercury";
 import { createLazyProxy } from "util/proxies";
@@ -847,7 +847,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ]),
 
         levelTwoTimeRaiseEffect: computed((): Decimal => {
-            if (timeAccelerator.isAtLeastLevelTwo) {
+            if (timeAccelerator.isAtLeastLevelTwo.value) {
                 const extraLevels = timeAccelerator.bonusLevels(3).times(0.1);
                 const power = Decimal.add(0.25, extraLevels);
                 return Decimal.add(timeAccelerator.resource.value, 10)

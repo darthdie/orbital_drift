@@ -1,7 +1,6 @@
 import { createAchievement } from "features/achievements/achievement";
 import { BaseLayer, createLayer } from "game/layers";
 import { computed } from "vue";
-import dustTab from "./dust";
 import chunksTab from "./chunks";
 import { createCountRequirement } from "game/requirements";
 import Decimal, { format } from "util/break_eternity";
@@ -14,7 +13,7 @@ import { render } from "util/vue";
 import { createReset } from "features/reset";
 
 const id = "Mm";
-const layer = createLayer(id, (baseLayer: BaseLayer) => {
+const layer = createLayer(id, () => {
     const name = "Mercury";
     const color = "#8c8c94";
 

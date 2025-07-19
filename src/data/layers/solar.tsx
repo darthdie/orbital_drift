@@ -1,17 +1,15 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
-import { createUpgrade, Upgrade, UpgradeOptions } from "features/clickables/upgrade";
+import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
-import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
+import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderGroupedObjects } from "util/vue";
-import mercuryLayer from "./mercury";
-import venusLayer from "./venus";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import {
@@ -19,8 +17,8 @@ import {
     createSequentialModifier,
     MultiplicativeModifierOptions
 } from "game/modifiers";
-import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
-import { computed, MaybeRef, unref, watch } from "vue";
+import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
+import { computed } from "vue";
 import {
     blankTreeNode,
     createBoughtNodeRequirement,
@@ -35,7 +33,7 @@ import {
 } from "data/features/skill_tree/skillTree";
 
 const id = "S";
-const layer = createLayer(id, baseLayer => {
+const layer = createLayer(id, () => {
     const name = "Solar";
     const color = "#FFCC33";
 
@@ -151,21 +149,21 @@ const layer = createLayer(id, baseLayer => {
         }))
     };
 
-    const createPlanetCoreSummary = (
-        body: SupportedBodies,
-        layer: { color?: MaybeRef<string> },
-        resource: Resource
-    ) => {
-        const color = unref(layer.color);
-        return (
-            <div class="flex" style={{ gap: "8px", color: color }}>
-                <CelestialBodyIcon body={body} color={color}>
-                    Mercury
-                </CelestialBodyIcon>
-                {format(resource.value)}
-            </div>
-        );
-    };
+    // const createPlanetCoreSummary = (
+    //     body: SupportedBodies,
+    //     layer: { color?: MaybeRef<string> },
+    //     resource: Resource
+    // ) => {
+    //     const color = unref(layer.color);
+    //     return (
+    //         <div class="flex" style={{ gap: "8px", color: color }}>
+    //             <CelestialBodyIcon body={body} color={color}>
+    //                 Mercury
+    //             </CelestialBodyIcon>
+    //             {format(resource.value)}
+    //         </div>
+    //     );
+    // };
 
     const mercurySkillTree = createSkillTreeOld(
         {

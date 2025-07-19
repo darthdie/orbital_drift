@@ -1,5 +1,4 @@
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
-import { branchedResetPropagation, createTree, createTreeNode, Tree } from "features/trees/tree";
 import type { Layer } from "game/layers";
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
@@ -16,7 +15,6 @@ import Spacer from "components/layout/Spacer.vue";
 import acceleratorsTab from "./layers/mercury/accelerators";
 import mercuryMilestones from "./layers/mercury/milestones";
 import venus from "./layers/venus";
-import { createLayerTreeNode } from "./common";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 
@@ -31,7 +29,7 @@ perhaps spend X of each to gain a solar ray?
 /**
  * @hidden
  */
-export const main = createLayer("main", layer => {
+export const main = createLayer("main", () => {
     const planets = createResource<DecimalSource>(1);
     const best = trackBest(planets);
     const total = trackTotal(planets);

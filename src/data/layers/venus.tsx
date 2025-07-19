@@ -6,18 +6,11 @@ import { createReset } from "features/reset";
 import { createResource, displayResource, Resource, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
-import { joinJSX, render, renderGroupedObjects, renderRow } from "util/vue";
-import { createLayerTreeNode, createResetButton } from "../common";
-import { computed, ComputedRef, Ref, ref, unref, watch } from "vue";
+import { joinJSX, render, renderGroupedObjects } from "util/vue";
+import { createLayerTreeNode } from "../common";
+import { computed, ComputedRef, Ref, ref, unref } from "vue";
 import Decimal, { format } from "util/bignum";
-import {
-    DefaultValue,
-    noPersist,
-    Persistent,
-    persistent,
-    PersistentState,
-    SkipPersistence
-} from "game/persistence";
+import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import { createAdditiveModifier, createSequentialModifier } from "game/modifiers";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -152,7 +145,7 @@ const layer = createLayer(id, baseLayer => {
     const lavaConversionAmount = computed(() => {
         let base = Decimal.fromNumber(0.5).add(buckForYourBangEffect.value);
 
-        if (lavaConversionPriority.value == PRIORITY_VOLCANICS) {
+        if (lavaConversionPriority.value === PRIORITY_VOLCANICS) {
             base = Decimal.times(base, lavaConversionPriorityVolcanicsGainEffect.value);
         }
 
@@ -223,35 +216,6 @@ const layer = createLayer(id, baseLayer => {
         }
     }));
 
-    const magmaBar = createBar(() => ({
-        direction: Direction.Right,
-        height: 18,
-        width: 256,
-        progress: () => {
-            if (Decimal.gt(volcanicsMax.value, 1e10)) {
-                return Decimal.div(
-                    Decimal.ln(Decimal.max(volcanics.value, 1)),
-                    Decimal.ln(volcanicsMax.value)
-                );
-            }
-
-            return Decimal.div(volcanics.value, volcanicsMax.value);
-        }
-    }));
-
-    const lavaBar = createBar(() => ({
-        direction: Direction.Right,
-        height: 18,
-        width: 256,
-        progress: () => {
-            if (Decimal.gt(lavaMax.value, 1e10)) {
-                return Decimal.div(Decimal.ln(lava.value), Decimal.ln(lavaMax.value));
-            }
-
-            return Decimal.div(lava.value, lavaMax.value);
-        }
-    }));
-
     const planetMassBar = createBar(() => ({
         direction: Direction.Right,
         height: 18,
@@ -272,7 +236,7 @@ const layer = createLayer(id, baseLayer => {
     let testLoss = false;
     const testBaseTime = 15;
     const testBaseConversionRate = 0.1;
-    if (testPriority == PRIORITY_VOLCANICS) {
+    if (testPriority === PRIORITY_VOLCANICS) {
         testTimeRate = Decimal.times(
             testBaseTime,
             lavaConversionPriorityVolcanicsSpeedEffect.value
@@ -281,7 +245,7 @@ const layer = createLayer(id, baseLayer => {
             testBaseConversionRate,
             lavaConversionPriorityVolcanicsGainEffect.value
         );
-    } else if (testPriority == PRIORITY_BALANCED) {
+    } else if (testPriority === PRIORITY_BALANCED) {
         testTimeRate = Decimal.fromNumber(testBaseTime);
         testConversionRate = Decimal.fromNumber(testBaseConversionRate);
     } else {
@@ -1066,10 +1030,6 @@ const layer = createLayer(id, baseLayer => {
         return Decimal.sub(0.99, Decimal.times(eruptions.value, 0.01));
     });
 
-    const lavaGainCapped = computed(() =>
-        Decimal.eq(unref(lavaConversion.currentGain), lavaMax.value)
-    );
-
     const convertPressureButton = createClickable(() => ({
         classes: {
             "fit-content": true
@@ -1199,7 +1159,7 @@ const layer = createLayer(id, baseLayer => {
 
     const lavaConversionPriorityEffectsDisplay = computed(() => {
         const effectDisplay = [];
-        if (lavaConversionPriority.value == PRIORITY_VOLCANICS) {
+        if (lavaConversionPriority.value === PRIORITY_VOLCANICS) {
             effectDisplay.push(
                 <h6>
                     Conversion is x{format(lavaConversionPriorityVolcanicsSpeedEffect.value)}{" "}
@@ -1207,7 +1167,7 @@ const layer = createLayer(id, baseLayer => {
                     more {volcanics.displayName}.
                 </h6>
             );
-        } else if (lavaConversionPriority.value == PRIORITY_SPEED) {
+        } else if (lavaConversionPriority.value === PRIORITY_SPEED) {
             effectDisplay.push(
                 <h6>Conversion is x{lavaConversionPrioritySpeedEffect.value} faster</h6>
             );
@@ -1232,7 +1192,7 @@ const layer = createLayer(id, baseLayer => {
                 <h6>
                     All {lava.displayName} converted would create {format(maxPossibleVolcanics)}{" "}
                     {volcanics.displayName}.{" "}
-                    {lavaConversionPriority.value == PRIORITY_SPEED ? "(Ignoring Loss)" : null}
+                    {lavaConversionPriority.value === PRIORITY_SPEED ? "(Ignoring Loss)" : null}
                 </h6>
                 {effectDisplay}
             </>

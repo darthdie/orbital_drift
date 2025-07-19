@@ -126,8 +126,6 @@ export interface SkillTreeOptions extends VueFeatureOptions {
     nodes: MaybeRefOrGetter<VueFeature[][]>;
     /** The branches between nodes within this tree. */
     branches?: MaybeRefOrGetter<SkillTreeBranch[]>;
-    /** A function that is called when a node within the tree is reset. */
-    onReset?: (node: SkillTreeNode) => void;
     treeRowStyle?: MaybeRefOrGetter<CSSProperties>;
 }
 
@@ -149,14 +147,7 @@ export interface SkillTree extends VueFeature {
 export function createSkillTree<T extends SkillTreeOptions>(optionsFunc: () => T) {
     return createLazyProxy(() => {
         const options = optionsFunc();
-        const {
-            branches: _branches,
-            nodes,
-            onReset,
-            style: _style,
-            treeRowStyle,
-            ...props
-        } = options;
+        const { branches: _branches, nodes, style: _style, treeRowStyle, ...props } = options;
 
         const style = processGetter(_style);
         options.style = () => ({ position: "static", ...(unref(style) ?? {}) });

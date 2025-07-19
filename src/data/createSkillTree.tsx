@@ -1,5 +1,5 @@
 import { Visibility } from "features/feature";
-import { createTree, createTreeNode } from "features/trees/tree";
+import { createTreeNode } from "features/trees/tree";
 import Board from "game/boards/Board.vue";
 import { Persistent, persistent } from "game/persistence";
 import {
@@ -22,7 +22,7 @@ import {
 } from "util/vue";
 import { computed, CSSProperties, unref } from "vue";
 import Clickable from "features/clickables/Clickable.vue";
-import { createLinks, Link } from "features/links/links";
+import { Link } from "features/links/links";
 
 const BlankSkillTreeNodeType = Symbol("BlankSkillTreeNode");
 export const blankTreeNode = createTreeNode(() => ({
@@ -46,10 +46,7 @@ export interface SkillTreeOptions extends VueFeatureOptions {
     rows: (string | typeof blankTreeNode)[][];
 }
 
-export interface SkillTreeNodeOptions extends VueFeatureOptions {
-    requirements?: Requirements;
-    display?:
-        | MaybeGetter<Renderable>
+export type DisplayType = MaybeGetter<Renderable>
         | {
               /** A header to appear at the top of the display. */
               title?: MaybeGetter<Renderable>;
@@ -58,6 +55,10 @@ export interface SkillTreeNodeOptions extends VueFeatureOptions {
               /** A description of the current effect of the node. */
               effectDisplay?: MaybeGetter<Renderable>;
           };
+
+export interface SkillTreeNodeOptions extends VueFeatureOptions {
+    requirements?: Requirements;
+    display?: DisplayType;
 }
 
 interface BoughtNodeRequirement extends Requirement {
@@ -98,7 +99,7 @@ export function createSkillTreeNodeOld<T extends SkillTreeNodeOptions>(
             ...(Array.isArray(_requirements) ? _requirements : _requirements ? [_requirements] : [])
         ];
 
-        let display: any;
+        let display: DisplayType | undefined = undefined;
         if (typeof _display === "object" && !isJSXElement(_display)) {
             const { title, description, effectDisplay } = _display;
 
