@@ -1,14 +1,14 @@
 <template>
     <div id="circle-orbit-container" ref="orbitContainer">
         <div id="sun" ref="sun"></div>
-        <div id="mercury" ref="mercury"></div>
-        <div id="venus" ref="venus"></div>
-        <div id="earth" ref="earth"></div>
-        <div id="mars" ref="mars"></div>
-        <div id="jupiter" ref="jupiter"></div>
-        <div id="saturn" ref="saturn"></div>
-        <div id="uranus" ref="uranus"></div>
-        <div id="neptune" ref="neptune"></div>
+        <div id="mercury" ref="mercury" v-if="mercuryLayer.unlocked.value"></div>
+        <div id="venus" ref="venus" v-if="venusLayer.unlocked.value"></div>
+        <!-- <div id="earth" ref="earth"></div> -->
+        <!-- <div id="mars" ref="mars"></div> -->
+        <!-- <div id="jupiter" ref="jupiter"></div> -->
+        <!-- <div id="saturn" ref="saturn"></div> -->
+        <!-- <div id="uranus" ref="uranus"></div> -->
+        <!-- <div id="neptune" ref="neptune"></div> -->
     </div>
     <RightNodes v-if="rightSideNodes" />
     <Links v-if="branches" :links="unref(branches)" />
@@ -17,8 +17,10 @@
 <script setup lang="tsx">
 import { TreeNode, TreeBranch } from "features/trees/tree";
 import { render } from "util/vue";
-import { MaybeRef, onMounted, Ref, ref, unref } from "vue";
+import { computed, MaybeRef, onMounted, Ref, ref, unref } from "vue";
 import Links from "features/links/Links.vue";
+import mercuryLayer from '../layers/mercury';
+import venusLayer from '../layers/venus';
 
 const props = defineProps<{
     rightSideNodes?: MaybeRef<TreeNode[]>;
@@ -140,6 +142,10 @@ onMounted(() => {
         const sunCenter = getSunCenter();
 
         planets.forEach(planet => {
+            if (!planet.element.value) {
+                return;
+            }
+
             const orbitFraction = (elapsed % planet.orbitTime) / planet.orbitTime;
             const angle = (orbitFraction * 2 * Math.PI) + planet.initialAngle;
 
@@ -156,6 +162,10 @@ onMounted(() => {
     function initializePositions() {
         const sunCenter = getSunCenter();
         planets.forEach(planet => {
+            if (!planet.element.value) {
+                return;
+            }
+
             const x = sunCenter.x + planet.orbitRadius * Math.cos(planet.initialAngle) - planet.element.value!.offsetWidth / 2;
             const y = sunCenter.y + planet.orbitRadius * Math.sin(planet.initialAngle) - planet.element.value!.offsetHeight / 2;
             planet.element.value!.style.transform = `translate(${x}px, ${y}px)`;

@@ -43,12 +43,13 @@
 }
 
 @font-face {
-  font-family: "AstronomicSigns";
+  font-family:"AstronomicSigns";
   src: url("../assets/fonts/AstronomicSignsSt-YLYO.ttf");
+    ascent-override: 100%;
 }
 
 .celestial-body-icon {
-    font-family: 'AstronomicSigns';
+    font-family:'AstronomicSigns';
     display: flex;
     margin: 0;
 }

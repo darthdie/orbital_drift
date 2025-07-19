@@ -1,12 +1,7 @@
 <template>
     <wrapper>
         <button
-            :style="{
-                backgroundColor: unref(color),
-                boxShadow: `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${unref(
-                    glowColor
-                )}`
-            }"
+            :style="styles"
             :class="{
                 treeNode: true,
                 can: unref(canClick)
@@ -33,7 +28,7 @@ const props = defineProps<{
     canClick?: MaybeRef<boolean>;
     display?: MaybeGetter<Renderable>;
     color?: MaybeRef<string>;
-    glowColor?: MaybeRef<string>;
+    glowColor?: MaybeRef<string | null>;
     wrapper?: MaybeGetter<Renderable>;
 }>();
 
@@ -48,6 +43,12 @@ const Component = () => props.display == null ? <></> :
 const wrapper = computed(() => props.wrapper ?? <div></div>);
 
 const { start, stop } = setupHoldToClick(() => emits("hold"));
+
+const styles = computed(() => ({
+    backgroundColor: unref(props.color),
+    boxShadow: `-4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0 0 20px ${unref(props.glowColor)}`
+}))
+
 </script>
 
 <style scoped>

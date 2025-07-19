@@ -9,14 +9,14 @@ import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render } from "util/vue";
+import { render, renderGroupedObjects } from "util/vue";
 import mercuryLayer from './mercury';
 import venusLayer from './venus';
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
-import { MaybeRef, unref } from "vue";
+import { computed, MaybeRef, unref } from "vue";
 import { blankTreeNode, createBoughtNodeRequirement, createSkillTreeOld, createSkillTreeNodeOld, SkillTreeNodeOptions } from "data/createSkillTree";
 import "./solar.css";
 import { createSkillTree, createSkillTreeNodeRequirement } from "data/features/skill_tree/skillTree";
@@ -37,13 +37,6 @@ const layer = createLayer(id, baseLayer => {
     thingsToReset: (): Record<string, unknown>[] => [layer]
   }));
 
-  const treeNode = createLayerTreeNode(() => ({
-    layerID: id,
-    color,
-    display: () => <CelestialBodyIcon body="Sun"/>,
-    reset
-  }));
-
   const mercuryUnlockUpgrade = createUpgrade(() => ({
     requirements: createCostRequirement(() => ({
       resource: noPersist(energy),
@@ -56,21 +49,17 @@ const layer = createLayer(id, baseLayer => {
 
   const milestones = {
     first: createAchievement(() => ({
-      requirements: createCountRequirement(totalEnergy, 2),
+      requirements: createCountRequirement(totalEnergy, 1),
       display: {
-        requirement: "2 Solar Energy",
-        optionsDisplay: "Unlock Solar Milestones and Solar Mercury Upgrades"
+        requirement: "1 Solar Energy",
+        optionsDisplay: "Start your journey. Unlock the Solar System."
       }
     })),
     second: createAchievement(() => ({
       requirements: createCountRequirement(totalEnergy, 4),
       display: {
-        requirement: "4 Solar Energy",
-        optionsDisplay: "Unlock Planet Cores & Solar Rays"
-      },
-      onComplete: () => {
-        // retroactively give planet cores
-        mercuryCores.value = mercuryLayer.totalResets.value;
+        requirement: "2 Solar Energy",
+        optionsDisplay: "Unlock Planet Cores & Mastery Trees"
       }
     }))
   };
@@ -280,10 +269,13 @@ const layer = createLayer(id, baseLayer => {
 
   const nodes = {
     mercury: createUpgrade((): UpgradeOptions => ({
-      display: "Mercury",
+      display: {
+        title: "Mercury",
+        description: "Unlock Mercury"
+      },
       requirements: [
         createCostRequirement(() => ({
-          resource: noPersist(solarRays),
+          resource: noPersist(energy),
           cost: 1
         })),
       ]
@@ -314,7 +306,7 @@ const layer = createLayer(id, baseLayer => {
     }))
   }
 
-  const solarTree = createSkillTree(() => ({
+  const solarSystemTree = createSkillTree(() => ({
     nodes: noPersist([
       [nodes.mercury],
       [nodes.venus],
@@ -326,40 +318,65 @@ const layer = createLayer(id, baseLayer => {
     ]
   }));
 
+  const displayGlow = computed(() => {
+    // Can any of the solar rays tree be bought?
+    return Object.values(nodes).some(u => u.canPurchase.value);
+  });
+
+  // const color = computed(() => displayGlow)
+
+  const treeNode = createLayerTreeNode(() => ({
+    layerID: id,
+    color,
+    display: () => <CelestialBodyIcon body="Sun"/>,
+    glowColor: () => displayGlow.value ? color : null,
+    reset
+  }));
+
   const tabs = createTabFamily({
     milestones: () => ({
       display: "Milestones",
-      visibility: milestones.first.earned,
       tab: createTab(() => ({ display: () => <>{Object.values(milestones).map(a => render(a))}</> }))
     }),
-    rays: () => ({
-      display: "Rays",
-      visibility: milestones.second.earned,
+    solarSystem: () => ({
+      display: "Solar System",
       tab: createTab(() => ({
-        style: { height: "100%" },
         display: () => <>
-          <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
-          <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
-          <div class="flex" style="gap: 32px;">
-            {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
-            {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
-
-            <div class="flex" style="flex: 1;"></div>
-          </div>
-          <Spacer />
-          <Spacer />
-          {render(solarTree)}
+          {render(solarSystemTree)}
         </>
       }))
     }),
+    // rays: () => ({
+    //   display: "Rays",
+    //   // visibility: milestones.second.earned,
+    //   tab: createTab(() => ({
+    //     style: { height: "100%" },
+    //     display: () => <>
+    //       <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
+    //       <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
+    //       <div class="flex" style="gap: 32px;">
+    //         {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
+    //         {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
+
+    //         <div class="flex" style="flex: 1;"></div>
+    //       </div>
+    //       <Spacer />
+    //       <Spacer />
+    //       {render(solarTree)}
+    //     </>
+    //   }))
+    // }),
     mercury: () => ({
       display: "Mercury",
+      visibility: milestones.second.earned,
       tab: createTab(() => ({
         style: { height: "100%" },
         display: () => (<>
-          {render(mercuryUnlockUpgrade)}
+          {/* {render(mercuryUnlockUpgrade)} */}
 
-          {render(mercurySkillTree)}
+          {renderGroupedObjects(mercuryUpgrades, 3)}
+
+          {/* {render(mercurySkillTree)} */}
         </>)
       }))
     })
@@ -381,7 +398,8 @@ const layer = createLayer(id, baseLayer => {
     venusCores,
     solarRays,
     mercurySkillTree,
-    solarTree,
+    solarSystemTree,
+    nodes,
     // testUpgrade,
     // board,
     display: () => (

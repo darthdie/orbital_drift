@@ -30,6 +30,7 @@ import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
 import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import { createLazyProxy } from "util/proxies";
 import "./venus.css";
+import solarLayer from './solar';
 
 /*
 Pressure -> Molten Lava | Eruption
@@ -83,7 +84,7 @@ const layer = createLayer(id, baseLayer => {
   const name = "Venus";
   const color = "#f8e2b0";
 
-  //   const unlocked = noPersist(false);
+  const unlocked = computed(() => solarLayer.nodes.venus.bought.value);
 
   const planetMass = createResource<DecimalSource>(Decimal.fromNumber(2e256), "Planet Mass");
 
@@ -258,6 +259,9 @@ const layer = createLayer(id, baseLayer => {
   }
 
   baseLayer.on("preUpdate", diff => {
+    if (!unlocked.value) {
+      // return;
+    }
     timeSinceLastEruption.value = Decimal.add(timeSinceLastEruption.value, diff);
 
     pressureTicker(diff);
@@ -1002,7 +1006,7 @@ const layer = createLayer(id, baseLayer => {
   }))
 
   const treeNode = createLayerTreeNode(() => ({
-    visibility: true,
+    visibility: unlocked,
     layerID: id,
     display: () => <CelestialBodyIcon body={"Venus"} />,
     wrapper: <Tooltip display="Venus" direction={Direction.Left}></Tooltip>,
@@ -1217,6 +1221,7 @@ const layer = createLayer(id, baseLayer => {
     autoLava,
     lavaCapIncreases,
     volcanicsCapIncreases,
+    unlocked,
     display: () => <>
       <h2>{displayResource(planetMass)} Planet Mass</h2>
       {render(planetMassBar)}

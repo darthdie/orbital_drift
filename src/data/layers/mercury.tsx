@@ -196,7 +196,8 @@ const layer = createLayer(id, baseLayer => {
     collisionTimeGainComputed,
     display: () => renderDisplay(),
     treeNode,
-    totalResets
+    totalResets,
+    unlocked
   };
 });
 

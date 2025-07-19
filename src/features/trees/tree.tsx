@@ -29,7 +29,7 @@ export interface TreeNodeOptions extends VueFeatureOptions {
     /** The label to display on this tree node. */
     display?: MaybeGetter<Renderable>;
     /** The color of the glow effect shown to notify the user there's something to do with this node. */
-    glowColor?: MaybeRefOrGetter<string>;
+    glowColor?: MaybeRefOrGetter<string | null>;
     /** A reset object attached to this node, used for propagating resets through the tree. */
     reset?: Reset;
     /** A function that is called when the tree node is clicked. */
@@ -50,7 +50,7 @@ export interface TreeNode extends VueFeature {
     /** The label to display on this tree node. */
     display?: MaybeGetter<Renderable>;
     /** The color of the glow effect shown to notify the user there's something to do with this node. */
-    glowColor?: MaybeRef<string>;
+    glowColor?: MaybeRef<string | null>;
     /** A reset object attached to this node, used for propagating resets through the tree. */
     reset?: Reset;
     /** A function that is called when the tree node is clicked. */
