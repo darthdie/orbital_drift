@@ -218,7 +218,10 @@ export function setupAutoPurchaseRepeatable(
     limit?: MaybeRefOrGetter<number>,
     spend: boolean = true
 ) {
-    repeatables = repeatables.length === 0 ? (findFeatures(layer, RepeatableType) as Repeatable[]) : repeatables;
+    repeatables =
+        repeatables.length === 0
+            ? (findFeatures(layer, RepeatableType) as Repeatable[])
+            : repeatables;
     const isAutoActive: MaybeRef<boolean> = isFunction(autoActive)
         ? computed(autoActive)
         : autoActive;
@@ -231,7 +234,7 @@ export function setupAutoPurchaseRepeatable(
                 if (Decimal.gte(repeatable.amount.value, unref(buyLimit))) {
                     return;
                 }
-                
+
                 repeatable.purchase(spend);
             });
         }

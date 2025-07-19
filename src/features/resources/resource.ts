@@ -44,9 +44,7 @@ export function createResource<T extends State>(
     precision = 0,
     small: boolean | undefined = undefined
 ) {
-    const refDefaultValue = isRef(defaultValue)
-        ? defaultValue
-        : persistent(defaultValue);
+    const refDefaultValue = isRef(defaultValue) ? defaultValue : persistent(defaultValue);
     const resource: Partial<Resource<T>> = refDefaultValue;
     resource.displayName = displayName;
     resource.precision = precision;

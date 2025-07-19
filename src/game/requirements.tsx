@@ -264,7 +264,7 @@ export function createCountRequirement(
             visibility: false
         };
     });
-};
+}
 
 /**
  * Utility function for creating a requirement that a specified vue feature is visible
