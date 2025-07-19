@@ -274,7 +274,7 @@ export function createLayer<T extends LayerOptions>(
                         ? {
                               flexGrow: "0",
                               flexShrink: "0",
-                              width: "60px",
+                              width: "80px",
                               minWidth: "",
                               flexBasis: "",
                               margin: "0"

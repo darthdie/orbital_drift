@@ -74,7 +74,8 @@ export enum Themes {
     Classic = "classic",
     Paper = "paper",
     Nordic = "nordic",
-    Aqua = "aqua"
+    Aqua = "aqua",
+    Drift = "drift"
 }
 
 /** A dictionary of all available themes. */
@@ -133,5 +134,21 @@ export default {
             "--locked": "#c4a7b3",
             "--outline": "#bfdfff"
         }
+    } as Theme,
+    drift: {
+        ...defaultTheme,
+        variables: {
+            ...defaultTheme.variables,
+            "--background": "#010b19",// #1B2533#010b19
+            "--feature-foreground": "#fff",
+            "--raised-background": "#333c4a",
+            "--locked": "#21252C",
+            "--bought": "#011719",
+            "--outline": "#333c4a",
+            "--border-radius": "2px",
+            "--modal-border": "",
+            "--feature-margin": "5px"
+        },
+        floatingTabs: false
     } as Theme
 } as Record<Themes, Theme>;

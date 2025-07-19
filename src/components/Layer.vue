@@ -133,7 +133,7 @@ onErrorCaptured((err, instance, info) => {
 .minimize {
     position: sticky;
     top: 6px;
-    right: 9px;
+    right: 28px;
     z-index: 7;
     line-height: 30px;
     border: none;
@@ -150,7 +150,7 @@ onErrorCaptured((err, instance, info) => {
 .minimized + .minimize {
     transform: rotate(-90deg);
     top: 10px;
-    right: 18px;
+    right: 28px;
     pointer-events: none;
 }
 

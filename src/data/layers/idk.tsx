@@ -136,7 +136,7 @@ const layer = createLayer(id, baseLayer => {
   const conversion = createCumulativeConversion(() => ({
     formula: x => x.add(1).log10().pow(0.8),
     baseResource: drift,
-    gainResource: instability,
+    gainResource: noPersist(instability),
     onConvert: () => drift.value = 1,
     currentGain: computed((): Decimal => {
       return Decimal.fromValue(conversion.formula.evaluate(drift.value));

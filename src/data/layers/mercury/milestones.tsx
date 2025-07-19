@@ -7,6 +7,7 @@ import { createCountRequirement } from "game/requirements";
 import Decimal, { format } from "util/break_eternity";
 import { createSequentialModifier, createMultiplicativeModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import { render } from "util/vue";
+import { createReset } from "features/reset";
 
 const id = "Mm";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -77,6 +78,16 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }))
   }
 
+  const reset = createReset(() => ({
+    thingsToReset: (): Record<string, unknown>[] => [layer]
+  }));
+
+  const fullReset = () => {
+    reset.reset();
+
+    Object.values(milestones).forEach(milestone => milestone.earned.value = false);
+  };
+
   return {
     name,
     color,
@@ -84,6 +95,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     completedMilestonesCount,
     firstMilestoneModifier,
     fourthMilestoneModifier,
+    fullReset,
     display: () => (<>
       <h4>You have condensed {format(chunksTab.totalChunks.value)} total chunks.</h4>
       {Object.values(milestones).map(a => render(a))}

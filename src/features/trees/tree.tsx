@@ -10,7 +10,7 @@ import Decimal, { format, formatWhole } from "util/bignum";
 import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { Renderable, VueFeature, vueFeatureMixin, VueFeatureOptions } from "util/vue";
-import type { MaybeRef, MaybeRefOrGetter, Ref } from "vue";
+import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref, StyleValue } from "vue";
 import { ref, shallowRef, unref } from "vue";
 
 /** A symbol used to identify {@link TreeNode} features. */
@@ -29,13 +29,14 @@ export interface TreeNodeOptions extends VueFeatureOptions {
     /** The label to display on this tree node. */
     display?: MaybeGetter<Renderable>;
     /** The color of the glow effect shown to notify the user there's something to do with this node. */
-    glowColor?: MaybeRefOrGetter<string>;
+    glowColor?: MaybeRefOrGetter<string | null>;
     /** A reset object attached to this node, used for propagating resets through the tree. */
     reset?: Reset;
     /** A function that is called when the tree node is clicked. */
     onClick?: (e?: MouseEvent | TouchEvent) => void;
     /** A function that is called when the tree node is held down. */
     onHold?: VoidFunction;
+    wrapper?: MaybeGetter<Renderable>;
 }
 
 /**
@@ -49,7 +50,7 @@ export interface TreeNode extends VueFeature {
     /** The label to display on this tree node. */
     display?: MaybeGetter<Renderable>;
     /** The color of the glow effect shown to notify the user there's something to do with this node. */
-    glowColor?: MaybeRef<string>;
+    glowColor?: MaybeRef<string | null>;
     /** A reset object attached to this node, used for propagating resets through the tree. */
     reset?: Reset;
     /** A function that is called when the tree node is clicked. */
@@ -67,7 +68,7 @@ export interface TreeNode extends VueFeature {
 export function createTreeNode<T extends TreeNodeOptions>(optionsFunc?: () => T) {
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { canClick, color, display, glowColor, onClick, onHold, ...props } = options;
+        const { canClick, color, display, glowColor, onClick, onHold, wrapper, ...props } = options;
 
         const treeNode = {
             type: TreeNodeType,
@@ -80,12 +81,14 @@ export function createTreeNode<T extends TreeNodeOptions>(optionsFunc?: () => T)
                     onHold={treeNode.onHold}
                     color={treeNode.color}
                     glowColor={treeNode.glowColor}
+                    wrapper={treeNode.wrapper}
                 />
             )),
             canClick: processGetter(canClick) ?? true,
             color: processGetter(color),
             display,
             glowColor: processGetter(glowColor),
+            wrapper,
             onClick:
                 onClick == null
                     ? undefined
@@ -130,6 +133,7 @@ export interface TreeOptions extends VueFeatureOptions {
     resetPropagation?: ResetPropagation;
     /** A function that is called when a node within the tree is reset. */
     onReset?: (node: TreeNode) => void;
+    treeRowStyle?: MaybeRefOrGetter<CSSProperties>;
 }
 
 export interface Tree extends VueFeature {
@@ -172,6 +176,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
             resetPropagation,
             onReset,
             style: _style,
+            treeRowStyle,
             ...props
         } = options;
 
@@ -189,6 +194,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
                     leftSideNodes={tree.leftSideNodes}
                     rightSideNodes={tree.rightSideNodes}
                     branches={tree.branches}
+                    treeRowStyle={tree.treeRowStyle}
                 />
             )),
             branches,
@@ -198,6 +204,7 @@ export function createTree<T extends TreeOptions>(optionsFunc: () => T) {
             leftSideNodes: processGetter(leftSideNodes),
             rightSideNodes: processGetter(rightSideNodes),
             links: branches == null ? [] : noPersist(branches),
+            treeRowStyle: unref(processGetter(treeRowStyle)),
             resetPropagation,
             onReset,
             reset: function (node: TreeNode) {
