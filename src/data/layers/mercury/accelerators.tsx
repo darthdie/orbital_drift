@@ -242,7 +242,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         dustyJeansEffect: computed((): Decimal => {
             if (dustAccelerator.upgrades.dustyJeans.bought.value) {
-                return Decimal.log2(dustAccelerator.resource.value).clampMin(1);
+                return Decimal.add(dustAccelerator.resource.value, 1).log2().clampMin(1);
             }
 
             return Decimal.dOne;
