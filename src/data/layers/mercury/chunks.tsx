@@ -27,7 +27,7 @@ const layer = createLayer(id, () => {
     const name = "Mercury Chunks";
     const color = "#68696d";
 
-    const chunks = createResource<DecimalSource>(0, "mercurial chunks");
+    const chunks = createResource<DecimalSource>(0, "Mercurial Chunks");
     const totalChunks = trackTotal(chunks);
 
     const conversion = createIndependentConversion(() => {
@@ -50,9 +50,7 @@ const layer = createLayer(id, () => {
             }
 
             const level = Decimal.sub(chunks.value, 19);
-            return Decimal.times(90, Decimal.pow(1.15, Decimal.pow(level, 1.5)));
-            // return Decimal.sub()
-            // return Decimal.sub(chunks.value, 19).add(10).pow(1.9).clampMin(1);
+            return Decimal.times(90, Decimal.pow(1.145, Decimal.pow(level, 1.5)));
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -240,8 +238,8 @@ const layer = createLayer(id, () => {
         collidingChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(55)
+                resource: chunks,
+                cost: 50
             })),
             display: {
                 title: "Collidin' Chunks",
@@ -253,8 +251,8 @@ const layer = createLayer(id, () => {
         splinteringChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(90)
+                resource: chunks,
+                cost: 75
             })),
             display: {
                 title: "Splinterin' Chunks",
@@ -266,8 +264,8 @@ const layer = createLayer(id, () => {
         cheapingChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(135)
+                resource: chunks,
+                cost: 110
             })),
             display: {
                 title: "Cheapin' Chunks",
@@ -371,7 +369,9 @@ const layer = createLayer(id, () => {
         displayGlow,
         display: () => (
             <>
-                <h2>You have {format(chunks.value)} mercurial chunks</h2>
+                <h2>
+                    You have {format(chunks.value)} {chunks.displayName}
+                </h2>
                 <h4>You have condensed a total of {format(totalChunks.value)}</h4>
                 <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
                 <Spacer />

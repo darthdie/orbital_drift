@@ -549,7 +549,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }),
 
         chunkCostDivisionEffect: computed((): Decimal => {
-            if (chunkAccelerator.isAtLeastLevelTwo.value) {
+            if (
+                chunkAccelerator.isAtLeastLevelTwo.value &&
+                Decimal.gt(chunkAccelerator.resource.value, 0)
+            ) {
                 const extraLevels = chunkAccelerator.bonusLevels(3).clampMin(1);
                 return Decimal.add(chunkAccelerator.resource.value, 1)
                     .pow(0.3)
@@ -567,6 +570,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 (): MultiplicativeModifierOptions => ({
                     enabled: () => chunkAccelerator.isAtLeastLevelOne.value,
                     multiplier: () => {
+                        if (Decimal.lt(chunkAccelerator.resource.value, 1)) {
+                            return Decimal.dOne;
+                        }
+
                         const extraLevels = chunkAccelerator.bonusLevels(2).clampMin(1);
                         return Decimal.add(chunkAccelerator.resource.value, 1)
                             .pow(0.2)
@@ -861,7 +868,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }),
 
         levelThreeRaiseEffect: computed((): Decimal => {
-            if (timeAccelerator.isAtLeastLevelThree.value) {
+            if (
+                timeAccelerator.isAtLeastLevelThree.value &&
+                Decimal.gt(timeAccelerator.resource.value, 0)
+            ) {
                 return Decimal.add(timeAccelerator.resource.value, 10)
                     .log10()
                     .pow(0.1)

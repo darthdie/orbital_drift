@@ -264,57 +264,85 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         Decimal.add(30, acceleratorsLayer.dustAccelerator.dustBuyableCapEffect.value)
     );
 
+    const initialAmountFor = (repeatable: Repeatable) => {
+        return () => {
+            if (milestonesLayer.milestones.five.earned.value === true) {
+                return Decimal.min(chunksLayer.totalChunks.value, repeatable.bestAmount.value);
+            }
+
+            if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
+                return Decimal.dOne;
+            }
+
+            return Decimal.dZero;
+        };
+    };
+
     const repeatables = {
-        baseDustTime: createRepeatable(() => ({
-            limit: () => buyableCap.value,
-            requirements: createCostRequirement(
-                (): CostRequirementOptions => ({
-                    resource: noPersist(mercurialDust),
-                    cost: Formula.variable(repeatables.baseDustTime.amount).pow_base(1.3).times(10)
-                })
-            ),
-            display: {
-                title: "Align the Stars",
-                description: "Increase base Dust Time gain by +1",
-                effectDisplay: (): string => `+${format(baseDustAmountModifier.apply(0))}/s`
-            }
-        })),
+        baseDustTime: createRepeatable(
+            (): RepeatableOptions => ({
+                limit: () => buyableCap.value,
+                initialAmount: initialAmountFor(repeatables.baseDustTime),
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: noPersist(mercurialDust),
+                        cost: Formula.variable(repeatables.baseDustTime.amount)
+                            .pow_base(1.3)
+                            .times(10)
+                    })
+                ),
+                display: {
+                    title: "Align the Stars",
+                    description: "Increase base Dust Time gain by +1",
+                    effectDisplay: (): string => `+${format(baseDustAmountModifier.apply(0))}/s`
+                }
+            })
+        ),
 
-        baseDustGain: createRepeatable(() => ({
-            limit: () => buyableCap.value,
-            requirements: createCostRequirement(
-                (): CostRequirementOptions => ({
-                    resource: noPersist(mercurialDust),
-                    cost: Formula.variable(repeatables.baseDustGain.amount).pow_base(1.8).times(15)
-                })
-            ),
-            display: {
-                title: "Salted Dust",
-                description: "Increase base Dust gain by 1",
-                effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
-            }
-        })),
+        baseDustGain: createRepeatable(
+            (): RepeatableOptions => ({
+                limit: () => buyableCap.value,
+                initialAmount: initialAmountFor(repeatables.baseDustGain),
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: noPersist(mercurialDust),
+                        cost: Formula.variable(repeatables.baseDustGain.amount)
+                            .pow_base(1.8)
+                            .times(15)
+                    })
+                ),
+                display: {
+                    title: "Salted Dust",
+                    description: "Increase base Dust gain by 1",
+                    effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
+                }
+            })
+        ),
 
-        dustMultiplier: createRepeatable(() => ({
-            limit: () => buyableCap.value,
-            requirements: createCostRequirement(
-                (): CostRequirementOptions => ({
-                    resource: noPersist(mercurialDust),
-                    cost: Formula.variable(repeatables.dustMultiplier.amount)
-                        .pow_base(1.3)
-                        .times(30)
-                })
-            ),
-            display: {
-                title: "Enriched Dust",
-                description: "Multiply Dust gain by x1.1",
-                effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
-            }
-        })),
+        dustMultiplier: createRepeatable(
+            (): RepeatableOptions => ({
+                limit: () => buyableCap.value,
+                initialAmount: initialAmountFor(repeatables.dustMultiplier),
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: noPersist(mercurialDust),
+                        cost: Formula.variable(repeatables.dustMultiplier.amount)
+                            .pow_base(1.3)
+                            .times(30)
+                    })
+                ),
+                display: {
+                    title: "Enriched Dust",
+                    description: "Multiply Dust gain by x1.1",
+                    effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
+                }
+            })
+        ),
 
         dustPiles: createRepeatable(
             (): RepeatableOptions => ({
                 limit: () => buyableCap.value,
+                initialAmount: initialAmountFor(repeatables.dustPiles),
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: noPersist(mercurialDust),
@@ -460,10 +488,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }))
     ]);
 
-    const dustPilesEffect = computed(
-        (): Decimal =>
-            Decimal.dOne.add(Decimal.times(0.1, repeatables.dustPiles.amount.value)).clampMin(1)
-    );
+    const dustPilesEffect = computed((): Decimal => {
+        if (unref(repeatables.dustPiles.visibility) === false) {
+            return Decimal.dOne;
+        }
+
+        return Decimal.dOne.add(Decimal.times(0.1, repeatables.dustPiles.amount.value)).clampMin(1);
+    });
 
     const dustPilesModifier = createSequentialModifier(() => [
         createExponentialModifier(() => ({
@@ -543,38 +574,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }))
     ]);
 
-    const preresetBuyableLevels: Record<string, DecimalSource> = {
-        baseDustTime: 0,
-        baseDustGain: 0,
-        dustMultiplier: 0,
-        dustPiles: 0
-    };
-
     const reset = createReset(() => ({
-        thingsToReset: (): Record<string, unknown>[] => {
-            Object.keys(preresetBuyableLevels).forEach(buyable => {
-                preresetBuyableLevels[buyable] = (repeatables as Record<string, Repeatable>)[
-                    buyable
-                ].amount.value;
-            });
-
-            return noPersist([basicUpgrades, repeatables, acceleratorUpgrades]);
-        },
+        thingsToReset: (): Record<string, unknown>[] => [
+            basicUpgrades,
+            repeatables,
+            acceleratorUpgrades
+        ],
         onReset: () => {
             mercurialDust.value = mercurialDust[DefaultValue];
             totalMercurialDust.value = Decimal.dZero;
             timeSinceReset.value = timeSinceReset[DefaultValue];
             totalTimeSinceReset.value = Decimal.dZero;
             mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
-
-            if (milestonesLayer.milestones.five.earned.value === true) {
-                Object.keys(preresetBuyableLevels).forEach(buyable => {
-                    (repeatables as Record<string, Repeatable>)[buyable].amount.value = Decimal.min(
-                        (preresetBuyableLevels as Record<string, number>)[buyable],
-                        chunksLayer.totalChunks.value
-                    );
-                });
-            }
 
             applySecondMilestone();
             applyYouGetAPile();
