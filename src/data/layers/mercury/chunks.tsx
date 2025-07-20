@@ -324,13 +324,13 @@ const layer = createLayer(id, () => {
 
     const fullReset = () => {
         createReset(() => ({ thingsToReset: () => [layer] })).reset();
-        const chunksGained = solarLayer.mercuryUpgrades.secretChunkStash.bought.value ? 3 : 0;
+        const chunksGained = solarLayer.mercuryTreeUpgrades.secretChunkStash.bought.value ? 3 : 0;
 
         chunks.value = chunksGained;
         totalChunks.value = chunksGained;
     };
 
-    watch(solarLayer.mercuryUpgrades.secretChunkStash.bought, bought => {
+    watch(solarLayer.mercuryTreeUpgrades.secretChunkStash.bought, bought => {
         if (!bought) {
             return;
         }

@@ -44,17 +44,6 @@ const layer = createLayer(id, () => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
-    const mercuryUnlockUpgrade = createUpgrade(() => ({
-        requirements: createCostRequirement(() => ({
-            resource: noPersist(energy),
-            cost: 1
-        })),
-        display: {
-            description: (): string =>
-                mercuryUnlockUpgrade.bought.value ? "Mercury Unlocked" : "Unlock Mercury"
-        }
-    }));
-
     const milestones = {
         first: createAchievement(() => ({
             requirements: createCountRequirement(totalEnergy, 1),
@@ -68,79 +57,6 @@ const layer = createLayer(id, () => {
             display: {
                 requirement: "2 Solar Energy",
                 optionsDisplay: "Unlock Planet Cores & Mastery Trees"
-            }
-        }))
-    };
-
-    const mercuryRetainedSpeedModifer = createSequentialModifier(() => [
-        createMultiplicativeModifier(
-            (): MultiplicativeModifierOptions => ({
-                enabled: mercuryUpgrades.retainSpeed.bought,
-                multiplier: 2
-            })
-        )
-    ]);
-
-    const mercurySolarFriedDustModifier = createSequentialModifier(() => [
-        createMultiplicativeModifier(
-            (): MultiplicativeModifierOptions => ({
-                enabled: mercuryUpgrades.solarFriedDust.bought,
-                multiplier: 2
-            })
-        )
-    ]);
-
-    const mercuryUpgrades = {
-        retainSpeed: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(energy),
-                cost: Decimal.fromNumber(1)
-            })),
-            display: {
-                title: "𝘴𝘰𝘭𝘢𝘳 𝘴𝘱𝘦𝘦𝘥",
-                description: "Multiply time speed in Mercury by x2",
-                effectDisplay: () => `x${mercuryRetainedSpeedModifer.apply(1)}`
-            }
-        })),
-        solarFriedDust: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(energy),
-                cost: Decimal.fromNumber(1)
-            })),
-            display: {
-                title: "Solar Fried Dust",
-                description: "Multiply Dust Gain by x2",
-                effectDisplay: () => `x${mercurySolarFriedDustModifier.apply(1)}`
-            }
-        })),
-        snortingDust: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(energy),
-                cost: Decimal.fromNumber(1)
-            })),
-            display: {
-                title: "Snorting Dust",
-                description: "Start Mercury resets with a base of 5% Dust per second."
-            }
-        })),
-        secretChunkStash: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(energy),
-                cost: Decimal.fromNumber(5)
-            })),
-            display: {
-                title: "ˢᵉᶜʳᵉᵗ ᶜʰᵘⁿᵏ ˢᵗᵃˢʰ",
-                description: "Start each Mercury reset with 3 Chunks."
-            }
-        })),
-        youGetAPile: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(energy),
-                cost: Decimal.fromNumber(5)
-            })),
-            display: {
-                title: "You get a pile, and you get...",
-                description: "Keep 'Dust Piles' unlocked and start with 1 level of each buyable."
             }
         }))
     };
@@ -162,8 +78,9 @@ const layer = createLayer(id, () => {
     };
 
     const {
-        skillTree: mercuryMasteryTree,
-        upgrades: mercuryUpgradesNew
+        skillTree: mercuryTree,
+        upgrades: mercuryTreeUpgrades,
+        effects: mercuryTreeEffects
     } = createMercurySkillTree(solarRays);
 
     const solarSystemUpgrades = {
@@ -285,7 +202,7 @@ const layer = createLayer(id, () => {
                                 <div class="flex" style="flex: 1;"></div>
                             </div>
                             <Spacer />
-                            {render(mercuryMasteryTree)}
+                            {render(mercuryTree)}
                         </>
                     )
                 }))
@@ -300,19 +217,16 @@ const layer = createLayer(id, () => {
         best,
         total: totalEnergy,
         color,
-        mercuryUpgrade: mercuryUnlockUpgrade,
         milestones,
         tabs,
-        mercuryUpgrades,
-        mercuryRetainedSpeedModifer,
-        mercurySolarFriedDustModifier,
         mercuryCores,
         venusCores,
         solarRays,
         solarSystemTree,
         solarSystemUpgrades,
-        mercuryMasteryTree,
-        mercuryUpgradesNew,
+        mercuryTree,
+        mercuryTreeUpgrades,
+        mercuryTreeEffects,
         // testUpgrade,
         // board,
         display: () => (

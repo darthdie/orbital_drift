@@ -328,7 +328,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 },
                 visibility: () =>
                     milestonesLayer.milestones.first.earned.value === true ||
-                    solarLayer.mercuryUpgrades.youGetAPile.bought.value === true
+                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value === true
             })
         )
     };
@@ -406,7 +406,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         slippingTimeModifier,
         messengerGodModifier,
         accelerationTwoMultiplierModifier,
-        solarLayer.mercuryRetainedSpeedModifer,
+        createMultiplicativeModifier(() => ({
+            multiplier: solarLayer.mercuryTreeEffects.solarSpeed
+        })),
         // ^
         collisionCourseModifier,
         createExponentialModifier(() => ({
@@ -487,7 +489,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         dustMultiplierModifier,
         accumulatingDustModifier,
         acceleratorsLayer.dustAccelerator.dustGainMultiplierModifier,
-        solarLayer.mercurySolarFriedDustModifier,
+        createMultiplicativeModifier(() => ({
+            multiplier: solarLayer.mercuryTreeEffects.solarFriedDust,
+        })),
         // ^
         dustPilesModifier,
         createExponentialModifier(() => ({
@@ -588,7 +592,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeSinceReset.value = 0;
         totalTimeSinceReset.value = 0;
 
-        if (solarLayer.mercuryUpgrades.youGetAPile.bought.value) {
+        if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
             Object.values(repeatables).forEach(repeatable => (repeatable.amount.value = 1));
         }
     };
@@ -603,7 +607,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             .forEach(u => (u.bought.value = true));
     });
 
-    watch(solarLayer.mercuryUpgrades.youGetAPile.bought, bought => {
+    watch(solarLayer.mercuryTreeUpgrades.youGetAPile.bought, bought => {
         if (!bought) {
             return;
         }
@@ -643,7 +647,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const enablePassiveGeneration: ComputedRef<boolean> = computed<boolean>(() => {
         return (
             chunksLayer.upgrades.grindingChunks.bought.value ||
-            solarLayer.mercuryUpgrades.snortingDust.bought.value
+            solarLayer.mercuryTreeUpgrades.snortingDust.bought.value
         );
     });
     const passiveGenerationPerSecond: ComputedRef<Decimal> = computed(() => {

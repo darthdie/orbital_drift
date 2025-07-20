@@ -4,28 +4,31 @@ import { noPersist } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
 import { Resource } from "features/resources/resource";
-import { DecimalSource } from "util/bignum";
+import { DecimalSource, format } from "util/bignum";
+import { computed } from "vue";
 
 // Planet Cores -> Solar Rays
 
 export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
-  const solarSpeedModifer = createSequentialModifier(() => [
-    createMultiplicativeModifier(
-      (): MultiplicativeModifierOptions => ({
-        enabled: upgrades.solarSpeed.bought,
-        multiplier: 2
-      })
-    )
-  ]);
+  const solarSpeedEffect = computed((): DecimalSource => {
+    return upgrades.solarSpeed.bought.value ? 2 : 1;
+  });
 
-  const mercurySolarFriedDustModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier(
-      (): MultiplicativeModifierOptions => ({
-        enabled: upgrades.solarFriedDust.bought,
-        multiplier: 2
-      })
-    )
-  ]);
+  const solarFriedDustEffect = computed((): DecimalSource => {
+    return upgrades.solarFriedDust.bought.value ? 2 : 1;
+  });
+
+  const eightyEightEffect = computed((): DecimalSource => {
+    return upgrades.eightyEight.bought.value ? 2 : 1;
+  });
+
+  const nowIHaveTwoEffect = computed((): DecimalSource => {
+    return upgrades.nowIHaveTwo.bought.value ? 2 : 1;
+  });
+
+  const likeThatBlueGuyEffect = computed((): DecimalSource => {
+    return upgrades.likeThatBlueGuy.bought.value ? 2 : 1;
+  });
 
   const upgrades = {
     solarFriedDust: createUpgrade((): UpgradeOptions => ({
@@ -36,7 +39,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       display: {
         title: "Solar Fried Dust",
         description: "Multiply Dust Gain by x2",
-        effectDisplay: () => `x${mercurySolarFriedDustModifier.apply(1)}`
+        effectDisplay: () => `x${format(solarFriedDustEffect.value)}`
       }
     })),
     solarSpeed: createUpgrade((): UpgradeOptions => ({
@@ -50,7 +53,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       display: {
         title: "𝘴𝘰𝘭𝘢𝘳 𝘴𝘱𝘦𝘦𝘥",
         description: "Multiply time speed by x2",
-        effectDisplay: () => `x${solarSpeedModifer.apply(1)}`
+        effectDisplay: () => `x${format(solarSpeedEffect.value)}`
       }
     })),
     dustyTomes: createUpgrade((): UpgradeOptions => ({
@@ -77,7 +80,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       display: {
         title: "88",
         description: "Multiply Acceleron Gain by x2.",
-        effectDisplay: (): string => upgrades.eightyEight.bought.value ? `x2` : `x1`
+        effectDisplay: () => `x${format(eightyEightEffect.value)}`
       }
     })),
     nowIHaveTwo: createUpgrade((): UpgradeOptions => ({
@@ -91,7 +94,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       display: {
         title: "Now I Have Two!",
         description: "Divide Chunks cost by ÷2.",
-        effectDisplay: () => upgrades.nowIHaveTwo.bought.value ? `÷2` : `÷1`
+        effectDisplay: () => `÷${format(nowIHaveTwoEffect.value)}`
       }
     })),
     snortingDust: createUpgrade((): UpgradeOptions => ({
@@ -144,7 +147,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       display: {
         title: "Like that blue guy",
         description: "All Acceleron intervals are divided by ÷2.",
-        effectDisplay: (): string => upgrades.likeThatBlueGuy.bought.value ? "÷2" : "÷1"
+        effectDisplay: () => `÷${format(likeThatBlueGuyEffect.value)}`
       }
     })),
     autoAutoChunks: createUpgrade((): UpgradeOptions => ({
@@ -220,6 +223,13 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
 
   return {
     upgrades,
-    skillTree
+    skillTree,
+    effects: {
+      solarSpeed: solarSpeedEffect,
+      solarFriedDust: solarFriedDustEffect,
+      eightyEight: eightyEightEffect,
+      nowIHaveTwo: nowIHaveTwoEffect,
+      likeThatBlueGuy: likeThatBlueGuyEffect,
+    }
   };
 }
