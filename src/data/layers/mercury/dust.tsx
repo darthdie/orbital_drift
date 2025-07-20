@@ -752,7 +752,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ) : null}
                 <h5>You have {format(timeSinceReset.value)} Dust Time.</h5>
                 <h6>({format(timeSinceLastResetGainModifier.apply(1))}/s)</h6>
-                <h6>Raw modifier {format(dustPowerGainModifier.apply(1))}</h6>
 
                 <Spacer />
                 {render(resetButton)}

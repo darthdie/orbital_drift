@@ -206,7 +206,7 @@ const layer = createLayer(id, () => {
             // }),
             mercury: () => ({
                 display: "Mercury",
-                // visibility: milestones.second.earned,
+                visibility: milestones.second.earned,
                 tab: createTab(() => {
                     const color = unref(mercuryLayer.color);
                     return {
