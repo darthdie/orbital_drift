@@ -3,7 +3,7 @@ import { BaseLayer, createLayer } from "game/layers";
 import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from "../solar";
-import { computed, ComputedRef, unref, watch } from "vue";
+import { computed, ComputedRef, Ref, unref, watch } from "vue";
 import {
     createSequentialModifier,
     createAdditiveModifier,
@@ -13,7 +13,7 @@ import {
     ExponentialModifierOptions
 } from "game/modifiers";
 import { render, renderGroupedObjects } from "util/vue";
-import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
+import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
 import { createCostRequirement, CostRequirementOptions } from "game/requirements";
 import { createUpgrade } from "features/clickables/upgrade";
@@ -264,8 +264,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         Decimal.add(30, acceleratorsLayer.dustAccelerator.dustBuyableCapEffect.value)
     );
 
-    type RepeatableOptionsWithBest = RepeatableOptions & { bestAmount: Persistent<DecimalSource> };
-
     const repeatableBestAmounts = {
         baseDustTime: persistent<DecimalSource>(0),
         baseDustGain: persistent<DecimalSource>(0),
@@ -275,10 +273,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const repeatables = {
         baseDustTime: createRepeatable(
-            (): RepeatableOptionsWithBest => ({
-                bestAmount: repeatableBestAmounts.baseDustTime,
+            (): RepeatableOptions => ({
                 limit: () => buyableCap.value,
-                initialAmount: initialAmountFor(repeatables.baseDustTime),
+                initialAmount: initialAmountFor(repeatableBestAmounts.baseDustTime),
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: noPersist(mercurialDust),
@@ -296,10 +293,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         baseDustGain: createRepeatable(
-            (): RepeatableOptionsWithBest => ({
-                bestAmount: repeatableBestAmounts.baseDustGain,
+            (): RepeatableOptions => ({
                 limit: () => buyableCap.value,
-                initialAmount: initialAmountFor(repeatables.baseDustGain),
+                initialAmount: initialAmountFor(repeatableBestAmounts.baseDustGain),
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: noPersist(mercurialDust),
@@ -317,10 +313,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         dustMultiplier: createRepeatable(
-            (): RepeatableOptionsWithBest => ({
-                bestAmount: repeatableBestAmounts.dustMultiplier,
+            (): RepeatableOptions => ({
                 limit: () => buyableCap.value,
-                initialAmount: initialAmountFor(repeatables.dustMultiplier),
+                initialAmount: initialAmountFor(repeatableBestAmounts.dustMultiplier),
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: noPersist(mercurialDust),
@@ -338,10 +333,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         dustPiles: createRepeatable(
-            (): RepeatableOptionsWithBest => ({
-                bestAmount: repeatableBestAmounts.dustPiles,
+            (): RepeatableOptions => ({
                 limit: () => buyableCap.value,
-                initialAmount: initialAmountFor(repeatables.dustPiles),
+                initialAmount: initialAmountFor(repeatableBestAmounts.dustPiles),
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: noPersist(mercurialDust),
@@ -360,12 +354,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         )
     };
 
-    const initialAmountFor = (
-        repeatable: Repeatable & { bestAmount: Persistent<DecimalSource> }
-    ) => {
+    const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
             if (milestonesLayer.milestones.five.earned.value === true) {
-                return Decimal.min(chunksLayer.totalChunks.value, repeatable.bestAmount.value);
+                return Decimal.min(chunksLayer.totalChunks.value, bestAmount.value);
             }
 
             if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
@@ -375,6 +367,28 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.dZero;
         };
     };
+
+    const updateBestAmount = (amount: DecimalSource, bestAmount: Persistent<DecimalSource>) => {
+        if (Decimal.gt(amount, bestAmount.value)) {
+            bestAmount.value = amount;
+        }
+    };
+
+    watch(repeatables.baseDustGain.amount, amount =>
+        updateBestAmount(amount, repeatableBestAmounts.baseDustGain)
+    );
+
+    watch(repeatables.baseDustTime.amount, amount =>
+        updateBestAmount(amount, repeatableBestAmounts.baseDustTime)
+    );
+
+    watch(repeatables.dustMultiplier.amount, amount =>
+        updateBestAmount(amount, repeatableBestAmounts.dustMultiplier)
+    );
+
+    watch(repeatables.dustPiles.amount, amount =>
+        updateBestAmount(amount, repeatableBestAmounts.dustPiles)
+    );
 
     const accumulatingDustModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -608,6 +622,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }));
 
     const fullReset = () => {
+        console.log(" full reset");
         reset.reset();
 
         mercurialDust.value = 0;
@@ -739,6 +754,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         reset,
         passiveGenerationPerSecondEffect,
         displayGlow,
+        repeatableBestAmounts,
         fullReset,
         display: () => (
             <>
