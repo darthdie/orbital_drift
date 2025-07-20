@@ -689,6 +689,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeSinceReset.value = Decimal.add(timeSinceReset.value, totalDiff);
     });
 
+    const displayGlow = computed(() => {
+        return Object.values(repeatables).some(r => r.canClick.value) ||
+            Object.values(basicUpgrades).some(u => u.canPurchase.value) ||
+            Object.values(unlocks).some(u => u.canPurchase.value);
+    });
+
     const tableStyles = "gap: 8px; margin-bottom: 8px;";
     return {
         name,
@@ -711,6 +717,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         collisionCourseModifier,
         reset,
         passiveGenerationPerSecondEffect,
+        displayGlow,
         fullReset,
         display: () => (
             <>

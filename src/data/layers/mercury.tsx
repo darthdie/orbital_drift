@@ -105,11 +105,16 @@ const layer = createLayer(id, baseLayer => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
+    const displayGlow = computed(() => {
+        return dustTab.displayGlow || chunksTab.displayGlow;
+    });
+
     const treeNode = createLayerTreeNode(() => ({
         visibility: unlocked,
         layerID: id,
         display: () => <CelestialBodyIcon body={"Mercury"} />,
         wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
+        glowColor: () => displayGlow.value ? color : null,
         color,
         reset
     }));

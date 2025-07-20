@@ -1092,6 +1092,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         );
     });
 
+    const displayGlow = computed(() => {
+        return showExclamation ||
+            Object.values(dustAccelerator.upgrades).some(u => u.canPurchase) ||
+            Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase) ||
+            Object.values(timeAccelerator.upgrades).some(u => u.canPurchase);
+    })
+
     return {
         id,
         name,
@@ -1102,6 +1109,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         tabs,
         autoIntervalBuyers,
         showExclamation,
+        displayGlow,
         fullReset,
         display: () => <>{render(tabs)}</>
     };

@@ -49,7 +49,10 @@ const layer = createLayer(id, () => {
                 return Decimal.dOne;
             }
 
-            return Decimal.sub(chunks.value, 19).add(10).pow(1.9).clampMin(1);
+            const level = Decimal.sub(chunks.value, 19);
+            return Decimal.times(90, Decimal.pow(1.15, Decimal.pow(level, 1.5)));
+            // return Decimal.sub()
+            // return Decimal.sub(chunks.value, 19).add(10).pow(1.9).clampMin(1);
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -79,7 +82,7 @@ const layer = createLayer(id, () => {
                     .step(5, f => f.div(2))
                     .step(10, f => f.cbrt().div(post10ScalingDivider))
                     .step(20, f => f.sqrt().div(post20ScalingDivider))
-                    .step(30, f => f.sqrt().div(post30ScalingDivisor))
+                    .step(29, f => f.sqrt())
                     .step(100, f => f.div(350).pow(0.7))
                     .step(1000, f => f.sqrt().div(post1000ScalingDivisor)),
             baseResource: dustLayer.mercurialDust,
@@ -349,11 +352,14 @@ const layer = createLayer(id, () => {
         return Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value;
     });
 
+    const displayGlow = computed(() => {
+        return showExclamation || Object.values(upgrades).some(u => u.canPurchase);
+    });
+
     return {
         id,
         name,
         color,
-        // reset,
         fullReset,
         resetButton,
         chunks,
@@ -366,7 +372,7 @@ const layer = createLayer(id, () => {
         autoChunker,
         showExclamation,
         speedingChunksEffect,
-        // dustingChunksModifer,
+        displayGlow,
         display: () => (
             <>
                 <h2>You have {format(chunks.value)} mercurial chunks</h2>
