@@ -490,7 +490,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         accumulatingDustModifier,
         acceleratorsLayer.dustAccelerator.dustGainMultiplierModifier,
         createMultiplicativeModifier(() => ({
-            multiplier: solarLayer.mercuryTreeEffects.solarFriedDust,
+            multiplier: solarLayer.mercuryTreeEffects.solarFriedDust
         })),
         // ^
         dustPilesModifier,
@@ -690,9 +690,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     });
 
     const displayGlow = computed(() => {
-        return Object.values(repeatables).some(r => r.canClick.value) ||
+        return (
+            Object.values(repeatables).some(r => r.canClick.value) ||
             Object.values(basicUpgrades).some(u => u.canPurchase.value) ||
-            Object.values(unlocks).some(u => u.canPurchase.value);
+            Object.values(unlocks).some(u => u.canPurchase.value)
+        );
     });
 
     const tableStyles = "gap: 8px; margin-bottom: 8px;";
@@ -721,7 +723,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         fullReset,
         display: () => (
             <>
-                <h2>{format(mercurialDust.value)} {mercurialDust.displayName}</h2>
+                <h2>
+                    {format(mercurialDust.value)} {mercurialDust.displayName}
+                </h2>
                 {enablePassiveGeneration.value ? (
                     <>
                         <h6>Gaining {format(passiveGenerationPerSecond.value)}/s</h6>

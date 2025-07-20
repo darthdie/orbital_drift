@@ -62,13 +62,6 @@ const layer = createLayer(id, () => {
             return Decimal.sub(chunks.value, 999).times(3).clampMin(1);
         });
 
-        const post30ScalingDivisor = computed(() => {
-            if (Decimal.lt(chunks.value, 30)) {
-                return Decimal.dOne;
-            }
-            return Decimal.sub(chunks.value, 29).add(10).pow(1.4).clampMin(1);
-        });
-
         return {
             formula: x =>
                 x
@@ -229,7 +222,10 @@ const layer = createLayer(id, () => {
 
         autoChunks: createUpgrade(() => ({
             visibility: (): boolean => {
-                return acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought.value || upgrades.autoChunks.bought.value;
+                return (
+                    acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought.value ||
+                    upgrades.autoChunks.bought.value
+                );
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(chunks),

@@ -3,7 +3,7 @@ import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
-import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
+import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
@@ -12,15 +12,15 @@ import { format } from "util/break_eternity";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
-import { computed, MaybeRef, unref } from "vue";
+import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
+import { computed, unref } from "vue";
 import "./solar.css";
 import {
     createSkillTree,
     createSkillTreeNodeRequirement
 } from "data/features/skill_tree/skillTree";
 import { createMercurySkillTree } from "./solar/mercurySkillTree";
-import mercuryLayer from './mercury';
+import mercuryLayer from "./mercury";
 import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 
 const id = "S";
@@ -54,20 +54,6 @@ const layer = createLayer(id, () => {
                 optionsDisplay: "Unlock Planet Cores & Mastery Trees"
             }
         }))
-    };
-
-    const createPlanetCoreSummary = (
-        body: SupportedBodies,
-        layer: { color?: MaybeRef<string> },
-        resource: Resource
-    ) => {
-        const color = unref(layer.color);
-        return (
-            <div class="flex" style={{ gap: "8px", color }}>
-                <CelestialBodyIcon body={body} style={{ color }} />
-                {format(resource.value, 0)}
-            </div>
-        );
     };
 
     const {
@@ -134,8 +120,12 @@ const layer = createLayer(id, () => {
     }));
 
     const displayGlow = computed(() => {
-        const solarSystemPurchaseable = Object.values(solarSystemUpgrades).some(u => u.canPurchase.value);
-        const mercuryTreePurchasable = Object.values(mercuryTreeUpgrades).some(u => u.canPurchase.value);
+        const solarSystemPurchaseable = Object.values(solarSystemUpgrades).some(
+            u => u.canPurchase.value
+        );
+        const mercuryTreePurchasable = Object.values(mercuryTreeUpgrades).some(
+            u => u.canPurchase.value
+        );
         return solarSystemPurchaseable || mercuryTreePurchasable;
     });
 
@@ -152,7 +142,8 @@ const layer = createLayer(id, () => {
             return 1;
         }
 
-        let a = 1, b = 1;
+        let a = 1,
+            b = 1;
         for (let i = 2; Decimal.lte(i, amount); i++) {
             [a, b] = [b, a + b];
         }
@@ -160,21 +151,23 @@ const layer = createLayer(id, () => {
     };
 
     const converters = {
-        solarEnergy: createRepeatable((): RepeatableOptions => ({
-            requirements: createCostRequirement(() => ({
-                resource: energy,
-                cost: () => fibFormula(converters.solarEnergy.amount.value)
-            })),
-            display: {
-                showAmount: false,
-                // title: "Energy Converter",
-                description: `Convert 1 ${energy.displayName} to 1 ${solarRays.displayName}.`
-            },
-            clickableStyle: {
-                width: "200px",
-                minHeight: "0"
-            }
-        }))
+        solarEnergy: createRepeatable(
+            (): RepeatableOptions => ({
+                requirements: createCostRequirement(() => ({
+                    resource: energy,
+                    cost: () => fibFormula(converters.solarEnergy.amount.value)
+                })),
+                display: {
+                    showAmount: false,
+                    // title: "Energy Converter",
+                    description: `Convert 1 ${energy.displayName} to 1 ${solarRays.displayName}.`
+                },
+                clickableStyle: {
+                    width: "200px",
+                    minHeight: "0"
+                }
+            })
+        )
     };
 
     const tabs = createTabFamily(
@@ -223,9 +216,17 @@ const layer = createLayer(id, () => {
                                     <CelestialBodyIcon
                                         body="Mercury"
                                         style={{ display: "inline", color }}
-                                    /> {format(mercuryCores.value, 0)} {mercuryCores.displayName}
+                                    />{" "}
+                                    {format(mercuryCores.value, 0)} {mercuryCores.displayName}
                                 </h2>
-                                <hr style={{ width: "256px", margin: "auto", background: color, marginTop: "6px" }} />
+                                <hr
+                                    style={{
+                                        width: "256px",
+                                        margin: "auto",
+                                        background: color,
+                                        marginTop: "6px"
+                                    }}
+                                />
                                 <Spacer />
                                 {render(mercuryTree)}
                             </>
@@ -257,7 +258,8 @@ const layer = createLayer(id, () => {
         display: () => (
             <>
                 <h2>
-                    You have <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} /> {format(energy.value)} {energy.displayName}
+                    You have <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} />{" "}
+                    {format(energy.value)} {energy.displayName}
                 </h2>
                 <h4>You have made a total of {format(totalEnergy.value)}</h4>
                 <Spacer />

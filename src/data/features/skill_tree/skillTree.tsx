@@ -119,7 +119,7 @@ export const blankSkillTreeNode = createSkillTreeNode(() => ({
     visibility: false,
     [BlankSkillTreeNodeType]: true,
     [SkipPersistence]: true
-}))
+}));
 
 export interface SkillTreeBranch extends Omit<Link, "startNode" | "endNode"> {
     startNode: VueFeature;
