@@ -3,7 +3,7 @@ import { createLayerTreeNode } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
-import { createResource, trackBest, trackTotal } from "features/resources/resource";
+import { createResource, Resource, trackBest, trackTotal } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
@@ -17,13 +17,16 @@ import {
     createSequentialModifier,
     MultiplicativeModifierOptions
 } from "game/modifiers";
-import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
-import { computed } from "vue";
+import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
+import { computed, MaybeRef, unref } from "vue";
 import "./solar.css";
 import {
     createSkillTree,
     createSkillTreeNodeRequirement
 } from "data/features/skill_tree/skillTree";
+import { createMercurySkillTree } from "./solar/mercurySkillTree";
+import mercuryLayer from './mercury';
+import venusLayer from './venus';
 
 const id = "S";
 const layer = createLayer(id, () => {
@@ -142,188 +145,26 @@ const layer = createLayer(id, () => {
         }))
     };
 
-    // const createPlanetCoreSummary = (
-    //     body: SupportedBodies,
-    //     layer: { color?: MaybeRef<string> },
-    //     resource: Resource
-    // ) => {
-    //     const color = unref(layer.color);
-    //     return (
-    //         <div class="flex" style={{ gap: "8px", color: color }}>
-    //             <CelestialBodyIcon body={body} color={color}>
-    //                 Mercury
-    //             </CelestialBodyIcon>
-    //             {format(resource.value)}
-    //         </div>
-    //     );
-    // };
+    const createPlanetCoreSummary = (
+        body: SupportedBodies,
+        layer: { color?: MaybeRef<string> },
+        resource: Resource
+    ) => {
+        const color = unref(layer.color);
+        return (
+            <div class="flex" style={{ gap: "8px", color: color }}>
+                <CelestialBodyIcon body={body} color={color}>
+                    Mercury
+                </CelestialBodyIcon>
+                {format(resource.value)}
+            </div>
+        );
+    };
 
-    // const mercurySkillTree = createSkillTreeOld(
-    //     {
-    //         free: createSkillTreeNodeOld(() => ({
-    //             display: {
-    //                 title: "Unlock Mercury Tree"
-    //             }
-    //         })),
-    //         snortingDust: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [
-    //                     createCostRequirement(() => ({
-    //                         resource: noPersist(solarRays),
-    //                         cost: 1
-    //                     })),
-    //                     createBoughtNodeRequirement(mercurySkillTree, ["free"])
-    //                 ],
-    //                 display: {
-    //                     title: "Snorting Dust",
-    //                     description: "Start Mercury resets with a base of 5% Dust per second."
-    //                 }
-    //             })
-    //         ),
-    //         idk3: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["free"])],
-    //                 display: {
-    //                     title: "idk3"
-    //                 }
-    //             })
-    //         ),
-    //         idk3_3: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["snortingDust"])],
-    //                 display: {
-    //                     title: "idk3_3"
-    //                 }
-    //             })
-    //         ),
-    //         idk3_4: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3"])],
-    //                 display: {
-    //                     title: "idk3_4"
-    //                 }
-    //             })
-    //         ),
-    //         idk4: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_3"])],
-    //                 display: {
-    //                     title: "idk4"
-    //                 }
-    //             })
-    //         ),
-    //         idk5: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk3_4"])],
-    //                 display: {
-    //                     title: "idk5"
-    //                 }
-    //             })
-    //         ),
-    //         idk4_3: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4"])],
-    //                 display: {
-    //                     title: "idk4_3"
-    //                 }
-    //             })
-    //         ),
-    //         idk4_4: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk5"])],
-    //                 display: {
-    //                     title: "idk4_4"
-    //                 }
-    //             })
-    //         ),
-    //         idk6: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_3"])],
-    //                 display: {
-    //                     title: "idk6"
-    //                 }
-    //             })
-    //         ),
-    //         idk7: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk4_4"])],
-    //                 display: {
-    //                     title: "idk7"
-    //                 }
-    //             })
-    //         ),
-    //         idk8: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk6", "idk7"])],
-    //                 display: {
-    //                     title: "idk8"
-    //                 }
-    //             })
-    //         ),
-    //         idk9: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
-    //                 display: {
-    //                     title: "idk9"
-    //                 }
-    //             })
-    //         ),
-    //         idk10: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk8"])],
-    //                 display: {
-    //                     title: "idk10"
-    //                 }
-    //             })
-    //         ),
-    //         idk11: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [createBoughtNodeRequirement(mercurySkillTree, ["idk10"])],
-    //                 display: {
-    //                     title: "idk11"
-    //                 }
-    //             })
-    //         ),
-    //         mastery: createSkillTreeNodeOld(
-    //             (): SkillTreeNodeOptions => ({
-    //                 requirements: [
-    //                     createCostRequirement(() => ({
-    //                         resource: noPersist(solarRays),
-    //                         cost: 50
-    //                     })),
-    //                     createBoughtNodeRequirement(mercurySkillTree, ["idk10"])
-    //                 ],
-    //                 display: {
-    //                     title: "Unlock Mastery"
-    //                 }
-    //             })
-    //         )
-    //     },
-    //     () => ({
-    //         visibility: true,
-    //         rows: [
-    //             // ??, ??
-    //             ["free"],
-    //             ["snortingDust", blankTreeNode, "idk3"],
-    //             ["idk3_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk3_4"],
-    //             [
-    //                 "idk4",
-    //                 blankTreeNode,
-    //                 blankTreeNode,
-    //                 blankTreeNode,
-    //                 blankTreeNode,
-    //                 blankTreeNode,
-    //                 "idk5"
-    //             ],
-    //             ["idk4_3", blankTreeNode, blankTreeNode, blankTreeNode, "idk4_4"],
-    //             ["idk6", blankTreeNode, "idk7"],
-    //             ["idk8"],
-    //             ["idk9", "idk10", "idk11"],
-    //             ["mastery"]
-    //         ],
-    //         style: { height: "100%" }
-    //     })
-    // );
+    const {
+        skillTree: mercuryMasteryTree,
+        upgrades: mercuryUpgradesNew
+    } = createMercurySkillTree(solarRays);
 
     const solarSystemUpgrades = {
         mercury: createUpgrade(
@@ -415,15 +256,15 @@ const layer = createLayer(id, () => {
             //   tab: createTab(() => ({
             //     style: { height: "100%" },
             //     display: () => <>
-            //       <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
-            //       <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
-            //       <div class="flex" style="gap: 32px;">
-            //         {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
-            //         {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
+            //   <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
+            //   <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
+            //   <div class="flex" style="gap: 32px;">
+            //     {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
+            //     {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
 
-            //         <div class="flex" style="flex: 1;"></div>
-            //       </div>
-            //       <Spacer />
+            //     <div class="flex" style="flex: 1;"></div>
+            //   </div>
+            //   <Spacer />
             //       <Spacer />
             //       {render(solarTree)}
             //     </>
@@ -431,16 +272,20 @@ const layer = createLayer(id, () => {
             // }),
             mercury: () => ({
                 display: "Mercury",
-                visibility: milestones.second.earned,
+                // visibility: milestones.second.earned,
                 tab: createTab(() => ({
-                    style: { height: "100%" },
                     display: () => (
                         <>
-                            {/* {render(mercuryUnlockUpgrade)} */}
+                            <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
+                            <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
+                            <div class="flex" style="gap: 32px;">
+                                {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
+                                {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
 
-                            {renderGroupedObjects(mercuryUpgrades, 3)}
-
-                            {/* {render(mercurySkillTree)} */}
+                                <div class="flex" style="flex: 1;"></div>
+                            </div>
+                            <Spacer />
+                            {render(mercuryMasteryTree)}
                         </>
                     )
                 }))
@@ -466,6 +311,8 @@ const layer = createLayer(id, () => {
         solarRays,
         solarSystemTree,
         solarSystemUpgrades,
+        mercuryMasteryTree,
+        mercuryUpgradesNew,
         // testUpgrade,
         // board,
         display: () => (

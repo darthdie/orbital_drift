@@ -38,13 +38,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const name = "Mercury";
     const color = "#b1adad";
 
-    const mercurialDust = createResource(0, "mercurial dust", 2);
+    const mercurialDust = createResource(0, "Mercurial Dust", 2);
     const totalMercurialDust = trackTotal(mercurialDust);
 
     const timeSinceReset = createResource<DecimalSource>(0);
     const totalTimeSinceReset = trackTotal(timeSinceReset);
 
-    const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
+    const unlocked = noPersist(mercury.unlocked);
 
     const basicUpgrades = {
         messengerGodUpgrade: createUpgrade(() => ({
@@ -686,7 +686,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         fullReset,
         display: () => (
             <>
-                <h2>{format(mercurialDust.value)} mercurial dust</h2>
+                <h2>{format(mercurialDust.value)} {mercurialDust.displayName}</h2>
                 {enablePassiveGeneration.value ? (
                     <>
                         <h6>Gaining {format(passiveGenerationPerSecond.value)}/s</h6>

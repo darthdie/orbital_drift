@@ -1,4 +1,4 @@
-import { noPersist, Persistent, persistent } from "game/persistence";
+import { noPersist, Persistent, persistent, SkipPersistence } from "game/persistence";
 import { unref, MaybeRef, MaybeRefOrGetter, CSSProperties } from "vue";
 import { Renderable, VueFeature, vueFeatureMixin, VueFeatureOptions } from "util/vue";
 import { Link } from "features/links/links";
@@ -10,12 +10,13 @@ import { createBooleanRequirement } from "game/requirements";
 
 export const SkillTreeNodeType = Symbol("SkillTreeNode");
 export const SkillTreeType = Symbol("SkillTree");
+export const BlankSkillTreeNodeType = Symbol("BlankSkillTreeNode");
 
 type SkillTreeNodeRequirementNode = VueFeature & { bought: Persistent<boolean> };
 export function createSkillTreeNodeRequirement(
     nodes: SkillTreeNodeRequirementNode | SkillTreeNodeRequirementNode[]
 ) {
-    const processedNodes = Array.isArray(nodes) ? nodes : [nodes];
+    const processedNodes = noPersist(Array.isArray(nodes) ? nodes : [nodes]);
 
     return createBooleanRequirement(() => processedNodes.every(n => n.bought.value));
 }
@@ -112,6 +113,13 @@ export function createSkillTreeNode<T extends SkillTreeNodeOptions>(optionsFunc?
         return treeNode;
     });
 }
+
+// Need a better way of handling this.
+export const blankSkillTreeNode = createSkillTreeNode(() => ({
+    visibility: false,
+    [BlankSkillTreeNodeType]: true,
+    [SkipPersistence]: true
+}))
 
 export interface SkillTreeBranch extends Omit<Link, "startNode" | "endNode"> {
     startNode: VueFeature;
