@@ -2,9 +2,91 @@
     color-scheme: dark;
 }
 
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-SemiBoldItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-ThinItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-ThinItalic.woff') format('woff');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-LightItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-LightItalic.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-BoldItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Black.woff2') format('woff2'),
+        url('assets/fonts/Neris-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Thin.woff2') format('woff2'),
+        url('assets/fonts/Neris-Thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-BlackItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-BlackItalic.woff') format('woff');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-SemiBold.woff2') format('woff2'),
+        url('assets/fonts/Neris-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Light.woff2') format('woff2'),
+        url('assets/fonts/Neris-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
 	transition-duration: 0.5s;
-	font-family: "Roboto Mono", monospace;
+	font-family: "Neris", monospace;
+	font-variant-numeric: tabular-nums;
 	font-weight: bold;
 	margin: auto;
 	text-size-adjust: none;

@@ -20,7 +20,10 @@ const layer = createLayer(id, () => {
     const firstMilestoneModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(
             (): MultiplicativeModifierOptions => ({
-                multiplier: () => Decimal.times(1.5, chunksTab.totalChunks.value).clampMin(1),
+                multiplier: () =>
+                    Decimal.times(1.5, chunksTab.totalChunks.value)
+                        // .pow(sixthMilestoneEffect.value)
+                        .clampMin(1),
                 enabled: milestones.first.earned,
                 description: "First Chunk Milestone"
             })
@@ -34,6 +37,14 @@ const layer = createLayer(id, () => {
 
         return Decimal.dOne;
     });
+
+    // const sixthMilestoneEffect = computed(() => {
+    //     if (milestones.six.earned.value === true) {
+    //         return Decimal.fromNumber(1.1);
+    //     }
+
+    //     return Decimal.dOne;
+    // });
 
     const completedMilestonesCount = computed(
         () => Object.values(milestones).filter(a => a.earned.value).length
@@ -85,6 +96,14 @@ const layer = createLayer(id, () => {
                 effectDisplay: () => `Up to ${chunksTab.totalChunks.value} buyable levels are kept.`
             }
         }))
+        // six: createAchievement(() => ({
+        //     requirements: createCountRequirement(chunksTab.totalChunks, 200),
+        //     display: {
+        //         requirement: "200 Total Mercurial Chunks",
+        //         optionsDisplay: "Raise first Milestone effect by ^1.1.",
+        //         effectDisplay: () => `^${format(sixthMilestoneEffect.value)}`
+        //     }
+        // }))
     };
 
     const reset = createReset(() => ({

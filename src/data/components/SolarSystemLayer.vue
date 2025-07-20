@@ -1,14 +1,14 @@
 <template>
     <div id="circle-orbit-container" ref="orbitContainer">
         <div id="sun" ref="sun"></div>
-        <div id="mercury" ref="mercury" v-if="mercuryLayer.unlocked.value"></div>
-        <div id="venus" ref="venus" v-if="venusLayer.unlocked.value"></div>
-        <!-- <div id="earth" ref="earth"></div> -->
-        <!-- <div id="mars" ref="mars"></div> -->
-        <!-- <div id="jupiter" ref="jupiter"></div> -->
-        <!-- <div id="saturn" ref="saturn"></div> -->
-        <!-- <div id="uranus" ref="uranus"></div> -->
-        <!-- <div id="neptune" ref="neptune"></div> -->
+        <div id="mercury" ref="mercury" v-if="mercuryLayer.unlocked.value || settings.forceShowAllPlanets"></div>
+        <div id="venus" ref="venus" v-if="venusLayer.unlocked.value  || settings.forceShowAllPlanets"></div>
+        <div id="earth" ref="earth" v-if="settings.forceShowAllPlanets"></div>
+        <div id="mars" ref="mars" v-if="settings.forceShowAllPlanets"></div>
+        <div id="jupiter" ref="jupiter" v-if="settings.forceShowAllPlanets"></div>
+        <div id="saturn" ref="saturn" v-if="settings.forceShowAllPlanets"></div>
+        <div id="uranus" ref="uranus" v-if="settings.forceShowAllPlanets"></div>
+        <div id="neptune" ref="neptune" v-if="settings.forceShowAllPlanets"></div>
     </div>
     <RightNodes v-if="rightSideNodes" />
     <Links v-if="branches" :links="unref(branches)" />
@@ -17,10 +17,11 @@
 <script setup lang="tsx">
 import { TreeNode, TreeBranch } from "features/trees/tree";
 import { render } from "util/vue";
-import { computed, MaybeRef, onMounted, Ref, ref, unref } from "vue";
+import { MaybeRef, onMounted, Ref, ref, unref } from "vue";
 import Links from "features/links/Links.vue";
 import mercuryLayer from '../layers/mercury';
 import venusLayer from '../layers/venus';
+import settings from "game/settings";
 
 const props = defineProps<{
     rightSideNodes?: MaybeRef<TreeNode[]>;
@@ -144,7 +145,7 @@ onMounted(() => {
         const elapsed = timestamp - startTime - pausedTime;
 
         const sunCenter = getSunCenter();
-        if (!sunCenter) {
+        if (!sunCenter || !settings.showPlanetOrbitAnimation) {
             requestAnimationFrame(animate);
             return;
         }

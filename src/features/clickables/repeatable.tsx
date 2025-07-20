@@ -15,7 +15,7 @@ import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { isJSXElement, render, Renderable, VueFeature, vueFeatureMixin } from "util/vue";
 import type { CSSProperties, MaybeRef, MaybeRefOrGetter, Ref } from "vue";
-import { computed, unref } from "vue";
+import { computed, toRef, unref, watch } from "vue";
 import { ClickableOptions } from "./clickable";
 import { Layer } from "game/layers";
 import { isFunction } from "util/common";
@@ -30,7 +30,7 @@ export interface RepeatableOptions extends ClickableOptions {
     /** The maximum amount obtainable for this repeatable. */
     limit?: MaybeRefOrGetter<DecimalSource>;
     /** The initial amount this repeatable has on a new save / after reset. */
-    initialAmount?: DecimalSource;
+    initialAmount?: MaybeRefOrGetter<DecimalSource>;
     /** The display to use for this repeatable. */
     display?:
         | MaybeGetter<Renderable>
@@ -54,7 +54,7 @@ export interface Repeatable extends VueFeature {
     /** The maximum amount obtainable for this repeatable. */
     limit: MaybeRef<DecimalSource>;
     /** The initial amount this repeatable has on a new save / after reset. */
-    initialAmount?: DecimalSource;
+    initialAmount?: MaybeRef<DecimalSource>;
     /** The display to use for this repeatable. */
     display?: MaybeGetter<Renderable>;
     /** Whether or not the repeatable may be clicked. */
@@ -116,7 +116,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             requiresPay: false,
             visibility: Visibility.None,
             canMaximize: true
-        } as const;
+        } satisfies Requirements;
         const requirements: Requirements = [
             ...(Array.isArray(_requirements) ? _requirements : [_requirements]),
             limitRequirement
@@ -166,7 +166,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             display = _display;
         }
 
-        amount[DefaultValue] = initialAmount ?? 0;
+        amount[DefaultValue] = 0;
 
         const repeatable = {
             type: RepeatableType,
@@ -174,7 +174,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             ...vueFeature,
             amount,
             requirements,
-            initialAmount,
+            initialAmount: processGetter(initialAmount),
             clickableStyle,
             limit: processGetter(limit) ?? Decimal.dInf,
             classes: computed(() => {
@@ -204,8 +204,22 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
                 repeatable.purchase();
                 onClick?.(event);
             },
+            ensureHasMinimum() {
+                const minimimum = unref(repeatable.initialAmount) ?? Decimal.dZero;
+
+                if (Decimal.gte(amount.value, minimimum)) {
+                    return;
+                }
+
+                amount.value = Decimal.min(minimimum, unref(repeatable.limit));
+            },
             display
         } satisfies Repeatable;
+
+        watch(amount, () => repeatable.ensureHasMinimum());
+
+        watch(toRef(repeatable.initialAmount), () => repeatable.ensureHasMinimum());
+        repeatable.ensureHasMinimum();
 
         return repeatable;
     });

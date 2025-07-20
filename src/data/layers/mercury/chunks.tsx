@@ -27,7 +27,7 @@ const layer = createLayer(id, () => {
     const name = "Mercury Chunks";
     const color = "#68696d";
 
-    const chunks = createResource<DecimalSource>(0, "mercurial chunks");
+    const chunks = createResource<DecimalSource>(0, "Mercurial Chunks");
     const totalChunks = trackTotal(chunks);
 
     const conversion = createIndependentConversion(() => {
@@ -49,7 +49,8 @@ const layer = createLayer(id, () => {
                 return Decimal.dOne;
             }
 
-            return Decimal.sub(chunks.value, 19).add(10).pow(1.9).clampMin(1);
+            const level = Decimal.sub(chunks.value, 19);
+            return Decimal.times(90, Decimal.pow(1.125, Decimal.pow(level, 1.45)));
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -59,13 +60,6 @@ const layer = createLayer(id, () => {
             return Decimal.sub(chunks.value, 999).times(3).clampMin(1);
         });
 
-        const post30ScalingDivisor = computed(() => {
-            if (Decimal.lt(chunks.value, 30)) {
-                return Decimal.dOne;
-            }
-            return Decimal.sub(chunks.value, 29).add(10).pow(1.4).clampMin(1);
-        });
-
         return {
             formula: x =>
                 x
@@ -73,12 +67,14 @@ const layer = createLayer(id, () => {
                     .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
                     .mul(fuckingChunksEffect)
                     .mul(cheapingChunksEffect)
+                    .mul(solarLayer.mercuryTreeEffects.nowIHaveTwo)
+                    .mul(acceleratorsLayer.chunkAccelerator.pebbleSmasherEffect)
                     .div(1000) // starting cost
                     .step(1, f => f.div(30))
                     .step(5, f => f.div(2))
                     .step(10, f => f.cbrt().div(post10ScalingDivider))
                     .step(20, f => f.sqrt().div(post20ScalingDivider))
-                    .step(30, f => f.sqrt().div(post30ScalingDivisor))
+                    .step(29, f => f.sqrt())
                     .step(100, f => f.div(350).pow(0.7))
                     .step(1000, f => f.sqrt().div(post1000ScalingDivisor)),
             baseResource: dustLayer.mercurialDust,
@@ -109,7 +105,7 @@ const layer = createLayer(id, () => {
 
     const autoChunker = createLazyProxy(() => {
         watch(dustLayer.mercurialDust, () => {
-            if (upgrades.autoChunks.bought.value || unref(resetButton.canClick) === false) {
+            if (!upgrades.autoChunks.bought.value || unref(resetButton.canClick) === false) {
                 return;
             }
 
@@ -155,7 +151,7 @@ const layer = createLayer(id, () => {
         if (upgrades.splinteringChunks.bought.value) {
             return Decimal.add(mercuryLayer.collisionTimeGainComputed.value, 1)
                 .log10()
-                .cbrt()
+                .sqrt()
                 .clampMin(1);
         }
 
@@ -224,7 +220,12 @@ const layer = createLayer(id, () => {
         })),
 
         autoChunks: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            visibility: (): boolean => {
+                return (
+                    acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought.value ||
+                    upgrades.autoChunks.bought.value
+                );
+            },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(chunks),
                 cost: Decimal.fromNumber(35)
@@ -238,8 +239,8 @@ const layer = createLayer(id, () => {
         collidingChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(55)
+                resource: chunks,
+                cost: 50
             })),
             display: {
                 title: "Collidin' Chunks",
@@ -251,8 +252,8 @@ const layer = createLayer(id, () => {
         splinteringChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(90)
+                resource: chunks,
+                cost: 70
             })),
             display: {
                 title: "Splinterin' Chunks",
@@ -264,8 +265,8 @@ const layer = createLayer(id, () => {
         cheapingChunks: createUpgrade(() => ({
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
-                resource: noPersist(chunks),
-                cost: Decimal.fromNumber(135)
+                resource: chunks,
+                cost: 85
             })),
             display: {
                 title: "Cheapin' Chunks",
@@ -278,7 +279,7 @@ const layer = createLayer(id, () => {
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
                 resource: chunks,
-                cost: 500
+                cost: 100
             })),
             display: {
                 title: "Speedin' Chunks",
@@ -324,29 +325,36 @@ const layer = createLayer(id, () => {
 
     const fullReset = () => {
         createReset(() => ({ thingsToReset: () => [layer] })).reset();
-        const chunksGained = solarLayer.mercuryUpgrades.secretChunkStash.bought.value ? 3 : 0;
+        if (solarLayer.mercuryTreeUpgrades.secretChunkStash.bought.value) {
+            const chunksGained = 3;
+            dustLayer.unlocks.chunks.bought.value = true;
 
-        chunks.value = chunksGained;
-        totalChunks.value = chunksGained;
+            chunks.value = chunksGained;
+            totalChunks.value = chunksGained;
+        }
     };
 
-    watch(solarLayer.mercuryUpgrades.secretChunkStash.bought, bought => {
+    watch(solarLayer.mercuryTreeUpgrades.secretChunkStash.bought, bought => {
         if (!bought) {
             return;
         }
 
         chunks.value = Decimal.max(chunks.value, 3);
+        dustLayer.unlocks.chunks.bought.value = true;
     });
 
     const showExclamation = computed(() => {
         return Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value;
     });
 
+    const displayGlow = computed(() => {
+        return showExclamation.value || Object.values(upgrades).some(u => u.canPurchase.value);
+    });
+
     return {
         id,
         name,
         color,
-        // reset,
         fullReset,
         resetButton,
         chunks,
@@ -359,10 +367,12 @@ const layer = createLayer(id, () => {
         autoChunker,
         showExclamation,
         speedingChunksEffect,
-        // dustingChunksModifer,
+        displayGlow,
         display: () => (
             <>
-                <h2>You have {format(chunks.value)} mercurial chunks</h2>
+                <h2>
+                    You have {format(chunks.value)} {chunks.displayName}
+                </h2>
                 <h4>You have condensed a total of {format(totalChunks.value)}</h4>
                 <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
                 <Spacer />

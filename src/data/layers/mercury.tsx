@@ -82,7 +82,7 @@ const layer = createLayer(id, baseLayer => {
             .times(baseTimeRateModifier.apply(1))
             .times(dustTab.accelerationModifier.apply(1))
             .times(milestones.firstMilestoneModifier.apply(1))
-            .times(solarLayer.mercuryRetainedSpeedModifer.apply(1))
+            .times(solarLayer.mercuryTreeEffects.solarSpeed.value)
             .pow(dustTab.collisionCourseEffect.value)
             .pow(milestones.fourthMilestoneModifier.value)
             .pow(chunksTab.collidingChunksEffect.value)
@@ -105,11 +105,20 @@ const layer = createLayer(id, baseLayer => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
+    const displayGlow = computed(() => {
+        return (
+            dustTab.displayGlow.value ||
+            chunksTab.displayGlow.value ||
+            accelerators.displayGlow.value
+        );
+    });
+
     const treeNode = createLayerTreeNode(() => ({
         visibility: unlocked,
         layerID: id,
         display: () => <CelestialBodyIcon body={"Mercury"} />,
         wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
+        glowColor: () => (displayGlow.value ? color : null),
         color,
         reset
     }));
@@ -122,7 +131,7 @@ const layer = createLayer(id, baseLayer => {
             }))
         }),
         chunks: () => ({
-            visibility: dustTab.unlocks.chunks.bought,
+            visibility: () => dustTab.unlocks.chunks.bought.value,
             display: () => <>Chunks {chunksTab.showExclamation.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: chunksTab.display

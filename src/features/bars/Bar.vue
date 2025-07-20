@@ -51,8 +51,6 @@ const props = defineProps<{
     display?: MaybeGetter<Renderable>;
 }>();
 
-console.log(props.containerStyle);
-
 const computedWidth = computed<string>(() => {
     const width = props.width;
     if (typeof width === 'string') {
