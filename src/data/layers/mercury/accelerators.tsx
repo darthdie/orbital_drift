@@ -25,7 +25,7 @@ import {
 } from "game/modifiers";
 import { createTabFamily, TabFamilyOptions } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade } from "features/clickables/upgrade";
+import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import chunksLayer from "./chunks";
 import mercuryLayer from "../mercury";
 import { createLazyProxy } from "util/proxies";
@@ -294,7 +294,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: dustAccelerator.resource,
-                        cost: 1000 // ??
+                        cost: Decimal.fromNumber(1e9) // ??
                     })
                 ),
                 display: {
@@ -467,6 +467,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         })),
 
+        pebbleSmasherEffect: computed((): DecimalSource => {
+            if (chunkAccelerator.upgrades.pebbleSmasher.bought.value) {
+                return Decimal.add(chunkAccelerator.gainComputed.value, 1)
+                    .pow(0.1)
+                    .sqrt()
+                    .clampMin(1);
+            }
+
+            return Decimal.dOne;
+        }),
+
         upgrades: {
             chunksMeetDust: createUpgrade(() => ({
                 requirements: createCostRequirement(
@@ -507,7 +518,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Time go brrr",
                     description: "Unlock Time Accelerons"
                 }
-            }))
+            })),
+
+            pebbleSmasher: createUpgrade(
+                (): UpgradeOptions => ({
+                    requirements: createCostRequirement(() => ({
+                        resource: chunkAccelerator.resource,
+                        cost: Decimal.fromNumber(1e8)
+                    })),
+                    display: {
+                        title: "Pebble Smasher",
+                        description: "Divide chunk cost based on Chunk Acceleron gain",
+                        effectDisplay: (): string =>
+                            `÷${format(chunkAccelerator.pebbleSmasherEffect.value)}`
+                    }
+                })
+            )
         },
 
         isAtLeastLevelOne: computed((): boolean =>
