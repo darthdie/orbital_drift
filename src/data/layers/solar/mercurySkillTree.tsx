@@ -2,9 +2,7 @@ import { createSkillTree, blankSkillTreeNode, createSkillTreeNodeRequirement } f
 import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { noPersist } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
-import solarLayer from '../solar';
 import { createMultiplicativeModifier, createSequentialModifier, MultiplicativeModifierOptions } from "game/modifiers";
-import { createLazyProxy } from "util/proxies";
 import { Resource } from "features/resources/resource";
 import { DecimalSource } from "util/bignum";
 
@@ -55,6 +53,33 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
         effectDisplay: () => `x${solarSpeedModifer.apply(1)}`
       }
     })),
+    dustyTomes: createUpgrade((): UpgradeOptions => ({
+      requirements: [
+        createCostRequirement(() => ({
+          resource: solarRays,
+          cost: 1
+        })),
+        createSkillTreeNodeRequirement(upgrades.solarFriedDust)
+      ],
+      display: {
+        title: "Dusty Tomes",
+        description: "Keep the first row of Dust upgrades."
+      }
+    })),
+    eightyEight: createUpgrade((): UpgradeOptions => ({
+      requirements: [
+        createCostRequirement(() => ({
+          resource: solarRays,
+          cost: 1
+        })),
+        createSkillTreeNodeRequirement(upgrades.solarFriedDust)
+      ],
+      display: {
+        title: "88",
+        description: "Multiply Acceleron Gain by x2.",
+        effectDisplay: (): string => upgrades.eightyEight.bought.value ? `x2` : `x1`
+      }
+    })),
     nowIHaveTwo: createUpgrade((): UpgradeOptions => ({
       requirements: [
         createCostRequirement(() => ({
@@ -65,8 +90,8 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       ],
       display: {
         title: "Now I Have Two!",
-        description: "Divide Chunks cost by /2.",
-        effectDisplay: () => upgrades.nowIHaveTwo.bought.value ? `/2` : `/1`
+        description: "Divide Chunks cost by ÷2.",
+        effectDisplay: () => upgrades.nowIHaveTwo.bought.value ? `÷2` : `÷1`
       }
     })),
     snortingDust: createUpgrade((): UpgradeOptions => ({
@@ -75,7 +100,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
           resource: solarRays,
           cost: 3
         })),
-        createSkillTreeNodeRequirement(upgrades.solarFriedDust)
+        createSkillTreeNodeRequirement(upgrades.dustyTomes)
       ],
       display: {
         title: "Snorting Dust",
@@ -88,7 +113,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
           resource: solarRays,
           cost: 3
         })),
-        createSkillTreeNodeRequirement(upgrades.solarFriedDust)
+        createSkillTreeNodeRequirement(upgrades.eightyEight)
       ],
       display: {
         title: "ˢᵉᶜʳᵉᵗ ᶜʰᵘⁿᵏ ˢᵗᵃˢʰ",
@@ -118,7 +143,8 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       ],
       display: {
         title: "Like that blue guy",
-        description: "Acceleron gain or speed is x2 or /2"
+        description: "All Acceleron intervals are divided by ÷2.",
+        effectDisplay: (): string => upgrades.likeThatBlueGuy.bought.value ? "÷2" : "÷1"
       }
     })),
     autoAutoChunks: createUpgrade((): UpgradeOptions => ({
@@ -165,6 +191,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
     nodes: noPersist([
       [upgrades.solarSpeed, blankSkillTreeNode, upgrades.nowIHaveTwo],
       [blankSkillTreeNode, upgrades.solarFriedDust, blankSkillTreeNode],
+      [upgrades.dustyTomes, blankSkillTreeNode, upgrades.eightyEight],
       [upgrades.snortingDust, blankSkillTreeNode, upgrades.secretChunkStash],
       [blankSkillTreeNode, upgrades.youGetAPile, blankSkillTreeNode],
       [upgrades.nTropy, upgrades.likeThatBlueGuy, upgrades.autoAutoChunks],
@@ -173,8 +200,10 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
     branches: noPersist([
       { startNode: upgrades.solarFriedDust, endNode: upgrades.solarSpeed },
       { startNode: upgrades.solarFriedDust, endNode: upgrades.nowIHaveTwo },
-      { startNode: upgrades.solarFriedDust, endNode: upgrades.snortingDust },
-      { startNode: upgrades.solarFriedDust, endNode: upgrades.secretChunkStash },
+      { startNode: upgrades.solarFriedDust, endNode: upgrades.dustyTomes },
+      { startNode: upgrades.solarFriedDust, endNode: upgrades.eightyEight },
+      { startNode: upgrades.dustyTomes, endNode: upgrades.snortingDust },
+      { startNode: upgrades.eightyEight, endNode: upgrades.secretChunkStash },
       { startNode: upgrades.snortingDust, endNode: upgrades.youGetAPile },
       { startNode: upgrades.secretChunkStash, endNode: upgrades.youGetAPile },
       { startNode: upgrades.youGetAPile, endNode: upgrades.likeThatBlueGuy },
@@ -184,11 +213,10 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       { startNode: upgrades.likeThatBlueGuy, endNode: upgrades.mastery },
       { startNode: upgrades.autoAutoChunks, endNode: upgrades.mastery },
     ])
-    // branches: noPersist([
-    //   { startNode: solarSystemUpgrades.mercury, endNode: solarSystemUpgrades.venus },
-    //   { startNode: solarSystemUpgrades.venus, endNode: solarSystemUpgrades.earth }
-    // ])
   }));
+
+  // post mastery upgrades:
+  // uncap level buyables, boosting the previous effects.
 
   return {
     upgrades,
