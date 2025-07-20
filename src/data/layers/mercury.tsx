@@ -106,7 +106,7 @@ const layer = createLayer(id, baseLayer => {
     }));
 
     const displayGlow = computed(() => {
-        return dustTab.displayGlow || chunksTab.displayGlow;
+        return dustTab.displayGlow.value || chunksTab.displayGlow.value || accelerators.displayGlow;
     });
 
     const treeNode = createLayerTreeNode(() => ({

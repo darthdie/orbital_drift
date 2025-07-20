@@ -1094,9 +1094,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const displayGlow = computed(() => {
         return showExclamation ||
-            Object.values(dustAccelerator.upgrades).some(u => u.canPurchase) ||
-            Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase) ||
-            Object.values(timeAccelerator.upgrades).some(u => u.canPurchase);
+            Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
+            Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
+            Object.values(timeAccelerator.upgrades).some(u => u.canPurchase.value);
     })
 
     return {

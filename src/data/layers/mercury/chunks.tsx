@@ -353,7 +353,7 @@ const layer = createLayer(id, () => {
     });
 
     const displayGlow = computed(() => {
-        return showExclamation || Object.values(upgrades).some(u => u.canPurchase);
+        return showExclamation.value || Object.values(upgrades).some(u => u.canPurchase.value);
     });
 
     return {
