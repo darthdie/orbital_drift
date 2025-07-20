@@ -181,7 +181,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
         resource: solarRays,
         cost: 10
       })),
-      createSkillTreeNodeRequirement([upgrades.autoAutoChunks, upgrades.nTropy, upgrades.likeThatBlueGuy])
+      createSkillTreeNodeRequirement([upgrades.likeThatBlueGuy])
       ],
       display: {
         title: "Mastery",
@@ -212,9 +212,9 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       { startNode: upgrades.youGetAPile, endNode: upgrades.likeThatBlueGuy },
       { startNode: upgrades.likeThatBlueGuy, endNode: upgrades.nTropy },
       { startNode: upgrades.likeThatBlueGuy, endNode: upgrades.autoAutoChunks },
-      { startNode: upgrades.nTropy, endNode: upgrades.mastery },
+      // { startNode: upgrades.nTropy, endNode: upgrades.mastery },
       { startNode: upgrades.likeThatBlueGuy, endNode: upgrades.mastery },
-      { startNode: upgrades.autoAutoChunks, endNode: upgrades.mastery },
+      // { startNode: upgrades.autoAutoChunks, endNode: upgrades.mastery },
     ])
   }));
 

@@ -115,8 +115,8 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             ),
             requiresPay: false,
             visibility: Visibility.None,
-            canMaximize: true
-        } as const;
+            canMaximize: true,
+        } satisfies Requirements;
         const requirements: Requirements = [
             ...(Array.isArray(_requirements) ? _requirements : [_requirements]),
             limitRequirement

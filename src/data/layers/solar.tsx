@@ -9,14 +9,9 @@ import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { render, renderGroupedObjects } from "util/vue";
+import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import {
-    createMultiplicativeModifier,
-    createSequentialModifier,
-    MultiplicativeModifierOptions
-} from "game/modifiers";
 import CelestialBodyIcon, { SupportedBodies } from "components/CelestialBodyIcon.vue";
 import { computed, MaybeRef, unref } from "vue";
 import "./solar.css";
@@ -26,7 +21,7 @@ import {
 } from "data/features/skill_tree/skillTree";
 import { createMercurySkillTree } from "./solar/mercurySkillTree";
 import mercuryLayer from './mercury';
-import venusLayer from './venus';
+import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 
 const id = "S";
 const layer = createLayer(id, () => {
@@ -68,11 +63,9 @@ const layer = createLayer(id, () => {
     ) => {
         const color = unref(layer.color);
         return (
-            <div class="flex" style={{ gap: "8px", color: color }}>
-                <CelestialBodyIcon body={body} color={color}>
-                    Mercury
-                </CelestialBodyIcon>
-                {format(resource.value)}
+            <div class="flex" style={{ gap: "8px", color }}>
+                <CelestialBodyIcon body={body} style={{ color }} />
+                {format(resource.value, 0)}
             </div>
         );
     };
@@ -92,7 +85,7 @@ const layer = createLayer(id, () => {
                 },
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: noPersist(energy),
+                        resource: energy,
                         cost: 1
                     }))
                 ]
@@ -106,8 +99,8 @@ const layer = createLayer(id, () => {
                 },
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: noPersist(solarRays),
-                        cost: 3
+                        resource: mercuryCores,
+                        cost: 5
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
                 ]
@@ -141,8 +134,9 @@ const layer = createLayer(id, () => {
     }));
 
     const displayGlow = computed(() => {
-        // Can any of the solar system tree be bought?
-        return Object.values(solarSystemUpgrades).some(u => u.canPurchase.value);
+        const solarSystemPurchaseable = Object.values(solarSystemUpgrades).some(u => u.canPurchase.value);
+        const mercuryTreePurchasable = Object.values(mercuryTreeUpgrades).some(u => u.canPurchase.value);
+        return solarSystemPurchaseable || mercuryTreePurchasable;
     });
 
     const treeNode = createLayerTreeNode(() => ({
@@ -152,6 +146,36 @@ const layer = createLayer(id, () => {
         glowColor: () => (displayGlow.value ? color : null),
         reset
     }));
+
+    const fibFormula = (amount: DecimalSource): DecimalSource => {
+        if (Decimal.lte(amount, 1)) {
+            return 1;
+        }
+
+        let a = 1, b = 1;
+        for (let i = 2; Decimal.lte(i, amount); i++) {
+            [a, b] = [b, a + b];
+        }
+        return b;
+    };
+
+    const converters = {
+        solarEnergy: createRepeatable((): RepeatableOptions => ({
+            requirements: createCostRequirement(() => ({
+                resource: energy,
+                cost: () => fibFormula(converters.solarEnergy.amount.value)
+            })),
+            display: {
+                showAmount: false,
+                // title: "Energy Converter",
+                description: `Convert 1 ${energy.displayName} to 1 ${solarRays.displayName}.`
+            },
+            clickableStyle: {
+                width: "200px",
+                minHeight: "0"
+            }
+        }))
+    };
 
     const tabs = createTabFamily(
         {
@@ -190,22 +214,24 @@ const layer = createLayer(id, () => {
             mercury: () => ({
                 display: "Mercury",
                 // visibility: milestones.second.earned,
-                tab: createTab(() => ({
-                    display: () => (
-                        <>
-                            <h2>{format(solarRays.value)} {solarRays.displayName}</h2>
-                            <hr style={{ width: "256px", margin: "auto", background: "#997a1f" }} />
-                            <div class="flex" style="gap: 32px;">
-                                {createPlanetCoreSummary("Mercury", mercuryLayer, mercuryCores)}
-                                {createPlanetCoreSummary("Venus", venusLayer, venusCores)}
-
-                                <div class="flex" style="flex: 1;"></div>
-                            </div>
-                            <Spacer />
-                            {render(mercuryTree)}
-                        </>
-                    )
-                }))
+                tab: createTab(() => {
+                    const color = unref(mercuryLayer.color);
+                    return {
+                        display: () => (
+                            <>
+                                <h2>
+                                    <CelestialBodyIcon
+                                        body="Mercury"
+                                        style={{ display: "inline", color }}
+                                    /> {format(mercuryCores.value, 0)} {mercuryCores.displayName}
+                                </h2>
+                                <hr style={{ width: "256px", margin: "auto", background: color, marginTop: "6px" }} />
+                                <Spacer />
+                                {render(mercuryTree)}
+                            </>
+                        )
+                    };
+                })
             })
         },
         () => ({ style: { height: "100%" } })
@@ -227,12 +253,11 @@ const layer = createLayer(id, () => {
         mercuryTree,
         mercuryTreeUpgrades,
         mercuryTreeEffects,
-        // testUpgrade,
-        // board,
+        converters,
         display: () => (
             <>
                 <h2>
-                    You have {format(energy.value)} {energy.displayName}
+                    You have <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} /> {format(energy.value)} {energy.displayName}
                 </h2>
                 <h4>You have made a total of {format(totalEnergy.value)}</h4>
                 <Spacer />
