@@ -83,10 +83,10 @@
     font-display: swap;
 }
 
-
 * {
 	transition-duration: 0.5s;
 	font-family: "Neris", monospace;
+	font-variant-numeric: tabular-nums;
 	font-weight: bold;
 	margin: auto;
 	text-size-adjust: none;
