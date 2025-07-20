@@ -1,6 +1,6 @@
 import { createResource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
-import { DefaultValue, noPersist } from "game/persistence";
+import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import solarLayer from "../solar";
 import { computed, ComputedRef, unref, watch } from "vue";
@@ -264,23 +264,19 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         Decimal.add(30, acceleratorsLayer.dustAccelerator.dustBuyableCapEffect.value)
     );
 
-    const initialAmountFor = (repeatable: Repeatable) => {
-        return () => {
-            if (milestonesLayer.milestones.five.earned.value === true) {
-                return Decimal.min(chunksLayer.totalChunks.value, repeatable.bestAmount.value);
-            }
+    type RepeatableOptionsWithBest = RepeatableOptions & { bestAmount: Persistent<DecimalSource> };
 
-            if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
-                return Decimal.dOne;
-            }
-
-            return Decimal.dZero;
-        };
+    const repeatableBestAmounts = {
+        baseDustTime: persistent<DecimalSource>(0),
+        baseDustGain: persistent<DecimalSource>(0),
+        dustMultiplier: persistent<DecimalSource>(0),
+        dustPiles: persistent<DecimalSource>(0)
     };
 
     const repeatables = {
         baseDustTime: createRepeatable(
-            (): RepeatableOptions => ({
+            (): RepeatableOptionsWithBest => ({
+                bestAmount: repeatableBestAmounts.baseDustTime,
                 limit: () => buyableCap.value,
                 initialAmount: initialAmountFor(repeatables.baseDustTime),
                 requirements: createCostRequirement(
@@ -300,7 +296,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         baseDustGain: createRepeatable(
-            (): RepeatableOptions => ({
+            (): RepeatableOptionsWithBest => ({
+                bestAmount: repeatableBestAmounts.baseDustGain,
                 limit: () => buyableCap.value,
                 initialAmount: initialAmountFor(repeatables.baseDustGain),
                 requirements: createCostRequirement(
@@ -320,7 +317,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         dustMultiplier: createRepeatable(
-            (): RepeatableOptions => ({
+            (): RepeatableOptionsWithBest => ({
+                bestAmount: repeatableBestAmounts.dustMultiplier,
                 limit: () => buyableCap.value,
                 initialAmount: initialAmountFor(repeatables.dustMultiplier),
                 requirements: createCostRequirement(
@@ -340,7 +338,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         ),
 
         dustPiles: createRepeatable(
-            (): RepeatableOptions => ({
+            (): RepeatableOptionsWithBest => ({
+                bestAmount: repeatableBestAmounts.dustPiles,
                 limit: () => buyableCap.value,
                 initialAmount: initialAmountFor(repeatables.dustPiles),
                 requirements: createCostRequirement(
@@ -359,6 +358,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value === true
             })
         )
+    };
+
+    const initialAmountFor = (
+        repeatable: Repeatable & { bestAmount: Persistent<DecimalSource> }
+    ) => {
+        return () => {
+            if (milestonesLayer.milestones.five.earned.value === true) {
+                return Decimal.min(chunksLayer.totalChunks.value, repeatable.bestAmount.value);
+            }
+
+            if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
+                return Decimal.dOne;
+            }
+
+            return Decimal.dZero;
+        };
     };
 
     const accumulatingDustModifier = createSequentialModifier(() => [
@@ -588,7 +603,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
             applySecondMilestone();
-            applyYouGetAPile();
             applyDustyTome();
         }
     }));
@@ -601,14 +615,14 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeSinceReset.value = 0;
         totalTimeSinceReset.value = 0;
 
-        applyYouGetAPile();
+        Object.values(repeatableBestAmounts).forEach(r => (r.value = 0));
+
         applyDustyTome();
         applyNTropy();
         applyAutoAutoChunks();
     };
 
     watch(milestonesLayer.completedMilestonesCount, () => applySecondMilestone());
-    watch(solarLayer.mercuryTreeUpgrades.youGetAPile.bought, () => applyYouGetAPile());
     watch(solarLayer.mercuryTreeUpgrades.dustyTomes.bought, () => applyDustyTome());
     watch(solarLayer.mercuryTreeUpgrades.nTropy.bought, () => applyNTropy());
     watch(solarLayer.mercuryTreeUpgrades.autoAutoChunks.bought, () => applyAutoAutoChunks());
@@ -623,12 +637,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         Object.values(basicUpgrades)
             .slice(0, count)
             .forEach(u => (u.bought.value = true));
-    }
-
-    function applyYouGetAPile() {
-        if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
-            Object.values(repeatables).forEach(repeatable => (repeatable.amount.value = 1));
-        }
     }
 
     function applyDustyTome() {

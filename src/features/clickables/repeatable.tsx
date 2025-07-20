@@ -64,7 +64,6 @@ export interface Repeatable extends VueFeature {
     purchase: (spend: boolean) => void;
     /** The current amount this repeatable has. */
     amount: Persistent<DecimalSource>;
-    bestAmount: Persistent<DecimalSource>;
     /** Whether or not this repeatable's amount is at it's limit. */
     maxed: Ref<boolean>;
     /** How much amount can be increased by, or 1 if unclickable. **/
@@ -79,7 +78,6 @@ export interface Repeatable extends VueFeature {
  */
 export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () => T) {
     const amount = persistent<DecimalSource>(0);
-    const bestAmount = persistent<DecimalSource>(0);
     return createLazyProxy(() => {
         const options = optionsFunc();
         const {
@@ -169,14 +167,12 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
         }
 
         amount[DefaultValue] = 0;
-        bestAmount[DefaultValue] = 0;
 
         const repeatable = {
             type: RepeatableType,
             ...(props as Omit<typeof props, keyof VueFeature | keyof RepeatableOptions>),
             ...vueFeature,
             amount,
-            bestAmount,
             requirements,
             initialAmount: processGetter(initialAmount),
             clickableStyle,
@@ -220,13 +216,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             display
         } satisfies Repeatable;
 
-        watch(amount, amount => {
-            repeatable.ensureHasMinimum();
-
-            if (Decimal.gt(amount, bestAmount.value)) {
-                bestAmount.value = amount;
-            }
-        });
+        watch(amount, () => repeatable.ensureHasMinimum());
 
         watch(toRef(repeatable.initialAmount), () => repeatable.ensureHasMinimum());
         repeatable.ensureHasMinimum();

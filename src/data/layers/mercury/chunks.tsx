@@ -50,7 +50,7 @@ const layer = createLayer(id, () => {
             }
 
             const level = Decimal.sub(chunks.value, 19);
-            return Decimal.times(90, Decimal.pow(1.145, Decimal.pow(level, 1.5)));
+            return Decimal.times(90, Decimal.pow(1.15, Decimal.pow(level, 1.49)));
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -68,6 +68,7 @@ const layer = createLayer(id, () => {
                     .mul(fuckingChunksEffect)
                     .mul(cheapingChunksEffect)
                     .mul(solarLayer.mercuryTreeEffects.nowIHaveTwo)
+                    .mul(acceleratorsLayer.chunkAccelerator.pebbleSmasherEffect)
                     .div(1000) // starting cost
                     .step(1, f => f.div(30))
                     .step(5, f => f.div(2))
