@@ -50,7 +50,7 @@ const layer = createLayer(id, () => {
             }
 
             const level = Decimal.sub(chunks.value, 19);
-            return Decimal.times(90, Decimal.pow(1.15, Decimal.pow(level, 1.45)));
+            return Decimal.times(90, Decimal.pow(1.125, Decimal.pow(level, 1.45)));
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -279,7 +279,7 @@ const layer = createLayer(id, () => {
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
                 resource: chunks,
-                cost: 500
+                cost: 100
             })),
             display: {
                 title: "Speedin' Chunks",

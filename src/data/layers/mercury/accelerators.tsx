@@ -524,7 +524,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 (): UpgradeOptions => ({
                     requirements: createCostRequirement(() => ({
                         resource: chunkAccelerator.resource,
-                        cost: Decimal.fromNumber(1e8)
+                        cost: Decimal.fromNumber(1e6)
                     })),
                     display: {
                         title: "Pebble Smasher",
