@@ -122,7 +122,7 @@ const layer = createLayer(id, baseLayer => {
             }))
         }),
         chunks: () => ({
-            visibility: dustTab.unlocks.chunks.bought,
+            visibility: () => dustTab.unlocks.chunks.bought.value,
             display: () => <>Chunks {chunksTab.showExclamation.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: chunksTab.display

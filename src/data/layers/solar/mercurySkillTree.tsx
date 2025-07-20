@@ -27,7 +27,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
   });
 
   const likeThatBlueGuyEffect = computed((): DecimalSource => {
-    return upgrades.likeThatBlueGuy.bought.value ? 2 : 1;
+    return upgrades.likeThatBlueGuy.bought.value ? 1.5 : 1;
   });
 
   const upgrades = {
@@ -146,7 +146,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
       ],
       display: {
         title: "Like that blue guy",
-        description: "All Acceleron intervals are divided by ÷2.",
+        description: "All Acceleron intervals are divided by ÷1.5.",
         effectDisplay: () => `÷${format(likeThatBlueGuyEffect.value)}`
       }
     })),

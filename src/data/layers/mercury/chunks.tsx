@@ -73,6 +73,7 @@ const layer = createLayer(id, () => {
                     .mul(acceleratorsLayer.chunkAccelerator.chunkCostDivisionEffect)
                     .mul(fuckingChunksEffect)
                     .mul(cheapingChunksEffect)
+                    .mul(solarLayer.mercuryTreeEffects.nowIHaveTwo)
                     .div(1000) // starting cost
                     .step(1, f => f.div(30))
                     .step(5, f => f.div(2))
@@ -109,7 +110,7 @@ const layer = createLayer(id, () => {
 
     const autoChunker = createLazyProxy(() => {
         watch(dustLayer.mercurialDust, () => {
-            if (upgrades.autoChunks.bought.value || unref(resetButton.canClick) === false) {
+            if (!upgrades.autoChunks.bought.value || unref(resetButton.canClick) === false) {
                 return;
             }
 
@@ -224,7 +225,9 @@ const layer = createLayer(id, () => {
         })),
 
         autoChunks: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            visibility: (): boolean => {
+                return acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought.value || upgrades.autoChunks.bought.value;
+            },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(chunks),
                 cost: Decimal.fromNumber(35)
@@ -324,10 +327,13 @@ const layer = createLayer(id, () => {
 
     const fullReset = () => {
         createReset(() => ({ thingsToReset: () => [layer] })).reset();
-        const chunksGained = solarLayer.mercuryTreeUpgrades.secretChunkStash.bought.value ? 3 : 0;
+        if (solarLayer.mercuryTreeUpgrades.secretChunkStash.bought.value) {
+            const chunksGained = 3;
+            dustLayer.unlocks.chunks.bought.value = true;
 
-        chunks.value = chunksGained;
-        totalChunks.value = chunksGained;
+            chunks.value = chunksGained;
+            totalChunks.value = chunksGained;
+        }
     };
 
     watch(solarLayer.mercuryTreeUpgrades.secretChunkStash.bought, bought => {
@@ -336,6 +342,7 @@ const layer = createLayer(id, () => {
         }
 
         chunks.value = Decimal.max(chunks.value, 3);
+        dustLayer.unlocks.chunks.bought.value = true;
     });
 
     const showExclamation = computed(() => {

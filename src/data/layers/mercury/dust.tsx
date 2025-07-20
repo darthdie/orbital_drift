@@ -576,11 +576,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 });
             }
 
-            if (milestonesLayer.milestones.second.earned.value === true) {
-                Object.values(basicUpgrades)
-                    .slice(0, milestonesLayer.completedMilestonesCount.value)
-                    .forEach(u => (u.bought.value = true));
-            }
+            applySecondMilestone();
+            applyYouGetAPile();
+            applyDustyTome();
         }
     }));
 
@@ -592,30 +590,56 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeSinceReset.value = 0;
         totalTimeSinceReset.value = 0;
 
-        if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
-            Object.values(repeatables).forEach(repeatable => (repeatable.amount.value = 1));
-        }
+        applyYouGetAPile();
+        applyDustyTome();
+        applyNTropy();
+        applyAutoAutoChunks();
     };
 
-    watch(milestonesLayer.completedMilestonesCount, count => {
+    watch(milestonesLayer.completedMilestonesCount, () => applySecondMilestone());
+    watch(solarLayer.mercuryTreeUpgrades.youGetAPile.bought, () => applyYouGetAPile());
+    watch(solarLayer.mercuryTreeUpgrades.dustyTomes.bought, () => applyDustyTome());
+    watch(solarLayer.mercuryTreeUpgrades.nTropy.bought, () => applyNTropy());
+    watch(solarLayer.mercuryTreeUpgrades.autoAutoChunks.bought, () => applyAutoAutoChunks());
+
+    function applySecondMilestone() {
         if (milestonesLayer.milestones.second.earned.value === false) {
             return;
         }
 
+        const count = milestonesLayer.completedMilestonesCount.value;
+
         Object.values(basicUpgrades)
             .slice(0, count)
             .forEach(u => (u.bought.value = true));
-    });
+    }
 
-    watch(solarLayer.mercuryTreeUpgrades.youGetAPile.bought, bought => {
-        if (!bought) {
-            return;
+    function applyYouGetAPile() {
+        if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
+            Object.values(repeatables).forEach(repeatable => (repeatable.amount.value = 1));
         }
+    }
 
-        Object.values(repeatables).forEach(
-            repeatable => (repeatable.amount.value = Decimal.max(1, repeatable.amount.value))
-        );
-    });
+    function applyDustyTome() {
+        if (solarLayer.mercuryTreeUpgrades.dustyTomes.bought.value) {
+            basicUpgrades.messengerGodUpgrade.bought.value = true;
+            basicUpgrades.slippingTimeUpgrade.bought.value = true;
+            basicUpgrades.collisionCourse.bought.value = true;
+            basicUpgrades.acummulatingDust.bought.value = true;
+        }
+    }
+
+    function applyNTropy() {
+        if (solarLayer.mercuryTreeUpgrades.nTropy.bought.value) {
+            unlocks.accelerators.bought.value = true;
+        }
+    }
+
+    function applyAutoAutoChunks() {
+        if (solarLayer.mercuryTreeUpgrades.autoAutoChunks.bought.value) {
+            chunksLayer.upgrades.autoChunks.bought.value = true;
+        }
+    }
 
     const resetButton = createResetButton(() => ({
         conversion,
