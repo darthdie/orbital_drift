@@ -12,7 +12,7 @@ import { computed } from "vue";
 
 // Planet Cores -> Solar Rays
 
-export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
+export function createMercurySkillTree(mercuryCores: Resource<DecimalSource>) {
     const solarSpeedEffect = computed((): DecimalSource => {
         return upgrades.solarSpeed.bought.value ? 2 : 1;
     });
@@ -37,7 +37,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
         solarFriedDust: createUpgrade(
             (): UpgradeOptions => ({
                 requirements: createCostRequirement(() => ({
-                    resource: solarRays,
+                    resource: mercuryCores,
                     cost: 1
                 })),
                 display: {
@@ -51,7 +51,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 1
                     })),
                     createSkillTreeNodeRequirement(upgrades.solarFriedDust)
@@ -67,7 +67,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 1
                     })),
                     createSkillTreeNodeRequirement(upgrades.solarFriedDust)
@@ -82,7 +82,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 1
                     })),
                     createSkillTreeNodeRequirement(upgrades.solarFriedDust)
@@ -98,7 +98,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 1
                     })),
                     createSkillTreeNodeRequirement(upgrades.solarFriedDust)
@@ -114,7 +114,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 3
                     })),
                     createSkillTreeNodeRequirement(upgrades.dustyTomes)
@@ -129,7 +129,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 3
                     })),
                     createSkillTreeNodeRequirement(upgrades.eightyEight)
@@ -144,7 +144,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement([
@@ -163,7 +163,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement(upgrades.youGetAPile)
@@ -179,7 +179,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement(upgrades.likeThatBlueGuy)
@@ -194,7 +194,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement(upgrades.likeThatBlueGuy)
@@ -209,7 +209,7 @@ export function createMercurySkillTree(solarRays: Resource<DecimalSource>) {
             (): UpgradeOptions => ({
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: solarRays,
+                        resource: mercuryCores,
                         cost: 10
                     })),
                     createSkillTreeNodeRequirement([upgrades.likeThatBlueGuy])

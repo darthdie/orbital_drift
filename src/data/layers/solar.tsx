@@ -43,14 +43,14 @@ const layer = createLayer(id, () => {
         first: createAchievement(() => ({
             requirements: createCountRequirement(totalEnergy, 1),
             display: {
-                requirement: "1 Solar Energy",
+                requirement: "1 Total Solar Energy",
                 optionsDisplay: "Start your journey. Unlock the Solar System."
             }
         })),
         second: createAchievement(() => ({
-            requirements: createCountRequirement(totalEnergy, 4),
+            requirements: createCountRequirement(totalEnergy, 2),
             display: {
-                requirement: "2 Solar Energy",
+                requirement: "2 Total Solar Energy",
                 optionsDisplay: "Unlock Planet Cores & Mastery Trees"
             }
         }))
@@ -60,7 +60,7 @@ const layer = createLayer(id, () => {
         skillTree: mercuryTree,
         upgrades: mercuryTreeUpgrades,
         effects: mercuryTreeEffects
-    } = createMercurySkillTree(solarRays);
+    } = createMercurySkillTree(mercuryCores);
 
     const solarSystemUpgrades = {
         mercury: createUpgrade(
