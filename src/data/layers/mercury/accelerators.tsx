@@ -31,6 +31,7 @@ import mercuryLayer from "../mercury";
 import { createLazyProxy } from "util/proxies";
 import { createReset } from "features/reset";
 import solarLayer from "../solar";
+import milestonesLayer from "./milestones";
 
 const id = "Ma";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -190,6 +191,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         .mul(0.004)
                         .add(1)
                         .step(2, f => f.pow(0.1))
+                        .step(5, f => f.div(10))
+                        // .step(5, f => f.pow(0.1))
                         .evaluate()
                 );
             }
@@ -242,6 +245,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         dustyJeansEffect: computed((): Decimal => {
             if (dustAccelerator.upgrades.dustyJeans.bought.value) {
+                // Formula.variable(dustAccelerator.resource.value).add(1).log2().step(30, f => f.sqrt()).evaluate();
                 return Decimal.add(dustAccelerator.resource.value, 1).log2().clampMin(1);
             }
 
@@ -294,7 +298,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: dustAccelerator.resource,
-                        cost: Decimal.fromNumber(1e9) // ??
+                        cost: Decimal.fromNumber(2.5e6) // ??
                     })
                 ),
                 display: {
@@ -419,7 +423,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .div(chunkAccelerator.intervalBuyableEffect.value)
                 .div(chunkAccelerator.dustAcceleratorIntervalEffect.value)
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
-                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value);
+                .div(milestonesLayer.fiftyMilestoneEffect.value)
+                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
+                .clampMin(1);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
@@ -524,7 +530,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 (): UpgradeOptions => ({
                     requirements: createCostRequirement(() => ({
                         resource: chunkAccelerator.resource,
-                        cost: Decimal.fromNumber(1e6)
+                        cost: Decimal.fromNumber(1e5)
                     })),
                     display: {
                         title: "Pebble Smasher",
@@ -611,9 +617,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             )
         ]),
 
-        levelThreeRaiseEffect: computed((): Decimal => {
+        levelThreeRaiseEffect: computed((): DecimalSource => {
             if (chunkAccelerator.isAtLeastLevelThree.value) {
-                return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.1).cbrt().clampMin(1);
+                return Formula.variable(chunkAccelerator.resource.value)
+                    .add(10)
+                    .log10()
+                    .pow(0.5)
+                    .sqrt()
+                    .step(2, f => f.sqrt())
+                    .clampMin(1)
+                    .evaluate();
+                // return Decimal.dOne;
+                // return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.1).cbrt().clampMin(1);
             }
 
             return Decimal.dOne;
@@ -725,7 +740,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .div(timeAccelerator.acceleronTimerDivisionModifier.value)
                 .div(timeAccelerator.doomsdayClockEffect.value)
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
-                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value);
+                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
+                .clampMin(0.1);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
@@ -805,11 +821,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Bring It Home",
-                    description: "Multiply Collision Time based on Time Accelerons.",
+                    description: "Improve the Level 3 effect based on Time Accelerons.",
                     effectDisplay: (): string =>
                         `x${format(timeAccelerator.bringItHomeEffect.value)}`
                 }
-            }))
+            })),
         },
 
         doomsdayClockEffect: computed((): Decimal => {
@@ -893,17 +909,26 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.dOne;
         }),
 
-        levelThreeRaiseEffect: computed((): Decimal => {
+        levelThreeRaiseEffect: computed((): DecimalSource => {
             if (
                 timeAccelerator.isAtLeastLevelThree.value &&
                 Decimal.gt(timeAccelerator.resource.value, 0)
             ) {
-                return Decimal.add(timeAccelerator.resource.value, 10)
+                return Formula.variable(timeAccelerator.resource.value)
+                    .add(10)
                     .log10()
                     .pow(0.1)
                     .sqrt()
                     .add(timeAccelerator.bringItHomeEffect.value)
-                    .clampMin(1);
+                    .step(2, f => f.sqrt())
+                    .clampMin(1)
+                    .evaluate();
+                // return Decimal.add(timeAccelerator.resource.value, 10)
+            //         .log10()
+            //         .pow(0.1)
+            //         .sqrt()
+            //         .add(timeAccelerator.bringItHomeEffect.value)
+            //         .clampMin(1);
             }
 
             return Decimal.dOne;

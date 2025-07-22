@@ -49,7 +49,7 @@
 }
 
 .celestial-body-icon {
-    font-family:'AstronomicSigns';
+    font-family:"AstronomicSigns";
     display: flex;
     margin: 0;
 }

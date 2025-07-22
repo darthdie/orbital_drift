@@ -3,7 +3,7 @@ import { createLayer } from "game/layers";
 import { createLayerTreeNode, createResetButton } from "data/common";
 import { createIndependentConversion } from "features/conversion";
 import dustLayer from "./dust";
-import { createResource, trackTotal } from "features/resources/resource";
+import { createResource, trackBest } from "features/resources/resource";
 import { noPersist } from "game/persistence";
 import { computed, unref, watch } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -28,7 +28,7 @@ const layer = createLayer(id, () => {
     const color = "#68696d";
 
     const chunks = createResource<DecimalSource>(0, "Mercurial Chunks");
-    const totalChunks = trackTotal(chunks);
+    const bestChunks = trackBest(chunks);
 
     const conversion = createIndependentConversion(() => {
         const computedLovingChunks = computed(() => {
@@ -50,7 +50,8 @@ const layer = createLayer(id, () => {
             }
 
             const level = Decimal.sub(chunks.value, 19);
-            return Decimal.times(90, Decimal.pow(1.125, Decimal.pow(level, 1.45)));
+            const scalingFactor = upgrades.dirtCheap.bought.value ? 1.4 : 1.45;
+            return Decimal.times(25, Decimal.pow(1.13, Decimal.pow(level, scalingFactor)));
         });
 
         const post1000ScalingDivisor = computed(() => {
@@ -96,7 +97,7 @@ const layer = createLayer(id, () => {
                     .min(1)
                     .clampMax(1);
             }),
-            spend: () => {},
+            spend: () => { },
             convert: () => {
                 chunks.value = Decimal.add(chunks.value, 1);
             }
@@ -119,21 +120,23 @@ const layer = createLayer(id, () => {
         return {};
     });
 
-    const chuckingChunksModifier = createSequentialModifier(() => [
-        createAdditiveModifier(
-            (): AdditiveModifierOptions => ({
-                enabled: upgrades.chuckingChunks.bought,
-                addend: () => totalChunks.value,
-                description: "Chuckin' Chunks"
-            })
-        )
-    ]);
+    const chuckingChunksEffect = computed((): DecimalSource => {
+        if (upgrades.chuckingChunks.bought.value) {
+            return Decimal.times(bestChunks.value, 2).pow(throwingHarderEffect.value).clampMin(1);
+        }
+
+        return Decimal.dZero;
+    });
 
     const lovingChunksModifier = createSequentialModifier(() => [
         createAdditiveModifier(
             (): AdditiveModifierOptions => ({
                 enabled: upgrades.lovingChunks.bought,
-                addend: () => Decimal.add(dustLayer.mercurialDust.value, 1).log10().pow(0.2),
+                addend: () =>
+                    Decimal.add(dustLayer.mercurialDust.value, 1)
+                        .log10()
+                        .pow(0.4)
+                        .times(marryingChunksEffect.value),
                 description: "Lovin' Chunks"
             })
         )
@@ -141,7 +144,7 @@ const layer = createLayer(id, () => {
 
     const collidingChunksEffect = computed(() => {
         if (upgrades.collidingChunks.bought.value) {
-            return Decimal.add(totalChunks.value, 1).log10().sqrt().clampMin(1);
+            return Decimal.add(bestChunks.value, 1).log10().sqrt().clampMin(1);
         }
 
         return Decimal.dOne;
@@ -160,7 +163,8 @@ const layer = createLayer(id, () => {
 
     const cheapingChunksEffect = computed((): Decimal => {
         if (upgrades.cheapingChunks.bought.value) {
-            return Decimal.cbrt(chunks.value).clampMin(1);
+            return Decimal.fromValue(bestChunks.value); //.pow(dollarsToChunksEffect.value);
+            // return Decimal.pow(bestChunks.value, 0.9).clampMin(1);
         }
 
         return Decimal.dOne;
@@ -168,18 +172,43 @@ const layer = createLayer(id, () => {
 
     const speedingChunksEffect = computed((): Decimal => {
         if (upgrades.speedingChunks.bought.value) {
-            return Decimal.pow(chunks.value, 0.5).log2().clampMin(1);
+            return Decimal.log2(bestChunks.value).clampMin(1);
         }
 
         return Decimal.dOne;
     });
 
-    // const dustingChunksModifer = createSequentialModifier(() => [
-    //   createAdditiveModifier((): AdditiveModifierOptions => ({
-    //     enabled: upgrades.dustingChunks.bought,
-    //     addend: () => Decimal.sqrt(totalChunks.value).clampMin(1)
-    //   }))
-    // ])
+    const dustingChunksEffect = computed((): DecimalSource => {
+        if (upgrades.dustingChunks.bought.value) {
+            return bestChunks.value;
+        }
+
+        return Decimal.dOne;
+    });
+
+    const throwingHarderEffect = computed((): DecimalSource => {
+        if (upgrades.throwingHarder.bought.value) {
+            return Decimal.log2(bestChunks.value).sqrt().clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const marryingChunksEffect = computed(() => {
+        if (upgrades.marryingChunks.bought.value) {
+            return Decimal.pow(bestChunks.value, 1.25).clampMin(1);
+        }
+
+        return Decimal.dOne;
+    })
+
+    // const dollarsToChunksEffect = computed(() => {
+    //     if (upgrades.dollarsToChunks.bought.value) {
+    //         return Decimal.fromNumber(2);
+    //     }
+
+    //     return Decimal.dOne;
+    // });
 
     const upgrades = {
         chuckingChunks: createUpgrade(() => ({
@@ -189,8 +218,8 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Chuckin' Chunks",
-                description: "Increase base reset time by your total chunks",
-                effectDisplay: () => `+${format(chuckingChunksModifier.apply(0))}`
+                description: "Increase base Dust Time by double your best Chunks.",
+                effectDisplay: () => `+${format(chuckingChunksEffect.value)}`
             }
         })),
 
@@ -201,7 +230,7 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Grindin' Chunks",
-                description: "Gain dust per second equal to your total chunks",
+                description: "Gain Dust per second equal to your best Chunks.",
                 effectDisplay: () =>
                     `${format(Decimal.times(dustLayer.passiveGenerationPerSecondEffect.value, 100))}%/s`
             }
@@ -214,7 +243,7 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Lovin' Chunks",
-                description: "Reduce chunk cost based on dust",
+                description: "Reduce Chunk cost based on Dust.",
                 effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
             }
         })),
@@ -232,7 +261,7 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Autoin' Chunks",
-                description: "Automatically reset for chunks, and they reset nothing."
+                description: "Automatically reset for Chunks, and they reset nothing."
             }
         })),
 
@@ -244,7 +273,7 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Collidin' Chunks",
-                description: "Raise collision time rate based on chunks",
+                description: "Raise Collision Time rate based on Chunks.",
                 effectDisplay: () => `^${format(collidingChunksEffect.value)}`
             }
         })),
@@ -257,7 +286,7 @@ const layer = createLayer(id, () => {
             })),
             display: {
                 title: "Splinterin' Chunks",
-                description: "Reduce chunk cost based on collision time rate",
+                description: "Reduce Chunk cost based on Collision Time rate.",
                 effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
             }
         })),
@@ -266,11 +295,11 @@ const layer = createLayer(id, () => {
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
                 resource: chunks,
-                cost: 85
+                cost: 75
             })),
             display: {
                 title: "Cheapin' Chunks",
-                description: "Reduce Chunk cost based on Chunks",
+                description: "Reduce Chunk cost by best Chunks.",
                 effectDisplay: () => `÷${format(cheapingChunksEffect.value)}`
             }
         })),
@@ -279,26 +308,77 @@ const layer = createLayer(id, () => {
             visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
             requirements: createCostRequirement(() => ({
                 resource: chunks,
-                cost: 100
+                cost: 90
             })),
             display: {
                 title: "Speedin' Chunks",
-                description: "Boost Time Acceleron gain based on Chunks.",
+                description: "Boost Time Acceleron gain based on best Chunks.",
                 effectDisplay: () => `x${format(speedingChunksEffect.value)}`
+            }
+        })),
+
+        dustingChunks: createUpgrade(() => ({
+            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            requirements: createCostRequirement(() => ({
+                resource: chunks,
+                cost: 100
+            })),
+            display: {
+                title: "Dustin' Chunks",
+                description: "Multiply Dust gain by best Chunks.",
+                effectDisplay: () => `x${format(dustingChunksEffect.value)}`
+            }
+        })),
+
+        dirtCheap: createUpgrade(() => ({
+            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            requirements: createCostRequirement(() => ({
+                resource: chunks,
+                cost: 105
+            })),
+            display: {
+                title: "Dirt Cheap",
+                description: "Reduce the cost scaling of Chunks."
+            }
+        })),
+
+        throwingHarder: createUpgrade(() => ({
+            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            requirements: createCostRequirement(() => ({
+                resource: chunks,
+                cost: 120
+            })),
+            display: {
+                title: "Throwin' Harder",
+                description: `Raise 'Chuckin' Chunks' effect based on best Chunks.`,
+                effectDisplay: () => `^${format(throwingHarderEffect.value)}`
+            }
+        })),
+
+        marryingChunks: createUpgrade(() => ({
+            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+            requirements: createCostRequirement(() => ({
+                resource: chunks,
+                cost: 150
+            })),
+            display: {
+                title: "Marryin' Chunks",
+                description: `Multiply 'Lovin' Chunks' effect based on best Chunks at an increase rate.`,
+                effectDisplay: () => `x${format(marryingChunksEffect.value)}`
             }
         }))
 
-        // dustingChunks: createUpgrade(() => ({
-        //   visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-        //   requirements: createCostRequirement(() => ({
-        //     resource: noPersist(chunks),
-        //     cost: Decimal.fromNumber(135)
-        //   })),
-        //   display: {
-        //     title: "Dustin' Chunks",
-        //     description: "Increase base Dust gain based on Chunks.",
-        //     effectDisplay: () => `÷${format(dustingChunksModifer.apply(0))}`
-        //   }
+        // dollarsToChunks: createUpgrade(() => ({
+        //     visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
+        //     requirements: createCostRequirement(() => ({
+        //         resource: chunks,
+        //         cost: 105
+        //     })),
+        //     display: {
+        //         title: "Dollars to Chunks",
+        //         description: `Raise the effect of "Cheapin' Chunks" by ^1.1.`,
+        //         effectDisplay: () => `^${dollarsToChunksEffect.value}`
+        //     }
         // }))
     };
 
@@ -330,7 +410,6 @@ const layer = createLayer(id, () => {
             dustLayer.unlocks.chunks.bought.value = true;
 
             chunks.value = chunksGained;
-            totalChunks.value = chunksGained;
         }
     };
 
@@ -358,22 +437,24 @@ const layer = createLayer(id, () => {
         fullReset,
         resetButton,
         chunks,
-        totalChunks,
+        // totalChunks,
+        bestChunks,
         conversion,
         upgrades,
-        chuckingChunksModifier,
+        chuckingChunksEffect,
         treeNode,
         collidingChunksEffect,
         autoChunker,
         showExclamation,
         speedingChunksEffect,
+        dustingChunksEffect,
         displayGlow,
         display: () => (
             <>
                 <h2>
                     You have {format(chunks.value)} {chunks.displayName}
                 </h2>
-                <h4>You have condensed a total of {format(totalChunks.value)}</h4>
+                <h4>Your best condensed Chunks is {format(bestChunks.value)}.</h4>
                 <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
                 <Spacer />
                 {render(resetButton)}

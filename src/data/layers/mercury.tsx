@@ -79,16 +79,20 @@ const layer = createLayer(id, baseLayer => {
 
     const collisionTimeGainComputed = computed(() =>
         new Decimal(1)
+            // .add(Decimal.times(chunksTab.bestChunks.value, 2))
+            .add(milestones.eightyMilestoneEffect.value)
             .times(baseTimeRateModifier.apply(1))
             .times(dustTab.accelerationModifier.apply(1))
             .times(milestones.firstMilestoneModifier.apply(1))
             .times(solarLayer.mercuryTreeEffects.solarSpeed.value)
+            // .times(accelerators.timeAccelerator.bringItHomeEffect.value)
             .pow(dustTab.collisionCourseEffect.value)
             .pow(milestones.fourthMilestoneModifier.value)
             .pow(chunksTab.collidingChunksEffect.value)
     );
 
-    const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
+    // const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
+    const hasCollidedComputed = computed(() => false);
 
     baseLayer.on("update", diff => {
         if (!unlocked.value) {
@@ -208,7 +212,8 @@ const layer = createLayer(id, baseLayer => {
         display: () => renderDisplay(),
         treeNode,
         totalResets,
-        unlocked
+        unlocked,
+        solarResetButton
     };
 });
 

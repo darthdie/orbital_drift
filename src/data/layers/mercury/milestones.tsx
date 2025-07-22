@@ -11,6 +11,7 @@ import {
 } from "game/modifiers";
 import { render } from "util/vue";
 import { createReset } from "features/reset";
+import { DecimalSource } from "util/bignum";
 
 const id = "Mm";
 const layer = createLayer(id, () => {
@@ -21,7 +22,8 @@ const layer = createLayer(id, () => {
         createMultiplicativeModifier(
             (): MultiplicativeModifierOptions => ({
                 multiplier: () =>
-                    Decimal.times(1.5, chunksTab.totalChunks.value)
+                    Decimal.times(1.5, chunksTab.bestChunks.value)
+                        .times(hundredFiftyEffect.value)
                         // .pow(sixthMilestoneEffect.value)
                         .clampMin(1),
                 enabled: milestones.first.earned,
@@ -30,80 +32,121 @@ const layer = createLayer(id, () => {
         )
     ]);
 
-    const fourthMilestoneModifier = computed(() => {
+    const fourthMilestoneModifier = computed((): DecimalSource => {
         if (milestones.four.earned.value === true) {
-            return Decimal.add(chunksTab.totalChunks.value, 1).slog().pow(0.5).clampMin(1);
+            const pow = milestones.six.earned.value === true ? 0.65 : 0.5;
+            return Decimal.add(chunksTab.bestChunks.value, 1).slog().pow(pow).clampMin(1);
         }
 
         return Decimal.dOne;
     });
 
-    // const sixthMilestoneEffect = computed(() => {
-    //     if (milestones.six.earned.value === true) {
-    //         return Decimal.fromNumber(1.1);
-    //     }
+    const fiftyMilestoneEffect = computed((): DecimalSource => {
+        if (milestones.fifty.earned.value === true) {
+            return Decimal.add(chunksTab.bestChunks.value, 1).log10().clampMin(1);
+        }
 
-    //     return Decimal.dOne;
-    // });
+        return Decimal.dOne;
+    });
+
+    const eightyMilestoneEffect = computed((): DecimalSource => {
+        if (milestones.eighty.earned.value === true) {
+            return Decimal.pow(chunksTab.bestChunks.value, 1.1);
+        }
+
+        return Decimal.dZero;
+    });
 
     const completedMilestonesCount = computed(
         () => Object.values(milestones).filter(a => a.earned.value).length
     );
 
+    const hundredFiftyEffect = computed(() => {
+        if (milestones.hundredFifty.earned.value === true) {
+            return Decimal.sqrt(chunksTab.bestChunks.value);
+        }
+
+        return Decimal.dOne;
+    });
+
     const milestones = {
         first: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.totalChunks, 1),
+            requirements: createCountRequirement(chunksTab.bestChunks, 1),
             display: {
-                requirement: "1 Mercurial Chunk",
+                requirement: "1 Best Mercurial Chunk",
                 effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
                 optionsDisplay: () => (
                     <>
                         Unlock the `Dust Piles` buyable
                         <br />
-                        Boost time by x1.5 per total chunk
+                        Boost time by x1.5 per best Chunk
                     </>
                 )
             }
         })),
         second: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.totalChunks, 2),
+            requirements: createCountRequirement(chunksTab.bestChunks, 2),
             display: {
-                requirement: "2 Total Mercurial Chunks",
-                optionsDisplay: "Keep 1 Dust upgrade per milestone achieved.",
-                effectDisplay: (): string => `${completedMilestonesCount.value} upgrades are kept`
+                requirement: "2 Best Mercurial Chunks",
+                optionsDisplay: "Keep 1 Dust upgrade per milestone earned.",
+                effectDisplay: (): string => `${completedMilestonesCount.value} upgrades are kept.`
             }
         })),
         three: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.totalChunks, 3),
+            requirements: createCountRequirement(chunksTab.bestChunks, 3),
             display: {
-                requirement: "3 Total Mercurial Chunks",
-                optionsDisplay: "Unlock Chunk Upgrades"
+                requirement: "3 Best Mercurial Chunks",
+                optionsDisplay: "Unlock Chunk Upgrades."
             }
         })),
         four: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.totalChunks, 10),
+            requirements: createCountRequirement(chunksTab.bestChunks, 10),
             display: {
-                requirement: "10 Total Mercurial Chunks",
-                optionsDisplay: "Raise time rate by total chunks at a heavily reduced rate.",
+                requirement: "10 Best Mercurial Chunks",
+                optionsDisplay: "Raise time rate by best Chunks at a heavily reduced rate.",
                 effectDisplay: () => `^${format(fourthMilestoneModifier.value)}`
             }
         })),
         five: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.totalChunks, 20),
+            requirements: createCountRequirement(chunksTab.bestChunks, 20),
             display: {
-                requirement: "20 Total Mercurial Chunks",
-                optionsDisplay: "Keep some buyable levels on reset equal to your total chunks.",
-                effectDisplay: () => `Up to ${chunksTab.totalChunks.value} buyable levels are kept.`
+                requirement: "20 Best Mercurial Chunks",
+                optionsDisplay: "Keep some buyable levels on reset equal to your best Chunks.",
+                effectDisplay: () => `Up to ${chunksTab.bestChunks.value} buyable levels are kept.`
+            }
+        })),
+        fifty: createAchievement(() => ({
+            // visibility: dustLayer.unlocks.accelerators.bought,
+            requirements: createCountRequirement(chunksTab.bestChunks, 50),
+            display: {
+                requirement: "50 Best Mercurial Chunks",
+                optionsDisplay: "Divide Chunk Accelerons interval based on best Chunks.",
+                effectDisplay: () => `Currently: ÷${format(fiftyMilestoneEffect.value)}`
+            }
+        })),
+        six: createAchievement(() => ({
+            requirements: createCountRequirement(chunksTab.bestChunks, 65),
+            display: {
+                requirement: "65 Best Mercurial Chunks",
+                optionsDisplay: "Improve the effect of Milestone 4."
+            }
+        })),
+        eighty: createAchievement(() => ({
+            requirements: createCountRequirement(chunksTab.bestChunks, 80),
+            display: {
+                requirement: "80 Best Mercurial Chunks",
+                optionsDisplay: "Increase base Collision Time based on best Chunks.",
+                effectDisplay: () => `Currently: +${format(eightyMilestoneEffect.value)}`
+            }
+        })),
+        hundredFifty: createAchievement(() => ({
+            requirements: createCountRequirement(chunksTab.bestChunks, 150),
+            display: {
+                requirement: "150 Best Mercurial Chunks",
+                optionsDisplay: "Multiply the effect of Milestone 1 based on best Chunks",
+                effectDisplay: () => `Currently: x${format(hundredFiftyEffect.value)}`
             }
         }))
-        // six: createAchievement(() => ({
-        //     requirements: createCountRequirement(chunksTab.totalChunks, 200),
-        //     display: {
-        //         requirement: "200 Total Mercurial Chunks",
-        //         optionsDisplay: "Raise first Milestone effect by ^1.1.",
-        //         effectDisplay: () => `^${format(sixthMilestoneEffect.value)}`
-        //     }
-        // }))
     };
 
     const reset = createReset(() => ({
@@ -123,10 +166,12 @@ const layer = createLayer(id, () => {
         completedMilestonesCount,
         firstMilestoneModifier,
         fourthMilestoneModifier,
+        fiftyMilestoneEffect,
+        eightyMilestoneEffect,
         fullReset,
         display: () => (
             <>
-                <h4>You have condensed {format(chunksTab.totalChunks.value)} total chunks.</h4>
+                <h4>Your best condensed Chunks is {format(chunksTab.bestChunks.value)}.</h4>
                 {Object.values(milestones).map(a => render(a))}
             </>
         )

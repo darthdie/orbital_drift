@@ -151,7 +151,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         createMultiplicativeModifier(
             (): MultiplicativeModifierOptions => ({
                 enabled: acceleratorUpgrades.chunkingTime.bought,
-                multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).sqrt().clampMin(1)
+                multiplier: () => Decimal.add(chunksLayer.bestChunks.value, 1).sqrt().clampMin(1)
             })
         )
     ]);
@@ -161,7 +161,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             (): MultiplicativeModifierOptions => ({
                 enabled: acceleratorUpgrades.iHateDinosaurs.bought,
                 multiplier: () =>
-                    Decimal.add(chunksLayer.totalChunks.value, 1).log(2).pow(1.2).clampMin(1)
+                    Decimal.add(chunksLayer.bestChunks.value, 1).log(2).pow(1.2).clampMin(1)
             })
         )
     ]);
@@ -170,7 +170,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         createMultiplicativeModifier(
             (): MultiplicativeModifierOptions => ({
                 enabled: acceleratorUpgrades.fedexManager.bought,
-                multiplier: () => Decimal.add(chunksLayer.totalChunks.value, 1).log2().clampMin(1)
+                multiplier: () => Decimal.add(chunksLayer.bestChunks.value, 1).log2().clampMin(1)
             })
         )
     ]);
@@ -193,7 +193,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             (): MultiplicativeModifierOptions => ({
                 enabled: acceleratorUpgrades.dustBunnies.bought,
                 multiplier: () =>
-                    Decimal.add(chunksLayer.totalChunks.value, 1).log2().pow(1.1).clampMin(1)
+                    Decimal.add(chunksLayer.bestChunks.value, 1).log2().pow(1.1).clampMin(1)
             })
         )
     ]);
@@ -209,7 +209,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             ),
             display: {
                 title: "It's Chunkin' time",
-                description: `Multiply "Killin' Time" based on chunks`,
+                description: `Multiply "Killin' Time" based on best Chunks.`,
                 effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
             }
         })),
@@ -224,7 +224,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             ),
             display: {
                 title: "FedEx Manager",
-                description: `Multiply "The Messenger God" based on chunks`,
+                description: `Multiply "The Messenger God" based on best Chunks.`,
                 effectDisplay: () => `*${format(fedexManagerModifier.apply(1))}`
             }
         })),
@@ -239,7 +239,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             ),
             display: {
                 title: "Dust Bunnies",
-                description: `Multiply "Accumulating Dust" based on total chunks`,
+                description: `Multiply "Accumulating Dust" based on best Chunks.`,
                 effectDisplay: () => `*${format(dustBunniesModifier.apply(1))}`
             }
         })),
@@ -257,7 +257,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "Acceleration 2" based on total chunks`,
                 effectDisplay: () => `*${format(eyeHateDinosaursModifier.apply(1))}`
             }
-        }))
+        })),
+
+
     };
 
     const buyableCap = computed(() =>
@@ -357,7 +359,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
             if (milestonesLayer.milestones.five.earned.value === true) {
-                return Decimal.min(chunksLayer.totalChunks.value, bestAmount.value);
+                return Decimal.min(chunksLayer.bestChunks.value, bestAmount.value);
             }
 
             if (solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value) {
@@ -457,8 +459,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         // +
         seasonedDustModifier,
         baseDustAmountModifier,
-        chunksLayer.chuckingChunksModifier,
-        // *
+        createAdditiveModifier(() => ({
+            addend: chunksLayer.chuckingChunksEffect.value
+        })),
+        // // // *
         milestonesLayer.firstMilestoneModifier,
         slippingTimeModifier,
         messengerGodModifier,
@@ -466,7 +470,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         createMultiplicativeModifier(() => ({
             multiplier: solarLayer.mercuryTreeEffects.solarSpeed
         })),
-        // ^
+        // // // ^
         collisionCourseModifier,
         createExponentialModifier(() => ({
             exponent: () => milestonesLayer.fourthMilestoneModifier.value
@@ -552,6 +556,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         createMultiplicativeModifier(() => ({
             multiplier: solarLayer.mercuryTreeEffects.solarFriedDust
         })),
+        createMultiplicativeModifier(
+            (): MultiplicativeModifierOptions => ({
+                multiplier: chunksLayer.dustingChunksEffect.value
+            })
+        ),
         // ^
         dustPilesModifier,
         createExponentialModifier(() => ({
@@ -697,7 +706,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         const base = Decimal.fromNumber(0.05);
         if (chunksLayer.upgrades.grindingChunks.bought.value) {
-            return Decimal.mul(chunksLayer.totalChunks.value, 0.01).add(base).clampMin(0.01);
+            return Decimal.mul(chunksLayer.bestChunks.value, 0.01).add(base).clampMin(0.01);
         }
 
         return base;
