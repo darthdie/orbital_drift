@@ -84,7 +84,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     <div>
                         Decrease timer interval
                         <br />
-                        Currently: {format(dustAccelerator.dustAcceleratorTimerMaxEffect.value)}
+                        Currently: ÷{format(dustAccelerator.dustAcceleratorTimerMaxEffect.value)}
                         {displayRequirements(
                             dustAccelerator.intervalBuyable.requirements,
                             unref(dustAccelerator.intervalBuyable.amountToIncrease)
@@ -264,7 +264,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Accelerating the Accelerator",
                     description: "Decrease timer interval based on accelerons",
                     effectDisplay: (): string =>
-                        `/${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
+                        `÷${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
                 }
             })),
 
@@ -408,7 +408,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     <div>
                         Decrease timer interval
                         <br />
-                        Currently: {format(chunkAccelerator.intervalBuyableEffect.value)}
+                        Currently: ÷{format(chunkAccelerator.intervalBuyableEffect.value)}
                         {displayRequirements(
                             chunkAccelerator.intervalBuyable.requirements,
                             unref(chunkAccelerator.intervalBuyable.amountToIncrease)
@@ -1127,8 +1127,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         () => ({
             floating: true,
             buttonStyle: {
-                border: "solid 2px",
-                borderRadius: "12px"
+                border: "none",
+                borderBottom: `4px solid var(--outline)`
+            },
+            buttonActiveStyle: {
+                borderColor: "var(--layer-color)"
             }
         })
     );
