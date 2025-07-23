@@ -1009,11 +1009,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const showDustNotification = computed(
         () =>
+            (dustAccelerator.intervalBuyable.canClick.value && !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
             dustAccelerator.levelBuyable.canClick.value
     );
     const showChunkNotification = computed(
         () =>
+            (chunkAccelerator.intervalBuyable.canClick.value && !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
             chunkAccelerator.levelBuyable.canClick.value
     );
