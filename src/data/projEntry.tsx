@@ -51,12 +51,14 @@ export const main = createLayer("main", () => {
         <>
             <SideNodes
                 nodes={rightSideNodes}
+                branches={branches}
                 style={{
                     position: "absolute",
                     right: "6px",
                     display: "flex",
                     gap: "20px",
-                    marginTop: "8px"
+                    marginTop: "32px",
+                    flexDirection: "column"
                 }}
             ></SideNodes>
         </>
@@ -161,6 +163,7 @@ export const main = createLayer("main", () => {
         points: planets,
         best,
         total,
+        minimizedDisplaya: minimizedDisplay,
         minimizedDisplay: () => minimizedDisplay
         // tree
     };
