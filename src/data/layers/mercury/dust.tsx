@@ -225,7 +225,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "It's Chunkin' time",
                 description: `Multiply "Killin' Time" based on best Chunks.`,
-                effectDisplay: () => `*${format(chunkingTimeModifier.apply(1))}`
+                effectDisplay: () => `x${format(chunkingTimeModifier.apply(1))}`
             }
         })),
 
@@ -240,7 +240,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "FedEx Manager",
                 description: `Multiply "The Messenger God" based on best Chunks.`,
-                effectDisplay: () => `*${format(fedexManagerModifier.apply(1))}`
+                effectDisplay: () => `x${format(fedexManagerModifier.apply(1))}`
             }
         })),
 
@@ -255,7 +255,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Dust Bunnies",
                 description: `Multiply "Accumulating Dust" based on best Chunks.`,
-                effectDisplay: () => `*${format(dustBunniesModifier.apply(1))}`
+                effectDisplay: () => `x${format(dustBunniesModifier.apply(1))}`
             }
         })),
 
@@ -270,7 +270,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "eyehatedinosaurs",
                 description: `Multiply "Acceleration 2" based on total chunks`,
-                effectDisplay: () => `*${format(eyeHateDinosaursModifier.apply(1))}`
+                effectDisplay: () => `x${format(eyeHateDinosaursModifier.apply(1))}`
             }
         }))
     };
@@ -779,6 +779,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         return (
             Object.values(repeatables).some(r => r.canClick.value) ||
             Object.values(basicUpgrades).some(u => u.canPurchase.value) ||
+            Object.values(acceleratorUpgrades).some(u => u.canPurchase.value) ||
             Object.values(unlocks).some(u => u.canPurchase.value)
         );
     });
