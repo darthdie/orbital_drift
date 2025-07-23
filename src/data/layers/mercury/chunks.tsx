@@ -97,7 +97,7 @@ const layer = createLayer(id, () => {
                     .min(1)
                     .clampMax(1);
             }),
-            spend: () => { },
+            spend: () => {},
             convert: () => {
                 chunks.value = Decimal.add(chunks.value, 1);
             }
@@ -200,7 +200,7 @@ const layer = createLayer(id, () => {
         }
 
         return Decimal.dOne;
-    })
+    });
 
     // const dollarsToChunksEffect = computed(() => {
     //     if (upgrades.dollarsToChunks.bought.value) {
@@ -422,12 +422,11 @@ const layer = createLayer(id, () => {
         dustLayer.unlocks.chunks.bought.value = true;
     });
 
-    const showExclamation = computed(() => {
-        return Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value;
-    });
-
-    const displayGlow = computed(() => {
-        return showExclamation.value || Object.values(upgrades).some(u => u.canPurchase.value);
+    const showNotification = computed(() => {
+        return (
+            (Decimal.gte(unref(conversion.actualGain), 1) && !upgrades.autoChunks.bought.value) ||
+            Object.values(upgrades).some(u => u.canPurchase.value)
+        );
     });
 
     return {
@@ -445,10 +444,9 @@ const layer = createLayer(id, () => {
         treeNode,
         collidingChunksEffect,
         autoChunker,
-        showExclamation,
+        showNotification,
         speedingChunksEffect,
         dustingChunksEffect,
-        displayGlow,
         display: () => (
             <>
                 <h2>

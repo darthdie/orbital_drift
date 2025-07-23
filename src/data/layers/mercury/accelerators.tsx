@@ -509,7 +509,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Speed Chunks",
-                    description: "Unlock more Chunk upgrades"
+                    description: "Unlock more Chunk upgrades. (Starting at 35 Chunks)"
                 }
             })),
 
@@ -758,7 +758,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     resource: noPersist(timeAccelerator.resource),
                     cost: Formula.variable(timeAccelerator.levelBuyable.amount)
                         .pow_base(5)
-                        .times(10)
+                        .times(25)
                 })
             ),
             display: {
@@ -825,7 +825,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: (): string =>
                         `x${format(timeAccelerator.bringItHomeEffect.value)}`
                 }
-            })),
+            }))
         },
 
         doomsdayClockEffect: computed((): Decimal => {
@@ -924,11 +924,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     .clampMin(1)
                     .evaluate();
                 // return Decimal.add(timeAccelerator.resource.value, 10)
-            //         .log10()
-            //         .pow(0.1)
-            //         .sqrt()
-            //         .add(timeAccelerator.bringItHomeEffect.value)
-            //         .clampMin(1);
+                //         .log10()
+                //         .pow(0.1)
+                //         .sqrt()
+                //         .add(timeAccelerator.bringItHomeEffect.value)
+                //         .clampMin(1);
             }
 
             return Decimal.dOne;
@@ -1007,10 +1007,32 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         return {};
     });
 
+    const showDustNotification = computed(
+        () =>
+            Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
+            dustAccelerator.levelBuyable.canClick.value
+    );
+    const showChunkNotification = computed(
+        () =>
+            Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
+            chunkAccelerator.levelBuyable.canClick.value
+    );
+    const showTimeNotification = computed(
+        () =>
+            Object.values(timeAccelerator.upgrades).some(u => u.canPurchase.value) ||
+            timeAccelerator.levelBuyable.canClick.value
+    );
+
+    const showNotification = computed(() => {
+        return (
+            showDustNotification.value || showChunkNotification.value || showTimeNotification.value
+        );
+    });
+
     const tabs = createTabFamily<TabFamilyOptions>(
         {
             dust: () => ({
-                display: "Dust",
+                display: () => <>Dust {showDustNotification.value ? "!" : null}</>,
                 tab: createTab(() => ({
                     display: () => (
                         <>
@@ -1050,7 +1072,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 }))
             }),
             chunks: () => ({
-                display: "Chunks",
+                display: () => <>Chunks {showChunkNotification.value ? "!" : null}</>,
                 visibility: dustAccelerator.upgrades.chunksUnlock.bought,
                 tab: createTab(() => ({
                     display: () => (
@@ -1089,7 +1111,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 }))
             }),
             time: () => ({
-                display: "Time",
+                display: () => <>Time {showTimeNotification.value ? "!" : null}</>,
                 visibility: chunkAccelerator.upgrades.timeUnlock.bought,
                 tab: createTab(() => ({
                     display: () => (
@@ -1148,23 +1170,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeAccelerator.resource.value = 0;
     };
 
-    const showExclamation = computed(() => {
-        return (
-            dustAccelerator.levelBuyable.canClick.value ||
-            chunkAccelerator.levelBuyable.canClick.value ||
-            timeAccelerator.levelBuyable.canClick.value
-        );
-    });
-
-    const displayGlow = computed(() => {
-        return (
-            showExclamation.value ||
-            Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
-            Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
-            Object.values(timeAccelerator.upgrades).some(u => u.canPurchase.value)
-        );
-    });
-
     return {
         id,
         name,
@@ -1174,8 +1179,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeAccelerator,
         tabs,
         autoIntervalBuyers,
-        showExclamation,
-        displayGlow,
+        showNotification,
         fullReset,
         display: () => <>{render(tabs)}</>
     };

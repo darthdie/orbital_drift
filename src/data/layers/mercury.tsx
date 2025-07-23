@@ -107,11 +107,11 @@ const layer = createLayer(id, baseLayer => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
-    const displayGlow = computed(() => {
+    const showNotification = computed(() => {
         return (
-            dustTab.displayGlow.value ||
-            chunksTab.displayGlow.value ||
-            accelerators.displayGlow.value
+            dustTab.showNotification.value ||
+            chunksTab.showNotification.value ||
+            accelerators.showNotification.value
         );
     });
 
@@ -120,28 +120,28 @@ const layer = createLayer(id, baseLayer => {
         layerID: id,
         display: () => <CelestialBodyIcon body={"Mercury"} />,
         wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
-        glowColor: () => (displayGlow.value ? color : null),
+        glowColor: () => (showNotification.value ? color : null),
         color,
         reset
     }));
 
     const tabs = createTabFamily({
         dust: () => ({
-            display: "Dust",
+            display: () => <>Dust {dustTab.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: dustTab.display
             }))
         }),
         chunks: () => ({
             visibility: () => dustTab.unlocks.chunks.bought.value,
-            display: () => <>Chunks {chunksTab.showExclamation.value ? "!" : null}</>,
+            display: () => <>Chunks {chunksTab.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: chunksTab.display
             }))
         }),
         accelerators: () => ({
             visibility: dustTab.unlocks.accelerators.bought,
-            display: () => <>Accelerators {accelerators.showExclamation.value ? "!" : null}</>,
+            display: () => <>Accelerators {accelerators.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({ display: accelerators.display }))
         }),
         milestones: () => {

@@ -775,7 +775,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         timeSinceReset.value = Decimal.add(timeSinceReset.value, totalDiff);
     });
 
-    const displayGlow = computed(() => {
+    const showNotification = computed(() => {
         return (
             Object.values(repeatables).some(r => r.canClick.value) ||
             Object.values(basicUpgrades).some(u => u.canPurchase.value) ||
@@ -807,7 +807,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         collisionCourseModifier,
         reset,
         passiveGenerationPerSecondEffect,
-        displayGlow,
+        showNotification,
         repeatableBestAmounts,
         fullReset,
         display: () => (

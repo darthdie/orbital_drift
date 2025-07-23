@@ -958,19 +958,21 @@ const layer = createLayer(id, baseLayer => {
     };
 
     const lavaGeneraterEffect = computed((): Decimal => {
-        if (Decimal.gt(tephraGenerators.lavaGenerator.amount.value, 0)) {
-            return Decimal.times(tephraGenerators.lavaGenerator.amount.value, 0.005);
+        if (Decimal.gt(lavaGenerators.lavaGenerator.amount.value, 0)) {
+            return Decimal.times(lavaGenerators.lavaGenerator.amount.value, 0.005);
         }
 
         return Decimal.dZero;
     });
 
-    const tephraGenerators = {
+    const lavaGenerators = {
         lavaGenerator: createRepeatable(() => ({
             requirements: createCostRequirement(
                 (): CostRequirementOptions => ({
-                    resource: noPersist(tephra),
-                    cost: Formula.variable(tephraGenerators.lavaGenerator.amount).add(3)
+                    resource: lava,
+                    cost: Formula.variable(lavaGenerators.lavaGenerator.amount)
+                        .pow_base(1.5)
+                        .times(100)
                 })
             ),
             display: {
@@ -1124,7 +1126,7 @@ const layer = createLayer(id, baseLayer => {
             pressureUpgrades,
             tephraBuyables,
             volcanicsUpgrades,
-            tephraGenerators
+            lavaGenerators
         ],
         onReset: () => {
             pressure.value = pressure[DefaultValue];
@@ -1349,6 +1351,9 @@ const layer = createLayer(id, baseLayer => {
                         <Spacer />
 
                         {renderGroupedObjects(volcanicsUpgrades, 3)}
+                        <Spacer />
+
+                        {renderGroupedObjects(lavaGenerators, 3)}
                     </>
                 )
             }))
@@ -1365,9 +1370,6 @@ const layer = createLayer(id, baseLayer => {
                         <Spacer />
 
                         {renderGroupedObjects(tephraBuyables, 3)}
-                        <Spacer />
-
-                        {renderGroupedObjects(tephraGenerators, 3)}
                     </>
                 )
             }))
@@ -1397,7 +1399,7 @@ const layer = createLayer(id, baseLayer => {
         lavaConversionPriority,
         tephraBuyables,
         volcanicsBuyables,
-        tephraGenerators,
+        lavaGenerators,
         autoLava,
         lavaCapIncreases,
         volcanicsCapIncreases,
