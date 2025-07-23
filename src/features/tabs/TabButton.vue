@@ -18,6 +18,7 @@ const props = defineProps<{
     glowColor?: MaybeRef<string>;
     active?: boolean;
     style?: MaybeRef<CSSProperties>;
+    activeStyle?: MaybeRef<CSSProperties>;
 }>();
 
 const emit = defineEmits<{
@@ -28,18 +29,22 @@ const Component = () => render(props.display);
 
 const styles = computed(() => {
     const color = unref(props.glowColor);
-    let motherfucker = {}
+    let styles = {};
     if (!!color) {
-        motherfucker = { boxShadow: `0px 9px 5px -6px ${color}` };
+        styles = { boxShadow: `0px 9px 5px -6px ${color}` };
     }
 
-    if (unref(props.active) && floating.value) {
-        motherfucker = getNotifyStyle(color);
+    if (unref(props.active) && !!unref(props.activeStyle)) {
+        // borderColor: "var(--layer-color)"
+        styles = {
+            ...styles,
+            ...props.activeStyle
+        };
     }
 
     return {
     ...props.style,
-    ...motherfucker
+    ...styles
 }
 });
 
