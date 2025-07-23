@@ -28,6 +28,7 @@ import { InvertibleIntegralFormula } from "game/formulas/types";
 import chunksLayer from "./chunks";
 import milestonesLayer from "./milestones";
 import acceleratorsLayer from "./accelerators";
+import { JSX } from "vue/jsx-runtime";
 
 // TODO:
 // Increase base chunk cost
@@ -121,28 +122,34 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         })),
 
-        latestUpgrade: createUpgrade(() => ({
+        acceleration: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
                 resource: noPersist(mercurialDust),
                 cost: Decimal.fromNumber(1e15)
             })),
             display: {
                 title: "Acceleration",
-                description: "Multiply Dust Time gain based on Collision Time.",
-                effectDisplay: (): string =>
-                    `x${format(accelerationTwoMultiplierModifier.apply(1))}`
+                description: "Dust Time and Dust boost each other.",
+                effectDisplay: (): JSX.Element => (
+                    <>
+                        <br />
+                        Dust Time gain: x{format(accelerationDustTimeEffect.value)}
+                        <br />
+                        Dust Gain: x{format(accelerationDustGainEffect.value)}
+                    </>
+                )
             }
         })),
 
-        accelerationUpgrade: createUpgrade(() => ({
+        accelerationTwo: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
-                resource: noPersist(mercurialDust),
-                cost: Decimal.fromNumber(1e20)
+                resource: mercurialDust,
+                cost: 1e20
             })),
             display: {
                 title: "Acceleration 2: This time it's personal",
                 description: "Multiply Collision Time based on Dust Time.",
-                effectDisplay: (): string => `x${format(accelerationModifier.apply(1))}`
+                effectDisplay: (): string => `x${format(accelerationTwoEffect.value)}`
             }
         }))
     };
@@ -175,18 +182,26 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         )
     ]);
 
-    const accelerationTwoMultiplierModifier = createSequentialModifier(() => [
-        createMultiplicativeModifier(
-            (): MultiplicativeModifierOptions => ({
-                enabled: basicUpgrades.latestUpgrade.bought,
-                multiplier: () =>
-                    Decimal.add(mercury.collisionTimeGainComputed.value, 1)
-                        .log10()
-                        .cbrt()
-                        .clampMin(1)
-            })
-        )
-    ]);
+    // const accelerationTwoMultiplierModifier = createSequentialModifier(() => [
+    //     createMultiplicativeModifier(
+    //         (): MultiplicativeModifierOptions => ({
+    //             enabled: basicUpgrades.accelerationTwo.bought,
+    //             multiplier: () => Decimal.add(timeSinceReset.value, 1).log2().sqrt().clampMin(1)
+    //         })
+    //     )
+    // ]);
+
+    const accelerationTwoEffect = computed((): DecimalSource => {
+        if (basicUpgrades.accelerationTwo.bought.value) {
+            return Decimal.add(timeSinceReset.value, 1)
+                .log2()
+                .sqrt()
+                .mul(eyeHateDinosaursModifier.apply(1))
+                .clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
 
     const dustBunniesModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(
@@ -257,9 +272,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "Acceleration 2" based on total chunks`,
                 effectDisplay: () => `*${format(eyeHateDinosaursModifier.apply(1))}`
             }
-        })),
-
-
+        }))
     };
 
     const buyableCap = computed(() =>
@@ -424,7 +437,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const messengerGodModifier = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.fromNumber(1.5).times(fedexManagerModifier.apply(1)),
+            multiplier: () =>
+                Decimal.fromNumber(1.5)
+                    .times(fedexManagerModifier.apply(1))
+                    .times(accelerationTwoEffect.value),
             enabled: basicUpgrades.messengerGodUpgrade.bought,
             description: "Messenger God"
         }))
@@ -466,7 +482,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         milestonesLayer.firstMilestoneModifier,
         slippingTimeModifier,
         messengerGodModifier,
-        accelerationTwoMultiplierModifier,
+        // accelerationModifier,
+        createMultiplicativeModifier(
+            (): MultiplicativeModifierOptions => ({
+                multiplier: accelerationDustTimeEffect.value
+            })
+        ),
+        // accelerationTwoMultiplierModifier,
         createMultiplicativeModifier(() => ({
             multiplier: solarLayer.mercuryTreeEffects.solarSpeed
         })),
@@ -561,6 +583,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 multiplier: chunksLayer.dustingChunksEffect.value
             })
         ),
+        createMultiplicativeModifier(
+            (): MultiplicativeModifierOptions => ({
+                multiplier: accelerationDustGainEffect.value
+            })
+        ),
         // ^
         dustPilesModifier,
         createExponentialModifier(() => ({
@@ -599,18 +626,34 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         };
     });
 
-    const accelerationModifier = createSequentialModifier(() => [
-        createMultiplicativeModifier(() => ({
-            enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
-            // x: TSLR
-            multiplier: () =>
-                Decimal.add(timeSinceReset.value, 1)
-                    .sqrt()
-                    .pow(0.25)
-                    .mul(eyeHateDinosaursModifier.apply(1))
-                    .clampMin(1)
-        }))
-    ]);
+    // const accelerationModifier = createSequentialModifier(() => [
+    //     createMultiplicativeModifier(() => ({
+    //         enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
+    //         // x: TSLR
+    //         multiplier: () =>
+    //             Decimal.add(timeSinceReset.value, 1)
+    //                 .sqrt()
+    //                 .pow(0.25)
+    //                 .mul(eyeHateDinosaursModifier.apply(1))
+    //                 .clampMin(1)
+    //     }))
+    // ]);
+
+    const accelerationDustGainEffect = computed(() => {
+        if (basicUpgrades.acceleration.bought.value) {
+            return Decimal.log10(mercurialDust.value).cbrt().clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const accelerationDustTimeEffect = computed(() => {
+        if (basicUpgrades.acceleration.bought.value) {
+            return Decimal.log10(timeSinceReset.value).cbrt().clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
 
     const reset = createReset(() => ({
         thingsToReset: (): Record<string, unknown>[] => [
@@ -757,7 +800,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         basicUpgrades,
         acceleratorUpgrades,
         totalTimeModifier: seasonedDustModifier,
-        accelerationModifier,
+        // accelerationModifier,
+        // accelerationTwoMultiplierModifier,
+        messengerGodModifier,
         collisionCourseEffect,
         collisionCourseModifier,
         reset,

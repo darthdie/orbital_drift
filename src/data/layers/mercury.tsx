@@ -79,13 +79,11 @@ const layer = createLayer(id, baseLayer => {
 
     const collisionTimeGainComputed = computed(() =>
         new Decimal(1)
-            // .add(Decimal.times(chunksTab.bestChunks.value, 2))
             .add(milestones.eightyMilestoneEffect.value)
             .times(baseTimeRateModifier.apply(1))
-            .times(dustTab.accelerationModifier.apply(1))
             .times(milestones.firstMilestoneModifier.apply(1))
             .times(solarLayer.mercuryTreeEffects.solarSpeed.value)
-            // .times(accelerators.timeAccelerator.bringItHomeEffect.value)
+            .times(dustTab.messengerGodModifier.apply(1))
             .pow(dustTab.collisionCourseEffect.value)
             .pow(milestones.fourthMilestoneModifier.value)
             .pow(chunksTab.collidingChunksEffect.value)
