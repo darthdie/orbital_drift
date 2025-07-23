@@ -294,20 +294,23 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 }
             })),
 
-            dustyJeans: createUpgrade(() => ({
-                requirements: createCostRequirement(
-                    (): CostRequirementOptions => ({
-                        resource: dustAccelerator.resource,
-                        cost: Decimal.fromNumber(2.5e6) // ??
-                    })
-                ),
-                display: {
-                    title: "Dusty Jeans",
-                    description: "Boost Dust Acceleron gain based on Dust Accelerons.",
-                    effectDisplay: (): string =>
-                        `x${format(dustAccelerator.dustyJeansEffect.value)}`
-                }
-            }))
+            dustyJeans: createUpgrade(
+                (): UpgradeOptions => ({
+                    visibility: dustAccelerator.isAtLeastLevelThree,
+                    requirements: createCostRequirement(
+                        (): CostRequirementOptions => ({
+                            resource: dustAccelerator.resource,
+                            cost: Decimal.fromNumber(2.5e6) // ??
+                        })
+                    ),
+                    display: {
+                        title: "Dusty Jeans",
+                        description: "Boost Dust Acceleron gain based on Dust Accelerons.",
+                        effectDisplay: (): string =>
+                            `x${format(dustAccelerator.dustyJeansEffect.value)}`
+                    }
+                })
+            )
         },
 
         tick: (diff: number) => {
@@ -528,6 +531,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
             pebbleSmasher: createUpgrade(
                 (): UpgradeOptions => ({
+                    visibility: chunkAccelerator.isAtLeastLevelThree,
                     requirements: createCostRequirement(() => ({
                         resource: chunkAccelerator.resource,
                         cost: Decimal.fromNumber(1e5)
@@ -812,20 +816,23 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         `x${format(timeAccelerator.finalCountdownEffect.value)}`
                 }
             })),
-            bringItHome: createUpgrade(() => ({
-                requirements: createCostRequirement(
-                    (): CostRequirementOptions => ({
-                        resource: noPersist(timeAccelerator.resource),
-                        cost: Decimal.fromNumber(500)
-                    })
-                ),
-                display: {
-                    title: "Bring It Home",
-                    description: "Improve the Level 3 effect based on Time Accelerons.",
-                    effectDisplay: (): string =>
-                        `x${format(timeAccelerator.bringItHomeEffect.value)}`
-                }
-            }))
+            bringItHome: createUpgrade(
+                (): UpgradeOptions => ({
+                    visibility: timeAccelerator.isAtLeastLevelThree,
+                    requirements: createCostRequirement(
+                        (): CostRequirementOptions => ({
+                            resource: noPersist(timeAccelerator.resource),
+                            cost: Decimal.fromNumber(500)
+                        })
+                    ),
+                    display: {
+                        title: "Bring It Home",
+                        description: "Improve the Level 3 effect based on Time Accelerons.",
+                        effectDisplay: (): string =>
+                            `x${format(timeAccelerator.bringItHomeEffect.value)}`
+                    }
+                })
+            )
         },
 
         doomsdayClockEffect: computed((): Decimal => {
@@ -1009,13 +1016,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const showDustNotification = computed(
         () =>
-            (dustAccelerator.intervalBuyable.canClick.value && !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
+            (dustAccelerator.intervalBuyable.canClick.value &&
+                !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
             dustAccelerator.levelBuyable.canClick.value
     );
     const showChunkNotification = computed(
         () =>
-            (chunkAccelerator.intervalBuyable.canClick.value && !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
+            (chunkAccelerator.intervalBuyable.canClick.value &&
+                !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
             chunkAccelerator.levelBuyable.canClick.value
     );

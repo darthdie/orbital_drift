@@ -269,7 +269,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             ),
             display: {
                 title: "eyehatedinosaurs",
-                description: `Multiply "Acceleration 2" based on total chunks`,
+                description: `Multiply "Acceleration 2" based on best Chunks.`,
                 effectDisplay: () => `x${format(eyeHateDinosaursModifier.apply(1))}`
             }
         }))
