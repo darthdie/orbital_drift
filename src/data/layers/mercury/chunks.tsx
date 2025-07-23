@@ -51,7 +51,7 @@ const layer = createLayer(id, () => {
 
             const level = Decimal.sub(chunks.value, 19);
             const scalingFactor = upgrades.dirtCheap.bought.value ? 1.4 : 1.45;
-            return Decimal.times(25, Decimal.pow(1.13, Decimal.pow(level, scalingFactor)));
+            return Decimal.times(1, Decimal.pow(1.2, Decimal.pow(level, scalingFactor)));
         });
 
         const post1000ScalingDivisor = computed(() => {
