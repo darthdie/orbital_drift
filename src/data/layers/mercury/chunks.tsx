@@ -153,7 +153,7 @@ const layer = createLayer(id, () => {
     const fuckingChunksEffect = computed((): Decimal => {
         if (upgrades.splinteringChunks.bought.value) {
             return Decimal.add(mercuryLayer.collisionTimeGainComputed.value, 1)
-                .log10()
+                .log2()
                 .sqrt()
                 .clampMin(1);
         }
