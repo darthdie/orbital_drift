@@ -10,7 +10,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render, renderGroupedObjects } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
-import { createUpgrade } from "features/clickables/upgrade";
+import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import {
     AdditiveModifierOptions,
@@ -349,72 +349,80 @@ const layer = createLayer(id, () => {
             }
         })),
 
-        dustingChunks: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-            requirements: createCostRequirement(() => ({
-                resource: chunks,
-                cost: 100
-            })),
-            display: {
-                title: "Dustin' Chunks",
-                description: "Multiply Dust gain by best Chunks.",
-                effectDisplay: () => `x${format(dustingChunksEffect.value)}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        dustingChunks: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: upgrades.speedingChunks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: chunks,
+                    cost: 100
+                })),
+                display: {
+                    title: "Dustin' Chunks",
+                    description: "Multiply Dust gain by best Chunks.",
+                    effectDisplay: () => `x${format(dustingChunksEffect.value)}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        dirtCheap: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-            requirements: createCostRequirement(() => ({
-                resource: chunks,
-                cost: 105
-            })),
-            display: {
-                title: "Dirt Cheap",
-                description: "Reduce the cost scaling of Chunks."
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        dirtCheap: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: upgrades.speedingChunks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: chunks,
+                    cost: 105
+                })),
+                display: {
+                    title: "Dirt Cheap",
+                    description: "Reduce the cost scaling of Chunks."
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        throwingHarder: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-            requirements: createCostRequirement(() => ({
-                resource: chunks,
-                cost: 120
-            })),
-            display: {
-                title: "Throwin' Harder",
-                description: `Raise 'Chuckin' Chunks' effect based on best Chunks.`,
-                effectDisplay: () => `^${format(throwingHarderEffect.value)}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        throwingHarder: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: upgrades.speedingChunks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: chunks,
+                    cost: 120
+                })),
+                display: {
+                    title: "Throwin' Harder",
+                    description: `Raise 'Chuckin' Chunks' effect based on best Chunks.`,
+                    effectDisplay: () => `^${format(throwingHarderEffect.value)}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        marryingChunks: createUpgrade(() => ({
-            visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-            requirements: createCostRequirement(() => ({
-                resource: chunks,
-                cost: 150
-            })),
-            display: {
-                title: "Marryin' Chunks",
-                description: `Multiply 'Lovin' Chunks' effect based on best Chunks at an increase rate.`,
-                effectDisplay: () => `x${format(marryingChunksEffect.value)}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        }))
+        marryingChunks: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: upgrades.speedingChunks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: chunks,
+                    cost: 150
+                })),
+                display: {
+                    title: "Marryin' Chunks",
+                    description: `Multiply 'Lovin' Chunks' effect based on best Chunks at an increase rate.`,
+                    effectDisplay: () => `x${format(marryingChunksEffect.value)}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        )
     };
 
     const treeNode = createLayerTreeNode(() => ({
