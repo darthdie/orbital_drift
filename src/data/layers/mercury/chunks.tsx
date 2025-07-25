@@ -144,7 +144,7 @@ const layer = createLayer(id, () => {
 
     const collidingChunksEffect = computed(() => {
         if (upgrades.collidingChunks.bought.value) {
-            return Decimal.add(bestChunks.value, 1).log10().sqrt().clampMin(1);
+            return Decimal.add(bestChunks.value, 1).log(8).sqrt().clampMin(1);
         }
 
         return Decimal.dOne;

@@ -2,7 +2,12 @@ import Column from "components/layout/Column.vue";
 import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createBar } from "features/bars/bar";
-import { createRepeatable, setupAutoPurchaseRepeatable } from "features/clickables/repeatable";
+import {
+    createRepeatable,
+    Repeatable,
+    RepeatableOptions,
+    setupAutoPurchaseRepeatable
+} from "features/clickables/repeatable";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import {
@@ -11,7 +16,7 @@ import {
     displayRequirements
 } from "game/requirements";
 import { Direction } from "util/common";
-import { joinJSX, render, renderGroupedObjects } from "util/vue";
+import { render, Renderable, renderGroupedObjects } from "util/vue";
 import dustLayer from "./dust";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { createResource } from "features/resources/resource";
@@ -32,6 +37,79 @@ import { createLazyProxy } from "util/proxies";
 import { createReset } from "features/reset";
 import solarLayer from "../solar";
 import milestonesLayer from "./milestones";
+import { JSX } from "vue/jsx-runtime";
+import "./accelerators.css";
+// import { MaybeGetter } from "util/computed";
+
+// function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
+//     return createLazyProxy(() => {
+//         const { display: _display, ...props } = optionsFunc();
+
+//         let display;
+//         if (typeof _display === "object" && !isJSXElement(_display)) {
+//             const { title, description, effectDisplay } = _display;
+
+//             display = () => (
+//                 <span>
+//                     {title != null ? (
+//                         <div>
+//                             {render(title, el => (
+//                                 <h3>{el}</h3>
+//                             ))}
+//                         </div>
+//                     ) : null}
+//                     {render(description, el => (
+//                         <div>{el}</div>
+//                     ))}
+//                     {effectDisplay != null ? <div>Currently: {render(effectDisplay)}</div> : null}
+//                     {bought.value ? null : (
+//                         <>
+//                             <br />
+//                             {displayRequirements(requirements)}
+//                         </>
+//                     )}
+//                 </span>
+//             );
+//         } else if (_display != null) {
+//             display = _display;
+//         }
+
+//         // let display:
+//         //     | MaybeGetter<Renderable>
+//         //     | {
+//         //           /** A header to appear at the top of the display. */
+//         //           title?: MaybeGetter<Renderable>;
+//         //           /** The main text that appears in the display. */
+//         //           description: MaybeGetter<Renderable>;
+//         //           /** A description of the current effect of the achievement. Useful when the effect changes dynamically. */
+//         //           effectDisplay?: MaybeGetter<Renderable>;
+//         //       };
+//         // if (isRef(_display)) {
+//         //     display = _display;
+//         // } else if (_display !== undefined) {
+//         //     display = () => (
+//         //     <>
+//         //         <div class="upgrade-content">
+//         //             <h3 class="title">{_display.title}</h3>
+//         //             <hr class="title-divider" />
+//         //             <div class="description">
+//         //                 Decrease timer interval based on Dust Accelerons
+//         //             </div>
+//         //             <div class="effect">
+//         //                 Currently: ÷
+//         //                 {format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}
+//         //             </div>
+//         //         </div>
+//         //     </>
+//         // );
+//         // }
+
+//         return createUpgradeReal(() => ({
+//             ...props,
+//             display
+//         }));
+//     });
+// }
 
 const id = "Ma";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -49,7 +127,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         resource: createResource<DecimalSource>(0, "Dust Accelerons"),
 
         gainComputed: computed((): Decimal => {
-            return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1))
+            return Decimal.add(1, dustAccelerator.boostGainEffect.value)
+                .times(dustAccelerator.dustAcceleratorGainModifier.apply(1))
                 .times(chunkAccelerator.dustAcceleratorModifierEffect.value)
                 .times(dustAccelerator.dustyJeansEffect.value)
                 .times(solarLayer.mercuryTreeEffects.eightyEight.value);
@@ -73,12 +152,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     requiresPay: false
                 })
             ),
-            clickableStyle: {
-                minHeight: "0",
-                width: "fit-content",
-                paddingLeft: "12px",
-                paddingRight: "12px"
-            },
             display: () => (
                 <>
                     <div>
@@ -91,7 +164,16 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         )}
                     </div>
                 </>
-            )
+            ),
+            clickableStyle: {
+                minHeight: "72px",
+                width: "212px",
+                paddingLeft: "12px",
+                paddingRight: "24px"
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border r-scoop"
+            }
         })),
 
         timerMax: computed((): Decimal => {
@@ -145,6 +227,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         return Decimal.add(dustAccelerator.resource.value, 1)
                             .pow(0.25)
                             .mul(mult)
+                            .mul(dustAccelerator.boostBuffEffect.value)
                             .clampMin(1);
                     },
                     description: "Dust Accelerons"
@@ -163,6 +246,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         return Decimal.add(dustAccelerator.resource.value, 1)
                             .pow(0.2)
                             .times(mult)
+                            .mul(dustAccelerator.boostBuffEffect.value)
                             .clampMin(1);
                     }
                 })
@@ -173,37 +257,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             if (dustAccelerator.isAtLeastLevelTwo.value) {
                 const extraLevels = dustAccelerator.bonusLevels(3).times(0.1);
                 const pow = Decimal.add(0.1, extraLevels);
-                return Decimal.add(dustAccelerator.resource.value, 1).slog().pow(pow).clampMin(1);
-            }
-
-            return Decimal.dOne;
-        }),
-
-        dustAcceleratorsGainComputed: computed((): Decimal => {
-            return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1));
-        }),
-
-        acceleratingTheAcceleratorEffect: computed((): Decimal => {
-            if (dustAccelerator.upgrades.second.bought.value) {
-                // return Decimal.add(dustAccelerator.resource.value, 1).mul(0.004).add(1).clampMin(1);
-                return Decimal.fromValue(
-                    Formula.variable(Decimal.add(dustAccelerator.resource.value, 1))
-                        .mul(0.004)
-                        .add(1)
-                        .step(2, f => f.pow(0.1))
-                        .step(5, f => f.div(10))
-                        // .step(5, f => f.pow(0.1))
-                        .evaluate()
-                );
-            }
-
-            return Decimal.dOne;
-        }),
-
-        dustAcceleratorTimerMaxEffect: computed((): Decimal => {
-            if (Decimal.gt(dustAccelerator.intervalBuyable.amount.value, 0)) {
-                return Decimal.mul(dustAccelerator.intervalBuyable.amount.value, 0.025)
-                    .add(1)
+                return Decimal.add(dustAccelerator.resource.value, 1)
+                    .slog()
+                    .pow(pow)
+                    .mul(dustAccelerator.boostBuffEffect.value)
                     .clampMin(1);
             }
 
@@ -222,6 +279,35 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.dZero;
         }),
 
+        dustAcceleratorsGainComputed: computed((): Decimal => {
+            return Decimal.times(1, dustAccelerator.dustAcceleratorGainModifier.apply(1));
+        }),
+
+        acceleratingTheAcceleratorEffect: computed((): Decimal => {
+            if (dustAccelerator.upgrades.second.bought.value) {
+                return Decimal.fromValue(
+                    Formula.variable(Decimal.add(dustAccelerator.resource.value, 1))
+                        .mul(0.004)
+                        .add(1)
+                        .step(2, f => f.pow(0.1))
+                        .step(5, f => f.div(10))
+                        .evaluate()
+                );
+            }
+
+            return Decimal.dOne;
+        }),
+
+        dustAcceleratorTimerMaxEffect: computed((): Decimal => {
+            if (Decimal.gt(dustAccelerator.intervalBuyable.amount.value, 0)) {
+                return Decimal.mul(dustAccelerator.intervalBuyable.amount.value, 0.025)
+                    .add(1)
+                    .clampMin(1);
+            }
+
+            return Decimal.dOne;
+        }),
+
         levelBuyable: createRepeatable(() => ({
             limit: 3,
             requirements: createCostRequirement(
@@ -234,14 +320,83 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 })
             ),
             display: {
+                showAmount: false,
                 title: "Upgrade",
                 description:
                     "Reset Dust Accelerons to unlock a new effect and buff previous effects."
             },
             onClick: () => {
                 dustAccelerator.resource.value = 0;
+            },
+            clickableStyle: {
+                paddingBottom: "24px"
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-2-clip-x"
             }
         })),
+
+        boostBuyable: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: dustAccelerator.isAtLeastLevelThree,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        requiresPay: false,
+                        resource: noPersist(dustAccelerator.resource),
+                        cost: () => {
+                            const buyableLevel = Decimal.fromValue(
+                                dustAccelerator.boostBuyable.amount.value
+                            );
+
+                            return buyableLevel
+                                .pow_base(Decimal.times(100, buyableLevel.add(1).pow(1.05)))
+                                .times(1e9);
+                        }
+                    })
+                ),
+                display: {
+                    showAmount: false,
+                    title: "Boost",
+                    description:
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                    effectDisplay: (): Renderable => (
+                        <>
+                            <br />
+                            Acceleron Gain: +{format(dustAccelerator.boostGainEffect.value)}
+                            <br />
+                            Effect Boost: x{format(dustAccelerator.boostBuffEffect.value)}
+                        </>
+                    )
+                },
+                onClick: () => {
+                    dustAccelerator.resource.value = 0;
+                },
+                clickableStyle: {
+                    paddingBottom: "24px"
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-2-clip-x"
+                }
+            })
+        ),
+
+        boostGainEffect: computed((): DecimalSource => {
+            if (Decimal.gt(dustAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(5, dustAccelerator.boostBuyable.amount.value).clampMin(1);
+            }
+
+            return Decimal.dZero;
+        }),
+
+        boostBuffEffect: computed((): DecimalSource => {
+            if (Decimal.gt(dustAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(0.25, dustAccelerator.boostBuyable.amount.value)
+                    .add(1)
+                    .clampMin(1);
+            }
+
+            return Decimal.dOne;
+        }),
 
         dustyJeansEffect: computed((): Decimal => {
             if (dustAccelerator.upgrades.dustyJeans.bought.value) {
@@ -265,6 +420,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     description: "Decrease timer interval based on accelerons",
                     effectDisplay: (): string =>
                         `÷${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "both tr-clip"
                 }
             })),
 
@@ -278,6 +436,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 display: {
                     title: "je ne sais chunks",
                     description: "Unlock Chunk Accelerons"
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "both tr-clip"
                 }
             })),
 
@@ -291,6 +452,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 display: {
                     title: "Speed Dust",
                     description: "Unlock more Dust upgrades"
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "both tr-clip"
                 }
             })),
 
@@ -308,6 +472,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         description: "Boost Dust Acceleron gain based on Dust Accelerons.",
                         effectDisplay: (): string =>
                             `x${format(dustAccelerator.dustyJeansEffect.value)}`
+                    },
+                    clickableDataAttributes: {
+                        "augmented-ui": "both tr-clip"
                     }
                 })
             )
@@ -344,7 +511,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 effects.push(
                     <h5>
                         A x{format(dustAccelerator.dustAcceleratorGainModifier.apply(1))} boost to
-                        accelerons gain.
+                        Accelerons gain.
                     </h5>
                 );
             }
@@ -353,7 +520,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 effects.push(
                     <h5>
                         A ^{format(dustAccelerator.dustAcceleratorDustRaiseEffect.value)} boost to
-                        dust gain.
+                        Dust gain.
                     </h5>
                 );
             }
@@ -367,7 +534,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 );
             }
 
-            return joinJSX(effects, <></>);
+            return <>{effects}</>;
         }
     };
 
@@ -376,13 +543,23 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         resource: createResource<DecimalSource>(0, "Chunk Accelerons"),
 
         gainComputed: computed((): Decimal => {
-            return Decimal.times(1, chunkAccelerator.acceleratorGainModifier.apply(1))
+            return Decimal.add(1, chunkAccelerator.boostGainEffect.value)
+                .times(chunkAccelerator.acceleratorGainModifier.apply(1))
                 .times(timeAccelerator.chunkAcceleronGainModifier.apply(1))
                 .times(solarLayer.mercuryTreeEffects.eightyEight.value);
         }),
 
         bar: createBar(() => ({
             ...sharedBarSettings,
+            height: 14,
+            width: "100%",
+            style: {
+                overflow: "hidden"
+            },
+            borderStyle: {
+                borderRadius: "0",
+                borderColor: "var(--outline-lighter)"
+            },
             progress: (): Decimal =>
                 Decimal.div(chunkAccelerator.timer.value, chunkAccelerator.timerMax.value)
         })),
@@ -402,23 +579,42 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             ),
             clickableStyle: {
                 minHeight: "0",
-                width: "fit-content",
-                paddingLeft: "12px",
-                paddingRight: "12px"
+                width: "100%",
+                margin: "0",
+                padding: "0",
+                border: "0"
             },
             display: () => (
                 <>
                     <div>
-                        Decrease timer interval
-                        <br />
-                        Currently: ÷{format(chunkAccelerator.intervalBuyableEffect.value)}
-                        {displayRequirements(
-                            chunkAccelerator.intervalBuyable.requirements,
-                            unref(chunkAccelerator.intervalBuyable.amountToIncrease)
-                        )}
+                        <div style="padding: 6px 0 0 28px; text-align: left;">
+                            <h2>Decrease timer interval</h2>
+                        </div>
+                        <hr color="var(--outline-lighter)" style="height: 2px;" />
+                        <div style="padding-bottom: 12px;">
+                            <h4>You have {format(chunksLayer.chunks.value)} mercurial chunks.</h4>
+                            <hr color="var(--outline-lighter)" style="height: 2px;" />
+
+                            <div style="padding-left: 24px; display: flex;">
+                                <span>
+                                    Currently: ÷
+                                    {format(chunkAccelerator.intervalBuyableEffect.value)}
+                                </span>
+                                <div style="border-left: 2px solid var(--outline-lighter); height: 12px"></div>
+                                <span>
+                                    {displayRequirements(
+                                        chunkAccelerator.intervalBuyable.requirements,
+                                        unref(chunkAccelerator.intervalBuyable.amountToIncrease)
+                                    )}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </>
-            )
+            ),
+            clickableDataAttributes: {
+                "augmented-ui": "border tl-scoop-y"
+            }
         })),
 
         timerMax: computed((): Decimal => {
@@ -476,6 +672,62 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         })),
 
+        boostBuyable: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: dustAccelerator.isAtLeastLevelThree,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        requiresPay: false,
+                        resource: chunkAccelerator.resource,
+                        cost: () => {
+                            const buyableLevel = Decimal.fromValue(
+                                chunkAccelerator.boostBuyable.amount.value
+                            );
+
+                            return buyableLevel
+                                .pow_base(Decimal.times(100, buyableLevel.add(1).pow(1.05)))
+                                .times(1e11);
+                        }
+                    })
+                ),
+                display: {
+                    showAmount: false,
+                    title: "Boost",
+                    description:
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                    effectDisplay: (): Renderable => (
+                        <>
+                            <br />
+                            Acceleron Gain: +{format(chunkAccelerator.boostGainEffect.value)}
+                            <br />
+                            Effect Boost: x{format(chunkAccelerator.boostBuffEffect.value)}
+                        </>
+                    )
+                },
+                onClick: () => {
+                    chunkAccelerator.resource.value = 0;
+                }
+            })
+        ),
+
+        boostGainEffect: computed((): DecimalSource => {
+            if (Decimal.gt(chunkAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(5, chunkAccelerator.boostBuyable.amount.value).clampMin(1);
+            }
+
+            return Decimal.dZero;
+        }),
+
+        boostBuffEffect: computed((): DecimalSource => {
+            if (Decimal.gt(chunkAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(0.25, chunkAccelerator.boostBuyable.amount.value)
+                    .add(1)
+                    .clampMin(1);
+            }
+
+            return Decimal.dOne;
+        }),
+
         pebbleSmasherEffect: computed((): DecimalSource => {
             if (chunkAccelerator.upgrades.pebbleSmasher.bought.value) {
                 return Decimal.add(chunkAccelerator.gainComputed.value, 1)
@@ -495,11 +747,29 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         cost: Decimal.fromNumber(25)
                     })
                 ),
+                // display: () => (
+                //     <>
+                //         <div class="upgrade-content">
+                //             <h3 class="title">Chunks, meet Dust</h3>
+                //             <hr class="title-divider" />
+                //             <div class="description">
+                //                 Decrease timer interval based on Dust Accelerons
+                //             </div>
+                //             <div class="effect">
+                //                 Currently: ÷
+                //                 {format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}
+                //             </div>
+                //         </div>
+                //     </>
+                // ),
                 display: {
                     title: "Chunks, meet Dust",
                     description: "Decrease timer interval based on Dust Accelerons",
                     effectDisplay: (): string =>
                         `÷${format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}`
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
 
@@ -513,6 +783,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 display: {
                     title: "Speed Chunks",
                     description: "Unlock more Chunk upgrades. (Starting at 35 Chunks)"
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
 
@@ -526,6 +799,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 display: {
                     title: "Time go brrr",
                     description: "Unlock Time Accelerons"
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
 
@@ -541,6 +817,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         description: "Divide chunk cost based on Chunk Acceleron gain",
                         effectDisplay: (): string =>
                             `÷${format(chunkAccelerator.pebbleSmasherEffect.value)}`
+                    },
+                    clickableDataAttributes: {
+                        "augmented-ui": "border tr-clip"
                     }
                 })
             )
@@ -581,6 +860,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .log2()
                 .times(extraLevels)
                 .pow(chunkAccelerator.levelThreeRaiseEffect.value)
+                .times(chunkAccelerator.boostBuffEffect.value)
                 .clampMin(1);
         }),
 
@@ -595,6 +875,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     .cbrt()
                     .times(extraLevels)
                     .pow(chunkAccelerator.levelThreeRaiseEffect.value)
+                    .times(chunkAccelerator.boostBuffEffect.value)
                     .clampMin(1);
             }
 
@@ -615,6 +896,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                             .pow(0.2)
                             .times(extraLevels)
                             .pow(chunkAccelerator.levelThreeRaiseEffect.value)
+                            .times(chunkAccelerator.boostBuffEffect.value)
                             .clampMin(1);
                     }
                 })
@@ -631,8 +913,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     .step(2, f => f.sqrt())
                     .clampMin(1)
                     .evaluate();
-                // return Decimal.dOne;
-                // return Decimal.add(chunkAccelerator.resource.value, 1).pow(0.1).cbrt().clampMin(1);
             }
 
             return Decimal.dOne;
@@ -640,7 +920,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         levelEffectsDisplay: () => {
             const effects = [
-                <h5>
+                <h5 style="padding-bottom: 6px;">
                     A x{format(chunkAccelerator.dustAcceleratorModifierEffect.value)} boost to Dust
                     Acceleron gain.
                 </h5>
@@ -648,7 +928,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
             if (chunkAccelerator.isAtLeastLevelOne.value) {
                 effects.push(
-                    <h5>
+                    <h5 style="padding-bottom: 6px;">
                         A x{format(chunkAccelerator.acceleratorGainModifier.apply(1))} boost to
                         Chunk Acceleron gain.
                     </h5>
@@ -657,7 +937,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
             if (chunkAccelerator.isAtLeastLevelTwo.value) {
                 effects.push(
-                    <h5>
+                    <h5 style="padding-bottom: 6px;">
                         Reduces Chunk cost by ÷
                         {format(chunkAccelerator.chunkCostDivisionEffect.value)}.
                     </h5>
@@ -666,14 +946,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
             if (chunkAccelerator.isAtLeastLevelThree.value) {
                 effects.push(
-                    <h5>
+                    <h5 style="padding-bottom: 6px;">
                         Raising above effects by ^
                         {format(chunkAccelerator.levelThreeRaiseEffect.value)}.
                     </h5>
                 );
             }
 
-            return joinJSX(effects, <></>);
+            const sep = (
+                <hr
+                    color="var(--outline-lighter)"
+                    style="height: 2px; width: 32px; margin: auto;"
+                />
+            );
+            return <>{effects.flatMap((el, i) => (i < effects.length - 1 ? [el, sep] : [el]))}</>;
+
+            // return <>{effects}</>;
         },
 
         tick: (diff: number) => {
@@ -701,7 +989,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         resource: createResource<DecimalSource>(0, "time Accelerons"),
 
         gainComputed: computed((): Decimal => {
-            return Decimal.times(1, timeAccelerator.finalCountdownEffect.value)
+            return Decimal.add(1, timeAccelerator.boostGainEffect.value)
+                .times(timeAccelerator.finalCountdownEffect.value)
                 .times(chunksLayer.speedingChunksEffect.value)
                 .times(solarLayer.mercuryTreeEffects.eightyEight.value);
         }),
@@ -736,6 +1025,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .log10()
                 .sqrt()
                 .pow(timeAccelerator.levelThreeRaiseEffect.value)
+                .times(timeAccelerator.boostBuffEffect.value)
                 .clampMin(1);
         }),
 
@@ -775,6 +1065,62 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         })),
 
+        boostBuyable: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: timeAccelerator.isAtLeastLevelThree,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        requiresPay: false,
+                        resource: timeAccelerator.resource,
+                        cost: () => {
+                            const buyableLevel = Decimal.fromValue(
+                                timeAccelerator.boostBuyable.amount.value
+                            );
+
+                            return buyableLevel
+                                .pow_base(Decimal.times(100, buyableLevel.add(1).pow(1.05)))
+                                .times(1e4);
+                        }
+                    })
+                ),
+                display: {
+                    showAmount: false,
+                    title: "Boost",
+                    description:
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                    effectDisplay: (): Renderable => (
+                        <>
+                            <br />
+                            Acceleron Gain: +{format(timeAccelerator.boostGainEffect.value)}
+                            <br />
+                            Effect Boost: x{format(chunkAccelerator.boostBuffEffect.value)}
+                        </>
+                    )
+                },
+                onClick: () => {
+                    timeAccelerator.resource.value = 0;
+                }
+            })
+        ),
+
+        boostGainEffect: computed((): DecimalSource => {
+            if (Decimal.gt(timeAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(5, timeAccelerator.boostBuyable.amount.value).clampMin(1);
+            }
+
+            return Decimal.dZero;
+        }),
+
+        boostBuffEffect: computed((): DecimalSource => {
+            if (Decimal.gt(timeAccelerator.boostBuyable.amount.value, 0)) {
+                return Decimal.times(0.25, timeAccelerator.boostBuyable.amount.value)
+                    .add(1)
+                    .clampMin(1);
+            }
+
+            return Decimal.dOne;
+        }),
+
         upgrades: {
             autoVonDoom: createUpgrade(() => ({
                 requirements: createCostRequirement(
@@ -786,6 +1132,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 display: {
                     title: "Auto Von Doom",
                     description: "Automate Accelerator interval buyables."
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
             doomsDayClock: createUpgrade(() => ({
@@ -800,6 +1149,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     description: "Reduce interval based on Collision Time.",
                     effectDisplay: (): string =>
                         `÷${format(timeAccelerator.doomsdayClockEffect.value)}`
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
             finalCountdown: createUpgrade(() => ({
@@ -814,6 +1166,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     description: "Multiply Time Acceleron gain based on Collision Time.",
                     effectDisplay: (): string =>
                         `x${format(timeAccelerator.finalCountdownEffect.value)}`
+                },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
                 }
             })),
             bringItHome: createUpgrade(
@@ -830,6 +1185,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         description: "Improve the Level 3 effect based on Time Accelerons.",
                         effectDisplay: (): string =>
                             `x${format(timeAccelerator.bringItHomeEffect.value)}`
+                    },
+                    clickableDataAttributes: {
+                        "augmented-ui": "border tr-clip"
                     }
                 })
             )
@@ -895,6 +1253,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                             .sqrt()
                             .times(extraLevels)
                             .pow(timeAccelerator.levelThreeRaiseEffect.value)
+                            .times(timeAccelerator.boostBuffEffect.value)
                             .clampMin(1);
                     }
                 })
@@ -910,6 +1269,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     .pow(power)
                     .cbrt()
                     .pow(timeAccelerator.levelThreeRaiseEffect.value)
+                    .times(timeAccelerator.boostBuffEffect.value)
                     .clampMin(1);
             }
 
@@ -976,7 +1336,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 );
             }
 
-            return joinJSX(effects, <></>);
+            return <>{effects}</>;
         },
 
         tick: (diff: number) => {
@@ -1019,19 +1379,22 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             (dustAccelerator.intervalBuyable.canClick.value &&
                 !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(dustAccelerator.upgrades).some(u => u.canPurchase.value) ||
-            dustAccelerator.levelBuyable.canClick.value
+            dustAccelerator.levelBuyable.canClick.value ||
+            dustAccelerator.boostBuyable.canClick.value
     );
     const showChunkNotification = computed(
         () =>
             (chunkAccelerator.intervalBuyable.canClick.value &&
                 !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
-            chunkAccelerator.levelBuyable.canClick.value
+            chunkAccelerator.levelBuyable.canClick.value ||
+            chunkAccelerator.boostBuyable.canClick.value
     );
     const showTimeNotification = computed(
         () =>
             Object.values(timeAccelerator.upgrades).some(u => u.canPurchase.value) ||
-            timeAccelerator.levelBuyable.canClick.value
+            timeAccelerator.levelBuyable.canClick.value ||
+            timeAccelerator.boostBuyable.canClick.value
     );
 
     const showNotification = computed(() => {
@@ -1039,6 +1402,34 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             showDustNotification.value || showChunkNotification.value || showTimeNotification.value
         );
     });
+
+    const renderAcceleratorDisplay = (
+        name: string,
+        accelerator: { levelBuyable: Repeatable; levelEffectsDisplay: () => JSX.Element }
+    ) => {
+        return (
+            // border: 4px solid var(--outline); border-radius: 8px;
+            <div
+                class="accelerator-container"
+                data-augmented-ui="border br-clip r-rect bl-2-scoop-x"
+            >
+                <div style="padding: 6px;">
+                    <h4 style="padding-bottom: 8px;">Accelerator</h4>
+                    <hr
+                        color="var(--outline-lighter)"
+                        style="height: 2px; width: 32px; margin: auto;"
+                    />
+                    <code>Level {accelerator.levelBuyable.amount.value}/3</code>
+                </div>
+
+                <hr />
+
+                <div style="padding: 0 12px 12px 12px;">
+                    {render(accelerator.levelEffectsDisplay)}
+                </div>
+            </div>
+        );
+    };
 
     const tabs = createTabFamily<TabFamilyOptions>(
         {
@@ -1063,11 +1454,17 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                             <Row>{render(dustAccelerator.intervalBuyable)}</Row>
                             <Spacer />
 
-                            <h4>Granting you:</h4>
-                            {render(dustAccelerator.levelEffectsDisplay)}
+                            {renderAcceleratorDisplay("Dust Accelerator", dustAccelerator)}
                             <Spacer />
 
-                            {render(dustAccelerator.levelBuyable)}
+                            <div class="table grouped-table">
+                                <div class="row mergeAdjacent">
+                                    {render(dustAccelerator.levelBuyable)}
+                                    {render(dustAccelerator.boostBuyable)}
+                                </div>
+                            </div>
+
+                            <Spacer />
 
                             <Spacer />
                             <h4>Upgrades</h4>
@@ -1088,25 +1485,44 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 tab: createTab(() => ({
                     display: () => (
                         <>
-                            <h2>{format(chunkAccelerator.resource.value)} Chunk Accelerons</h2>
-                            <h6>
-                                You are gaining {format(chunkAccelerator.gainComputed.value)} every{" "}
-                                {format(chunkAccelerator.timerTickSpeedDisplay.value)} seconds.
-                            </h6>
+                            <div style="width: fit-content;">
+                                <div
+                                    data-augmented-ui="border tl-clip br-clip"
+                                    style="padding: 12px 24px;width: fit-content;"
+                                >
+                                    <h2>
+                                        {format(chunkAccelerator.resource.value)} Chunk Accelerons
+                                    </h2>
+
+                                    <h6>
+                                        You are gaining{" "}
+                                        {format(chunkAccelerator.gainComputed.value)} every{" "}
+                                        {format(chunkAccelerator.timerTickSpeedDisplay.value)}{" "}
+                                        seconds.
+                                    </h6>
+                                </div>
+                                <div
+                                    data-augmented-ui="both tr-clip"
+                                    style="border-color: var(--outline);"
+                                >
+                                    {render(chunkAccelerator.bar)}
+                                </div>
+
+                                {render(chunkAccelerator.intervalBuyable)}
+
+                                {renderAcceleratorDisplay("Chunk Accelerator", chunkAccelerator)}
+                            </div>
+
                             <Spacer />
 
-                            {render(chunkAccelerator.bar)}
-                            <Spacer />
+                            <div class="table grouped-table">
+                                <div class="row mergeAdjacent">
+                                    {render(chunkAccelerator.levelBuyable)}
+                                    {render(chunkAccelerator.boostBuyable)}
+                                </div>
+                            </div>
 
-                            <h4>You have {format(chunksLayer.chunks.value)} mercurial chunks.</h4>
-                            <Row>{render(chunkAccelerator.intervalBuyable)}</Row>
                             <Spacer />
-
-                            <h4>Granting you:</h4>
-                            {render(chunkAccelerator.levelEffectsDisplay)}
-                            <Spacer />
-
-                            {render(chunkAccelerator.levelBuyable)}
 
                             <Spacer />
                             <h4>Upgrades</h4>
@@ -1137,11 +1553,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                             {render(timeAccelerator.bar)}
                             <Spacer />
 
-                            <h4>Granting you:</h4>
-                            {render(timeAccelerator.levelEffectsDisplay)}
+                            {renderAcceleratorDisplay("Time Accelerator", timeAccelerator)}
                             <Spacer />
 
-                            {render(timeAccelerator.levelBuyable)}
+                            <div class="table grouped-table">
+                                <div class="row mergeAdjacent">
+                                    {render(timeAccelerator.levelBuyable)}
+                                    {render(timeAccelerator.boostBuyable)}
+                                </div>
+                            </div>
 
                             <Spacer />
                             <h4>Upgrades</h4>

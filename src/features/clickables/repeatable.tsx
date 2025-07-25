@@ -45,6 +45,7 @@ export interface RepeatableOptions extends ClickableOptions {
               showAmount?: boolean;
           };
     clickableStyle?: MaybeRef<CSSProperties>;
+    clickableDataAttributes?: MaybeRef<Record<string, string>>;
 }
 
 /** An object that represents a feature with multiple "levels" with scaling requirements. */
@@ -70,6 +71,7 @@ export interface Repeatable extends VueFeature {
     amountToIncrease: Ref<DecimalSource>;
     /** A symbol that helps identify features of the same type. */
     type: typeof RepeatableType;
+    clickableDataAttributes?: MaybeRef<Record<string, string>>;
 }
 
 /**
@@ -87,6 +89,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             onClick,
             initialAmount,
             clickableStyle,
+            clickableDataAttributes,
             ...props
         } = options;
 
@@ -106,6 +109,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
                 onClick={repeatable.onClick}
                 onHold={repeatable.onClick}
                 display={repeatable.display}
+                dataAttributes={repeatable.clickableDataAttributes}
             />
         ));
 
@@ -176,6 +180,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             requirements,
             initialAmount: processGetter(initialAmount),
             clickableStyle,
+            clickableDataAttributes,
             limit: processGetter(limit) ?? Decimal.dInf,
             classes: computed(() => {
                 const currClasses = unref(vueFeature.classes) || {};

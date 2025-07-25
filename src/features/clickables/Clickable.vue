@@ -7,6 +7,7 @@
         @touchstart.passive="start"
         @touchend.passive="stop"
         @touchcancel.passive="stop"
+        v-bind="unref(dataAttributes)"
         :class="{
             clickable: true,
             can: unref(canClick),
@@ -27,12 +28,23 @@ import {
     setupHoldToClick
 } from "util/vue";
 import type { Component, MaybeRef } from "vue";
-import { unref } from "vue";
+import { computed, unref } from "vue";
 
 const props = defineProps<{
     canClick: MaybeRef<boolean>;
     display?: MaybeGetter<Renderable>;
+    dataAttributes?: MaybeRef<Record<string, string>>;
 }>();
+
+const dataAttributes = computed(() => {
+    if (!props.dataAttributes) {
+        return {};
+    }
+
+    return Object.fromEntries(
+        Object.entries(unref(props.dataAttributes)).map(([key, value]) => [`data-${key}`, value])
+    )
+})
 
 const emits = defineEmits<{
     (e: "click", event?: MouseEvent | TouchEvent): void;

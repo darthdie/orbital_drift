@@ -51,6 +51,9 @@
                         The Modding Tree
                     </a>
                 </div>
+                <div>
+                    <a href="https://www.flaticon.com/free-icons/dust" title="dust icons">Dust icons created by cube29 - Flaticon</a>
+                </div>
                 <br />
                 <div>Time Played: {{ timePlayed }}</div>
                 <InfoComponents />

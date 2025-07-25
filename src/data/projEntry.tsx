@@ -18,6 +18,7 @@ import venus from "./layers/venus";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 import { createHotkey } from "features/hotkey";
+import "./augmented-ui.css";
 
 /* planet mechanic themes
 mercury: acceleration
