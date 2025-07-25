@@ -59,6 +59,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "The Messenger God",
                 description: "Multiply Dust & Collision Time by x1.5.",
                 effectDisplay: (): string => `x${format(messengerGodModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -71,6 +74,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Slippery Time",
                 description: "Multiplies Dust Time based on Dust Time.",
                 effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -83,6 +89,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Collision Course",
                 description: "Raise Dust & Collision Time based on Dust.",
                 effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -95,6 +104,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Accumulating Dust",
                 description: "Multiply Dust gain based on itself.",
                 effectDisplay: (): string => `x${format(accumulatingDustModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -107,6 +119,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Seasoned Dust",
                 description: "Increases base Dust Time based on Dust Time.",
                 effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -119,6 +134,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Killin' Time",
                 description: "Increase base Dust gain based on OOM of Dust Time.",
                 effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -138,6 +156,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         Dust Gain: x{format(accelerationDustGainEffect.value)}
                     </>
                 )
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -150,6 +171,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Acceleration 2: This time it's personal",
                 description: "Multiply Collision Time based on Dust Time.",
                 effectDisplay: (): string => `x${format(accelerationTwoEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         }))
     };
@@ -181,15 +205,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             })
         )
     ]);
-
-    // const accelerationTwoMultiplierModifier = createSequentialModifier(() => [
-    //     createMultiplicativeModifier(
-    //         (): MultiplicativeModifierOptions => ({
-    //             enabled: basicUpgrades.accelerationTwo.bought,
-    //             multiplier: () => Decimal.add(timeSinceReset.value, 1).log2().sqrt().clampMin(1)
-    //         })
-    //     )
-    // ]);
 
     const accelerationTwoEffect = computed((): DecimalSource => {
         if (basicUpgrades.accelerationTwo.bought.value) {
@@ -226,6 +241,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "It's Chunkin' time",
                 description: `Multiply "Killin' Time" based on best Chunks.`,
                 effectDisplay: () => `x${format(chunkingTimeModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -241,6 +259,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "FedEx Manager",
                 description: `Multiply "The Messenger God" based on best Chunks.`,
                 effectDisplay: () => `x${format(fedexManagerModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -256,6 +277,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Dust Bunnies",
                 description: `Multiply "Accumulating Dust" based on best Chunks.`,
                 effectDisplay: () => `x${format(dustBunniesModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -271,6 +295,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "eyehatedinosaurs",
                 description: `Multiply "Acceleration 2" based on best Chunks.`,
                 effectDisplay: () => `x${format(eyeHateDinosaursModifier.apply(1))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         }))
     };
@@ -303,6 +330,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Align the Stars",
                     description: "Increase base Dust Time gain by +1",
                     effectDisplay: (): string => `+${format(baseDustAmountModifier.apply(0))}/s`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
                 }
             })
         ),
@@ -323,6 +354,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Salted Dust",
                     description: "Increase base Dust gain by 1",
                     effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
                 }
             })
         ),
@@ -343,6 +378,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Enriched Dust",
                     description: "Multiply Dust gain by x1.1",
                     effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
                 }
             })
         ),
@@ -361,6 +400,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Dust Piles",
                     description: "Raise Dust gain to ^1.1",
                     effectDisplay: () => `^${format(dustPilesEffect.value, 1)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
                 },
                 visibility: () =>
                     milestonesLayer.milestones.first.earned.value === true ||
@@ -511,6 +554,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Chunks",
                 description: "Unlock Mercurial Chunks"
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip bl-clip-y"
             }
         })),
 
@@ -522,6 +568,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             display: {
                 title: "Accelerators",
                 description: "Unlock Accelerators"
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip bl-clip-y"
             }
         }))
     };
@@ -625,19 +674,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         };
     });
-
-    // const accelerationModifier = createSequentialModifier(() => [
-    //     createMultiplicativeModifier(() => ({
-    //         enabled: () => basicUpgrades.accelerationUpgrade.bought.value,
-    //         // x: TSLR
-    //         multiplier: () =>
-    //             Decimal.add(timeSinceReset.value, 1)
-    //                 .sqrt()
-    //                 .pow(0.25)
-    //                 .mul(eyeHateDinosaursModifier.apply(1))
-    //                 .clampMin(1)
-    //     }))
-    // ]);
 
     const accelerationDustGainEffect = computed(() => {
         if (basicUpgrades.acceleration.bought.value) {
@@ -801,8 +837,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         basicUpgrades,
         acceleratorUpgrades,
         totalTimeModifier: seasonedDustModifier,
-        // accelerationModifier,
-        // accelerationTwoMultiplierModifier,
         messengerGodModifier,
         collisionCourseEffect,
         collisionCourseModifier,
@@ -831,12 +865,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 <Column>{renderGroupedObjects(repeatables, 4, tableStyles)}</Column>
                 <Spacer />
 
-                <h4>Upgrades</h4>
+                <div style="margin-bottom: 4px;">
+                    <h3>Upgrades</h3>
+                </div>
+                <hr class="section-divider" />
                 <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
                 <Column>{renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}</Column>
                 <Spacer />
 
-                <h4>Unlocks</h4>
+                <div style="margin-bottom: 4px;">
+                    <h3>Unlocks</h3>
+                </div>
+                <hr class="section-divider" />
                 <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
             </>
         ),

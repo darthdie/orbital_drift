@@ -220,6 +220,9 @@ const layer = createLayer(id, () => {
                 title: "Chuckin' Chunks",
                 description: "Increase base Dust Time by double your best Chunks.",
                 effectDisplay: () => `+${format(chuckingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -233,6 +236,9 @@ const layer = createLayer(id, () => {
                 description: "Gain Dust per second equal to your best Chunks.",
                 effectDisplay: () =>
                     `${format(Decimal.times(dustLayer.passiveGenerationPerSecondEffect.value, 100))}%/s`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -245,6 +251,9 @@ const layer = createLayer(id, () => {
                 title: "Lovin' Chunks",
                 description: "Reduce Chunk cost based on Dust.",
                 effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -262,6 +271,9 @@ const layer = createLayer(id, () => {
             display: {
                 title: "Autoin' Chunks",
                 description: "Automatically reset for Chunks, and they reset nothing."
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -275,6 +287,9 @@ const layer = createLayer(id, () => {
                 title: "Collidin' Chunks",
                 description: "Raise Collision Time rate based on Chunks.",
                 effectDisplay: () => `^${format(collidingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -288,6 +303,9 @@ const layer = createLayer(id, () => {
                 title: "Splinterin' Chunks",
                 description: "Reduce Chunk cost based on Collision Time rate.",
                 effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -301,6 +319,9 @@ const layer = createLayer(id, () => {
                 title: "Cheapin' Chunks",
                 description: "Reduce Chunk cost by best Chunks.",
                 effectDisplay: () => `÷${format(cheapingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -314,6 +335,9 @@ const layer = createLayer(id, () => {
                 title: "Speedin' Chunks",
                 description: "Boost Time Acceleron gain based on best Chunks.",
                 effectDisplay: () => `x${format(speedingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -327,6 +351,9 @@ const layer = createLayer(id, () => {
                 title: "Dustin' Chunks",
                 description: "Multiply Dust gain by best Chunks.",
                 effectDisplay: () => `x${format(dustingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -339,6 +366,9 @@ const layer = createLayer(id, () => {
             display: {
                 title: "Dirt Cheap",
                 description: "Reduce the cost scaling of Chunks."
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -352,6 +382,9 @@ const layer = createLayer(id, () => {
                 title: "Throwin' Harder",
                 description: `Raise 'Chuckin' Chunks' effect based on best Chunks.`,
                 effectDisplay: () => `^${format(throwingHarderEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         })),
 
@@ -365,21 +398,11 @@ const layer = createLayer(id, () => {
                 title: "Marryin' Chunks",
                 description: `Multiply 'Lovin' Chunks' effect based on best Chunks at an increase rate.`,
                 effectDisplay: () => `x${format(marryingChunksEffect.value)}`
+            },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         }))
-
-        // dollarsToChunks: createUpgrade(() => ({
-        //     visibility: acceleratorsLayer.chunkAccelerator.upgrades.moreChunkUpgrades.bought,
-        //     requirements: createCostRequirement(() => ({
-        //         resource: chunks,
-        //         cost: 105
-        //     })),
-        //     display: {
-        //         title: "Dollars to Chunks",
-        //         description: `Raise the effect of "Cheapin' Chunks" by ^1.1.`,
-        //         effectDisplay: () => `^${dollarsToChunksEffect.value}`
-        //     }
-        // }))
     };
 
     const treeNode = createLayerTreeNode(() => ({
@@ -455,9 +478,14 @@ const layer = createLayer(id, () => {
                 <h4>Your best condensed Chunks is {format(bestChunks.value)}.</h4>
                 <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
                 <Spacer />
+
                 {render(resetButton)}
                 <Spacer />
-                <h3>Upgrades</h3>
+
+                <div style="margin-bottom: 4px;">
+                    <h3>Upgrades</h3>
+                </div>
+                <hr class="section-divider" />
                 <Spacer />
                 {renderGroupedObjects(upgrades, 4)}
             </>

@@ -94,12 +94,16 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
         } = options;
 
         if (options.classes == null) {
-            options.classes = computed(() => ({ bought: unref(repeatable.maxed) }));
+            options.classes = computed(() => ({
+                bought: unref(repeatable.maxed),
+                repeatable: true
+            }));
         } else {
             const classes = processGetter(options.classes);
             options.classes = computed(() => ({
                 ...unref(classes),
-                bought: unref(repeatable.maxed)
+                bought: unref(repeatable.maxed),
+                repeatable: true
             }));
         }
         const vueFeature = vueFeatureMixin("repeatable", options, () => (
@@ -134,17 +138,17 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
             const { title, description, effectDisplay, showAmount } = _display;
 
             display = () => (
-                <span>
+                <span class="repeatable-content">
                     {title == null ? null : (
                         <div>
                             {render(title, el => (
-                                <h3>{el}</h3>
+                                <h3 class="title">{el}</h3>
                             ))}
                         </div>
                     )}
-                    {render(description)}
+                    <span class="description">{render(description)}</span>
                     {showAmount === false ? null : (
-                        <div>
+                        <div class="amount">
                             <br />
                             <>Amount: {formatWhole(unref(amount))}</>
                             {Decimal.isFinite(unref(repeatable.limit)) ? (
@@ -153,13 +157,13 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
                         </div>
                     )}
                     {effectDisplay == null ? null : (
-                        <div>
+                        <div class="effect">
                             <br />
                             Currently: {render(effectDisplay)}
                         </div>
                     )}
                     {unref(repeatable.maxed) ? null : (
-                        <div>
+                        <div class="requirements">
                             <br />
                             {displayRequirements(requirements, unref(repeatable.amountToIncrease))}
                         </div>
