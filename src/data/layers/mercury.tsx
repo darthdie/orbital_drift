@@ -61,12 +61,19 @@ const layer = createLayer(id, baseLayer => {
                 )
             );
         },
-        width: 512,
+        width: "100%",
         height: 10,
         direction: Direction.Right,
         containerStyle: {
             "text-align": "center"
-        }
+        },
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline-lighter)"
+        },
     }));
 
     const baseTimeRateModifier = createSequentialModifier(() => [
@@ -166,7 +173,14 @@ const layer = createLayer(id, baseLayer => {
             )}
 
             <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
-            {render(collisionTimeProgressBar)}
+
+            <div
+                data-augmented-ui="border tl-clip"
+                style="border-color: var(--outline); width: 512px"
+            >
+                {render(collisionTimeProgressBar)}
+            </div>
+
             <Spacer />
             {render(tabs)}
         </>

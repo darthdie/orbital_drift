@@ -29,6 +29,7 @@ import chunksLayer from "./chunks";
 import milestonesLayer from "./milestones";
 import acceleratorsLayer from "./accelerators";
 import { JSX } from "vue/jsx-runtime";
+import { createClickable } from "features/clickables/clickable";
 
 // TODO:
 // Increase base chunk cost
@@ -325,6 +326,27 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         dustPiles: persistent<DecimalSource>(0)
     };
 
+    const buyMaxRepeatablesButton = createClickable(() => ({
+        classes: { "buy-max-button": true },
+        display: {
+            description: "Buy Max"
+        },
+        onClick: () => {
+            // repeatables.baseDustTime.purchase
+            Object.values(repeatables).forEach(repeatable => {
+                let maxBuyable = Decimal.sub(buyableCap.value, repeatable.amount.value).toNumber();
+
+                while (maxBuyable > 0 && repeatable.canClick.value) {
+                    repeatable.purchase();
+                    maxBuyable--;
+                }
+            });
+        },
+        dataAttributes: {
+            "augmented-ui": "border tl-clip br-clip"
+        }
+    }));
+
     const repeatables = {
         baseDustTime: createRepeatable(
             (): RepeatableOptions => ({
@@ -567,6 +589,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Chunks",
                 description: "Unlock Mercurial Chunks"
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip bl-clip-y"
             }
@@ -581,6 +604,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Accelerators",
                 description: "Unlock Accelerators"
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip bl-clip-y"
             }
@@ -859,37 +883,40 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         fullReset,
         display: () => (
             <>
-                <h2>
-                    {format(mercurialDust.value)} {mercurialDust.displayName}
-                </h2>
-                {enablePassiveGeneration.value ? (
-                    <>
-                        <h6>Gaining {format(passiveGenerationPerSecond.value)}/s</h6>
-                    </>
-                ) : null}
-                <h5>You have {format(timeSinceReset.value)} Dust Time.</h5>
-                <h6>({format(timeSinceLastResetGainModifier.apply(1))}/s)</h6>
+                <div id="dust-layer">
+                    <h2>
+                        {format(mercurialDust.value)} {mercurialDust.displayName}
+                    </h2>
+                    {enablePassiveGeneration.value ? (
+                        <>
+                            <h6>Gaining {format(passiveGenerationPerSecond.value)}/s</h6>
+                        </>
+                    ) : null}
+                    <h5>You have {format(timeSinceReset.value)} Dust Time.</h5>
+                    <h6>({format(timeSinceLastResetGainModifier.apply(1))}/s)</h6>
 
-                <Spacer />
-                {render(resetButton)}
-                <Spacer />
-                <Spacer />
-                <Column>{renderGroupedObjects(repeatables, 4, tableStyles)}</Column>
-                <Spacer />
+                    <Spacer />
+                    {render(resetButton)}
+                    <Spacer />
+                    <Spacer />
+                    {render(buyMaxRepeatablesButton)}
+                    <Column>{renderGroupedObjects(repeatables, 4, tableStyles)}</Column>
+                    <Spacer />
 
-                <div style="margin-bottom: 4px;">
-                    <h3>Upgrades</h3>
+                    <div style="margin-bottom: 4px;">
+                        <h3>Upgrades</h3>
+                    </div>
+                    <hr class="section-divider" />
+                    <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
+                    <Column>{renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}</Column>
+                    <Spacer />
+
+                    <div style="margin-bottom: 4px;">
+                        <h3>Unlocks</h3>
+                    </div>
+                    <hr class="section-divider" />
+                    <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
                 </div>
-                <hr class="section-divider" />
-                <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
-                <Column>{renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}</Column>
-                <Spacer />
-
-                <div style="margin-bottom: 4px;">
-                    <h3>Unlocks</h3>
-                </div>
-                <hr class="section-divider" />
-                <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
             </>
         ),
         treeNode

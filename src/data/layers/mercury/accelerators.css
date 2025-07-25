@@ -97,6 +97,8 @@
     height: 100%;
     padding-top: 6px;
     padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
     box-sizing: border-box;
 
     .title {
@@ -108,7 +110,8 @@
         height: 2px;
         width: 50%;
         margin-left: auto;
-        margin-right: -1px;
+        /* -(.upgrade-content.padding-right + 1)px */
+        margin-right: -5px;
     }
 
     .description {
@@ -119,5 +122,20 @@
 
     .effect {
         font-weight: 700;
+    }
+}
+
+#dust-layer {
+    .buy-max-button .clickable {
+        /* width: fit-content;
+        height: fit-content;
+        padding: 24px; */
+        width: 78px;
+        height: 42px;
+
+        min-width: 0;
+        min-height: 0;
+
+        border: 0;
     }
 }

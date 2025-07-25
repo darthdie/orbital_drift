@@ -144,8 +144,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 borderRadius: "0",
                 borderColor: "var(--outline-lighter)"
             },
-            progress: (): Decimal =>
-                Decimal.div(dustAccelerator.timer.value, dustAccelerator.timerMax.value)
+            progress: (): Decimal => {
+                if (Decimal.lte(dustAccelerator.timerMax.value, 0.1)) {
+                    return Decimal.fromNumber(100);
+                }
+
+                return Decimal.div(dustAccelerator.timer.value, dustAccelerator.timerMax.value);
+            }
         })),
 
         intervalBuyable: createRepeatable(() => ({
@@ -204,8 +209,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.div(120, dustAccelerator.dustAcceleratorTimerMaxEffect.value)
                 .div(dustAccelerator.acceleratingTheAcceleratorEffect.value)
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
-                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
-                .clampMin(0.1);
+                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
@@ -574,8 +578,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 borderRadius: "0",
                 borderColor: "var(--outline-lighter)"
             },
-            progress: (): Decimal =>
-                Decimal.div(chunkAccelerator.timer.value, chunkAccelerator.timerMax.value)
+            progress: (): Decimal => {
+                if (Decimal.lte(chunkAccelerator.timerMax.value, 0.1)) {
+                    return Decimal.fromNumber(100);
+                }
+
+                return Decimal.div(chunkAccelerator.timer.value, chunkAccelerator.timerMax.value);
+            }
         })),
 
         intervalBuyable: createRepeatable(() => ({
@@ -637,8 +646,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .div(chunkAccelerator.dustAcceleratorIntervalEffect.value)
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
                 .div(milestonesLayer.fiftyMilestoneEffect.value)
-                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
-                .clampMin(0.1);
+                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
@@ -1003,8 +1011,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 borderRadius: "0",
                 borderColor: "var(--outline-lighter)"
             },
-            progress: (): Decimal =>
-                Decimal.div(timeAccelerator.timer.value, timeAccelerator.timerMax.value)
+            progress: (): Decimal => {
+                if (Decimal.lte(timeAccelerator.timerMax.value, 0.1)) {
+                    return Decimal.fromNumber(100);
+                }
+                return Decimal.div(timeAccelerator.timer.value, timeAccelerator.timerMax.value);
+            }
         })),
 
         bonusLevels: (minLevelRequired: number): Decimal => {
@@ -1040,8 +1052,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .div(timeAccelerator.acceleronTimerDivisionModifier.value)
                 .div(timeAccelerator.doomsdayClockEffect.value)
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
-                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
-                .clampMin(0.1);
+                .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
