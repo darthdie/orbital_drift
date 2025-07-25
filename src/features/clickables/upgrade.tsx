@@ -126,7 +126,9 @@ export function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
                     {render(description, el => (
                         <div class="description">{el}</div>
                     ))}
-                    {effectDisplay != null ? <div class="effect">Currently: {render(effectDisplay)}</div> : null}
+                    {effectDisplay != null ? (
+                        <div class="effect">Currently: {render(effectDisplay)}</div>
+                    ) : null}
                     {bought.value ? null : (
                         <span class="requirements">
                             <br />

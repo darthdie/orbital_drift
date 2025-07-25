@@ -257,13 +257,16 @@ const layer = createLayer(id, () => {
         converters,
         display: () => (
             <>
-                <h2>
-                    You have <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} />{" "}
-                    {format(energy.value)} {energy.displayName}
-                </h2>
-                <h4>You have made a total of {format(totalEnergy.value)}</h4>
-                <Spacer />
-                {render(tabs)}
+                <div id="solar-layer">
+                    <h2>
+                        You have{" "}
+                        <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} />{" "}
+                        {format(energy.value)} {energy.displayName}
+                    </h2>
+                    <h4>You have made a total of {format(totalEnergy.value)}</h4>
+                    <Spacer />
+                    {render(tabs)}
+                </div>
             </>
         ),
         treeNode

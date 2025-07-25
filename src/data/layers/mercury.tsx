@@ -89,8 +89,8 @@ const layer = createLayer(id, baseLayer => {
             .pow(chunksTab.collidingChunksEffect.value)
     );
 
-    // const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
-    const hasCollidedComputed = computed(() => false);
+    const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
+    // const hasCollidedComputed = computed(() => false);
 
     baseLayer.on("update", diff => {
         if (!unlocked.value) {

@@ -60,6 +60,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Multiply Dust & Collision Time by x1.5.",
                 effectDisplay: (): string => `x${format(messengerGodModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -75,6 +76,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Multiplies Dust Time based on Dust Time.",
                 effectDisplay: (): string => `x${format(slippingTimeModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -90,6 +92,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Raise Dust & Collision Time based on Dust.",
                 effectDisplay: (): string => `^${format(collisionCourseEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -105,6 +108,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Multiply Dust gain based on itself.",
                 effectDisplay: (): string => `x${format(accumulatingDustModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -120,6 +124,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Increases base Dust Time based on Dust Time.",
                 effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -135,6 +140,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Increase base Dust gain based on OOM of Dust Time.",
                 effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -157,6 +163,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     </>
                 )
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -172,6 +179,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: "Multiply Collision Time based on Dust Time.",
                 effectDisplay: (): string => `x${format(accelerationTwoEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -242,6 +250,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "Killin' Time" based on best Chunks.`,
                 effectDisplay: () => `x${format(chunkingTimeModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -260,6 +269,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "The Messenger God" based on best Chunks.`,
                 effectDisplay: () => `x${format(fedexManagerModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -278,6 +288,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "Accumulating Dust" based on best Chunks.`,
                 effectDisplay: () => `x${format(dustBunniesModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -296,6 +307,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 description: `Multiply "Acceleration 2" based on best Chunks.`,
                 effectDisplay: () => `x${format(eyeHateDinosaursModifier.apply(1))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }

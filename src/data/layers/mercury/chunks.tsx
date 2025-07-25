@@ -221,6 +221,7 @@ const layer = createLayer(id, () => {
                 description: "Increase base Dust Time by double your best Chunks.",
                 effectDisplay: () => `+${format(chuckingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -237,6 +238,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: () =>
                     `${format(Decimal.times(dustLayer.passiveGenerationPerSecondEffect.value, 100))}%/s`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -252,6 +254,7 @@ const layer = createLayer(id, () => {
                 description: "Reduce Chunk cost based on Dust.",
                 effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -272,6 +275,7 @@ const layer = createLayer(id, () => {
                 title: "Autoin' Chunks",
                 description: "Automatically reset for Chunks, and they reset nothing."
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -288,6 +292,7 @@ const layer = createLayer(id, () => {
                 description: "Raise Collision Time rate based on Chunks.",
                 effectDisplay: () => `^${format(collidingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -304,6 +309,7 @@ const layer = createLayer(id, () => {
                 description: "Reduce Chunk cost based on Collision Time rate.",
                 effectDisplay: () => `÷${format(fuckingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -320,6 +326,7 @@ const layer = createLayer(id, () => {
                 description: "Reduce Chunk cost by best Chunks.",
                 effectDisplay: () => `÷${format(cheapingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -336,6 +343,7 @@ const layer = createLayer(id, () => {
                 description: "Boost Time Acceleron gain based on best Chunks.",
                 effectDisplay: () => `x${format(speedingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -352,6 +360,7 @@ const layer = createLayer(id, () => {
                 description: "Multiply Dust gain by best Chunks.",
                 effectDisplay: () => `x${format(dustingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -367,6 +376,7 @@ const layer = createLayer(id, () => {
                 title: "Dirt Cheap",
                 description: "Reduce the cost scaling of Chunks."
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -383,6 +393,7 @@ const layer = createLayer(id, () => {
                 description: `Raise 'Chuckin' Chunks' effect based on best Chunks.`,
                 effectDisplay: () => `^${format(throwingHarderEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
@@ -399,6 +410,7 @@ const layer = createLayer(id, () => {
                 description: `Multiply 'Lovin' Chunks' effect based on best Chunks at an increase rate.`,
                 effectDisplay: () => `x${format(marryingChunksEffect.value)}`
             },
+            classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }

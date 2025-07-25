@@ -6,3 +6,9 @@
     font-size: 12px;
     max-width: 256px;
 }
+
+#solar-layer {
+    .title-divider {
+        visibility: hidden;
+    }
+}

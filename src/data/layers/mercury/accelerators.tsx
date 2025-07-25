@@ -381,7 +381,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     showAmount: false,
                     title: "Boost",
                     description:
-                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +100 base Acceleron gain.",
                     effectDisplay: (): Renderable => (
                         <>
                             <br />+{format(dustAccelerator.boostGainEffect.value)} Acceleron Gain
@@ -401,7 +401,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         boostGainEffect: computed((): DecimalSource => {
             if (Decimal.gt(dustAccelerator.boostBuyable.amount.value, 0)) {
-                return Decimal.times(5, dustAccelerator.boostBuyable.amount.value).clampMin(1);
+                return Decimal.times(100, dustAccelerator.boostBuyable.amount.value).clampMin(1);
             }
 
             return Decimal.dZero;
@@ -440,6 +440,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: (): string =>
                         `÷${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -456,6 +457,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "je ne sais chunks",
                     description: "Unlock Chunk Accelerons"
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -472,6 +474,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Speed Dust",
                     description: "Unlock more Dust upgrades"
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -492,6 +495,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         effectDisplay: (): string =>
                             `x${format(dustAccelerator.dustyJeansEffect.value)}`
                     },
+                    classes: { "sd-upgrade": true },
                     clickableDataAttributes: {
                         "augmented-ui": "border tr-clip"
                     }
@@ -634,7 +638,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 .div(timeAccelerator.levelTwoTimeRaiseEffect.value)
                 .div(milestonesLayer.fiftyMilestoneEffect.value)
                 .div(solarLayer.mercuryTreeEffects.likeThatBlueGuy.value)
-                .clampMin(1);
+                .clampMin(0.1);
         }),
 
         timerTickSpeedDisplay: computed((): Decimal => {
@@ -710,7 +714,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     showAmount: false,
                     title: "Boost",
                     description:
-                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +100 base Acceleron gain.",
                     effectDisplay: (): Renderable => (
                         <>
                             <br />+{format(chunkAccelerator.boostGainEffect.value)} Acceleron Gain
@@ -730,7 +734,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         boostGainEffect: computed((): DecimalSource => {
             if (Decimal.gt(chunkAccelerator.boostBuyable.amount.value, 0)) {
-                return Decimal.times(5, chunkAccelerator.boostBuyable.amount.value).clampMin(1);
+                return Decimal.times(100, chunkAccelerator.boostBuyable.amount.value).clampMin(1);
             }
 
             return Decimal.dZero;
@@ -771,6 +775,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: (): string =>
                         `÷${format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}`
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -787,6 +792,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Speed Chunks",
                     description: "Unlock more Chunk upgrades. (Starting at 35 Chunks)"
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -803,6 +809,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Time go brrr",
                     description: "Unlock Time Accelerons"
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -821,6 +828,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         effectDisplay: (): string =>
                             `÷${format(chunkAccelerator.pebbleSmasherEffect.value)}`
                     },
+                    classes: { "sd-upgrade": true },
                     clickableDataAttributes: {
                         "augmented-ui": "border tr-clip"
                     }
@@ -1091,7 +1099,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     showAmount: false,
                     title: "Boost",
                     description:
-                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +5 base Acceleron gain.",
+                        "Reset Accelerons to gain a x1.25 boost to Level 1-3 effects and +100 base Acceleron gain.",
                     effectDisplay: (): Renderable => (
                         <>
                             <br />+{format(timeAccelerator.boostGainEffect.value)} Acceleron Gain
@@ -1111,7 +1119,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         boostGainEffect: computed((): DecimalSource => {
             if (Decimal.gt(timeAccelerator.boostBuyable.amount.value, 0)) {
-                return Decimal.times(5, timeAccelerator.boostBuyable.amount.value).clampMin(1);
+                return Decimal.times(100, timeAccelerator.boostBuyable.amount.value).clampMin(1);
             }
 
             return Decimal.dZero;
@@ -1139,6 +1147,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     title: "Auto Von Doom",
                     description: "Automate Accelerator interval buyables."
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -1156,6 +1165,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: (): string =>
                         `÷${format(timeAccelerator.doomsdayClockEffect.value)}`
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -1173,6 +1183,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     effectDisplay: (): string =>
                         `x${format(timeAccelerator.finalCountdownEffect.value)}`
                 },
+                classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
                     "augmented-ui": "border tr-clip"
                 }
@@ -1192,6 +1203,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         effectDisplay: (): string =>
                             `x${format(timeAccelerator.bringItHomeEffect.value)}`
                     },
+                    classes: { "sd-upgrade": true },
                     clickableDataAttributes: {
                         "augmented-ui": "border tr-clip"
                     }
