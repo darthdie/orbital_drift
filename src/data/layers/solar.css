@@ -11,4 +11,16 @@
     .title-divider {
         visibility: hidden;
     }
+
+    .solar-tree-node .clickable {
+        border-radius: 50%;
+        width: 140px;
+        height: 140px;
+        padding: 32px;
+        box-sizing: border-box;
+    }
+
+    .upgrade-content {
+        padding-top: 0;
+    }
 }

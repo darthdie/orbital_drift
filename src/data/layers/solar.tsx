@@ -74,7 +74,8 @@ const layer = createLayer(id, () => {
                         resource: energy,
                         cost: 1
                     }))
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         ),
         venus: createUpgrade(
@@ -89,20 +90,22 @@ const layer = createLayer(id, () => {
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         ),
         earth: createUpgrade(
             (): UpgradeOptions => ({
-                visibility: false,
+                visibility: solarSystemUpgrades.venus.bought,
                 display: "??",
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: noPersist(solarRays),
-                        cost: 3
+                        resource: solarRays,
+                        cost: 100
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.venus)
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         )
     };
