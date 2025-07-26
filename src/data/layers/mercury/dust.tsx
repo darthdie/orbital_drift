@@ -16,7 +16,7 @@ import { render, renderGroupedObjects } from "util/vue";
 import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
 import { createCostRequirement, CostRequirementOptions } from "game/requirements";
-import { createUpgrade } from "features/clickables/upgrade";
+import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { format } from "util/break_eternity";
 import { createCumulativeConversion, setupPassiveGeneration } from "features/conversion";
 import { createLayerTreeNode, createResetButton } from "data/common";
@@ -115,76 +115,88 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             }
         })),
 
-        totalUpgrade: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(mercurialDust),
-                cost: Decimal.fromNumber(50000)
-            })),
-            display: {
-                title: "Seasoned Dust",
-                description: "Increases base Dust Time based on Dust Time.",
-                effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        totalUpgrade: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: basicUpgrades.acummulatingDust.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: mercurialDust,
+                    cost: Decimal.fromNumber(50000)
+                })),
+                display: {
+                    title: "Seasoned Dust",
+                    description: "Increases base Dust Time based on Dust Time.",
+                    effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        killingTime: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(mercurialDust),
-                cost: Decimal.fromNumber(1e8)
-            })),
-            display: {
-                title: "Killin' Time",
-                description: "Increase base Dust gain based on OOM of Dust Time.",
-                effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        killingTime: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: basicUpgrades.acummulatingDust.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: mercurialDust,
+                    cost: Decimal.fromNumber(1e8)
+                })),
+                display: {
+                    title: "Killin' Time",
+                    description: "Increase base Dust gain based on OOM of Dust Time.",
+                    effectDisplay: (): string => `+${format(killingTimeModifier.apply(0))}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        acceleration: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(mercurialDust),
-                cost: Decimal.fromNumber(1e15)
-            })),
-            display: {
-                title: "Acceleration",
-                description: "Dust Time and Dust boost each other.",
-                effectDisplay: (): JSX.Element => (
-                    <>
-                        <br />
-                        Dust Time gain: x{format(accelerationDustTimeEffect.value)}
-                        <br />
-                        Dust Gain: x{format(accelerationDustGainEffect.value)}
-                    </>
-                )
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
+        acceleration: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: basicUpgrades.acummulatingDust.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: mercurialDust,
+                    cost: Decimal.fromNumber(1e15)
+                })),
+                display: {
+                    title: "Acceleration",
+                    description: "Dust Time and Dust boost each other.",
+                    effectDisplay: (): JSX.Element => (
+                        <>
+                            <br />
+                            Dust Time gain: x{format(accelerationDustTimeEffect.value)}
+                            <br />
+                            Dust Gain: x{format(accelerationDustGainEffect.value)}
+                        </>
+                    )
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        ),
 
-        accelerationTwo: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: mercurialDust,
-                cost: 1e20
-            })),
-            display: {
-                title: "Acceleration 2: This time it's personal",
-                description: "Multiply Collision Time based on Dust Time.",
-                effectDisplay: (): string => `x${format(accelerationTwoEffect.value)}`
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        }))
+        accelerationTwo: createUpgrade(
+            (): UpgradeOptions => ({
+                visibility: basicUpgrades.acummulatingDust.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: mercurialDust,
+                    cost: 1e20
+                })),
+                display: {
+                    title: "Acceleration 2: This time it's personal",
+                    description: "Multiply Collision Time based on Dust Time.",
+                    effectDisplay: (): string => `x${format(accelerationTwoEffect.value)}`
+                },
+                classes: { "sd-upgrade": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border tr-clip"
+                }
+            })
+        )
     };
 
     const chunkingTimeModifier = createSequentialModifier(() => [
@@ -589,7 +601,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Chunks",
                 description: "Unlock Mercurial Chunks"
             },
-            classes: { "sd-upgrade": true },
+            classes: { "sd-upgrade": true, unlock: true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip bl-clip-y"
             }
@@ -604,7 +616,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 title: "Accelerators",
                 description: "Unlock Accelerators"
             },
-            classes: { "sd-upgrade": true },
+            classes: { "sd-upgrade": true, unlock: true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip bl-clip-y"
             }
@@ -746,13 +758,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }));
 
     const fullReset = () => {
-        console.log(" full reset");
-        reset.reset();
+        createReset(() => ({ thingsToReset: (): Record<string, unknown>[] => [layer] })).reset();
 
-        mercurialDust.value = 0;
-        totalMercurialDust.value = 0;
-        timeSinceReset.value = 0;
-        totalTimeSinceReset.value = 0;
+        // mercurialDust.value = 0;
+        // totalMercurialDust.value = 0;
+        // timeSinceReset.value = 0;
+        // totalTimeSinceReset.value = 0;
 
         Object.values(repeatableBestAmounts).forEach(r => (r.value = 0));
 
@@ -839,7 +850,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     setupPassiveGeneration(baseLayer, conversion, () => passiveGenerationPerSecondEffect.value);
 
     baseLayer.on("update", diff => {
-        if (!unlocked.value) {
+        if (!unlocked.value || mercury.hasCollidedComputed.value) {
             return;
         }
 

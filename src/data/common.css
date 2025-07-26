@@ -46,6 +46,10 @@
     margin-right: 0;
 }
 
+.m-0 {
+    margin: 0;
+}
+
 @font-face {
     font-family:"AstronomicSigns";
     src: url("../assets/fonts/AstronomicSignsSt.ttf");
@@ -156,4 +160,10 @@ code {
     width: 130px;
     border: 0;
     box-sizing: border-box;
+}
+
+.sd-upgrade.unlock .clickable {
+    .upgrade-content .requirements {
+        padding-bottom: 24px;
+    }
 }

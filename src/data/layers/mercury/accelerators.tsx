@@ -115,6 +115,8 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const name = "Mercury";
     const color = "#8c8c94";
 
+    const unlocked = computed(() => dustLayer.unlocks.accelerators.bought.value);
+
     const sharedBarSettings = {
         direction: Direction.Right,
         height: 18,
@@ -1382,6 +1384,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     };
 
     baseLayer.on("preUpdate", diff => {
+        if (!unlocked.value || mercuryLayer.hasCollidedComputed.value) {
+            return;
+        }
+
         dustAccelerator.tick(diff);
         chunkAccelerator.tick(diff);
         timeAccelerator.tick(diff);
@@ -1576,9 +1582,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const fullReset = () => {
         reset.reset();
-        dustAccelerator.resource.value = 0;
-        chunkAccelerator.resource.value = 0;
-        timeAccelerator.resource.value = 0;
+        // dustAccelerator.resource.value = 0;
+        // chunkAccelerator.resource.value = 0;
+        // timeAccelerator.resource.value = 0;
     };
 
     return {

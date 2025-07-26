@@ -69,11 +69,6 @@ onErrorCaptured((err, instance, info) => {
     return false;
 });
 
-function unmimize() {
-    console.log("???")
-    emit('setMinimized', false);
-}
-
 const containerClasses = reactive({
     "layer-container": true,
     "minimized": props.minimized

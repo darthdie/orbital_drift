@@ -69,7 +69,6 @@ export const main = createLayer("main", () => {
         description: "pause",
         key: "p",
         onPress: () => {
-            console.log('pp')
             player.devSpeed = player.devSpeed === 0 ? null : 0;
         }
     }));
