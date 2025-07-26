@@ -31,7 +31,6 @@ import acceleratorsLayer from "./accelerators";
 import { JSX } from "vue/jsx-runtime";
 import { createClickable } from "features/clickables/clickable";
 import "./dust.css";
-import dustIcon from "../../../assets/icons/dust.png";
 
 // TODO:
 // Increase base chunk cost
@@ -727,7 +726,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const accelerationDustGainEffect = computed(() => {
         if (basicUpgrades.acceleration.bought.value) {
-            return Decimal.log10(mercurialDust.value).cbrt().clampMin(1);
+            return Decimal.add(mercurialDust.value, 1).log10().cbrt().clampMin(1);
         }
 
         return Decimal.dOne;
@@ -735,7 +734,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const accelerationDustTimeEffect = computed(() => {
         if (basicUpgrades.acceleration.bought.value) {
-            return Decimal.log10(timeSinceReset.value).cbrt().clampMin(1);
+            return Decimal.add(mercurialDust.value, 1).log10().cbrt().clampMin(1);
         }
 
         return Decimal.dOne;
@@ -819,23 +818,21 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         showNextAt: false,
         display: () => (
             <>
-                <div class="flex">
-                    <img src={dustIcon} style="width: 32px; padding: 0 4px;"></img>
-                    <div style="border-left: 2px solid var(--outline); height: 48px"></div>
-                    <span>
-                        Reset Dust Time & Collision Time for{" "}
-                        <b>
-                            {displayResource(
-                                conversion.gainResource,
-                                Decimal.max(
-                                    unref(conversion.actualGain),
-                                    unref(resetButton.minimumGain)
-                                )
-                            )}
-                        </b>{" "}
+                <span>
+                    Reset Dust Time & Collision Time
+                    <br />
+                    <h3 style="font-weight: 600">
+                        Gain{" "}
+                        {displayResource(
+                            conversion.gainResource,
+                            Decimal.max(
+                                unref(conversion.actualGain),
+                                unref(resetButton.minimumGain)
+                            )
+                        )}{" "}
                         {conversion.gainResource.displayName}
-                    </span>
-                </div>
+                    </h3>
+                </span>
             </>
         ),
         dataAttributes: {

@@ -12,6 +12,7 @@ import {
 import { render } from "util/vue";
 import { createReset } from "features/reset";
 import { DecimalSource } from "util/bignum";
+import Spacer from "components/layout/Spacer.vue";
 
 const id = "Mm";
 const layer = createLayer(id, () => {
@@ -171,7 +172,8 @@ const layer = createLayer(id, () => {
         fullReset,
         display: () => (
             <>
-                <h4>Your best condensed Chunks is {format(chunksTab.bestChunks.value)}.</h4>
+                <h4>Your best condensed Chunks count is {format(chunksTab.bestChunks.value, 0)}</h4>
+                <Spacer />
                 {Object.values(milestones).map(a => render(a))}
             </>
         )

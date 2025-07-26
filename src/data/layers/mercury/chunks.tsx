@@ -3,7 +3,7 @@ import { createLayer } from "game/layers";
 import { createLayerTreeNode, createResetButton } from "data/common";
 import { createIndependentConversion } from "features/conversion";
 import dustLayer from "./dust";
-import { createResource, trackBest } from "features/resources/resource";
+import { createResource, displayResource, trackBest } from "features/resources/resource";
 import { noPersist } from "game/persistence";
 import { computed, unref, watch } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -442,46 +442,40 @@ const layer = createLayer(id, () => {
         classes: { "chunk-reset-button": true },
         conversion,
         treeNode,
-        resetDescription: () => `Condense your dust & time for `,
+        display: () => (
+            <>
+                <span>
+                    Condense your Dust & Time
+                    <br />
+                    <h3 style="font-weight: 600">
+                        Gain{" "}
+                        {displayResource(
+                            conversion.gainResource,
+                            Decimal.max(
+                                unref(conversion.actualGain),
+                                unref(resetButton.minimumGain)
+                            )
+                        )}{" "}
+                        {conversion.gainResource.displayName}
+                    </h3>
+                    <div>
+                        <br />
+                        Req:{" "}
+                        {displayResource(
+                            conversion.baseResource,
+                            Decimal.gte(unref(conversion.actualGain), 1)
+                                ? unref(conversion.currentAt)
+                                : unref(conversion.nextAt)
+                        )}{" "}
+                        {conversion.baseResource.displayName}
+                    </div>
+                </span>
+            </>
+        ),
         dataAttributes: {
             "augmented-ui": "border br-round-inset tl-clip"
         }
     }));
-
-    // const resetButton = createResetButton(() => ({
-    //     classes: { "chunk-reset-button": true },
-    //     conversion,
-    //     treeNode,
-    //     showNextAt: false,
-    //     display: () => (
-    //         <>
-    //             <div class="flex">
-    //                 {/* <img src={dustIcon} style="width: 32px; padding: 0 4px;"></img> */}
-    //                 <span style="font-size: 32px; padding: 0 4px;">?</span>
-    //                 <div style="border-left: 2px solid var(--outline); height: 48px"></div>
-    //                 <span>
-    //                     Condense your dust & time for{" "}
-    //                     <b>
-    //                         {displayResource(
-    //                             conversion.gainResource,
-    //                             Decimal.max(
-    //                                 unref(conversion.actualGain),
-    //                                 unref(resetButton.minimumGain)
-    //                             )
-    //                         )}
-    //                     </b>{" "}
-    //                     {conversion.gainResource.displayName}
-    //                 </span>
-    //             </div>
-    //         </>
-    //     ),
-    //     dataAttributes: {
-    //         "augmented-ui": "border br-round-inset tl-clip"
-    //     },
-    //     onClick: () => {
-    //         dustLayer.reset.reset();
-    //     }
-    // }));
 
     const fullReset = () => {
         createReset(() => ({ thingsToReset: () => [layer] })).reset();
