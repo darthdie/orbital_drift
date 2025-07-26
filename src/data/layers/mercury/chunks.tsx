@@ -21,6 +21,7 @@ import mercuryLayer from "../mercury";
 import { createLazyProxy } from "util/proxies";
 import acceleratorsLayer from "./accelerators";
 import solarLayer from "../solar";
+import "./chunks.css";
 
 const id = "Mc";
 const layer = createLayer(id, () => {
@@ -438,13 +439,49 @@ const layer = createLayer(id, () => {
     }));
 
     const resetButton = createResetButton(() => ({
+        classes: { "chunk-reset-button": true },
         conversion,
         treeNode,
         resetDescription: () => `Condense your dust & time for `,
-        onClick: () => {
-            dustLayer.reset.reset();
+        dataAttributes: {
+            "augmented-ui": "border br-round-inset tl-clip"
         }
     }));
+
+    // const resetButton = createResetButton(() => ({
+    //     classes: { "chunk-reset-button": true },
+    //     conversion,
+    //     treeNode,
+    //     showNextAt: false,
+    //     display: () => (
+    //         <>
+    //             <div class="flex">
+    //                 {/* <img src={dustIcon} style="width: 32px; padding: 0 4px;"></img> */}
+    //                 <span style="font-size: 32px; padding: 0 4px;">?</span>
+    //                 <div style="border-left: 2px solid var(--outline); height: 48px"></div>
+    //                 <span>
+    //                     Condense your dust & time for{" "}
+    //                     <b>
+    //                         {displayResource(
+    //                             conversion.gainResource,
+    //                             Decimal.max(
+    //                                 unref(conversion.actualGain),
+    //                                 unref(resetButton.minimumGain)
+    //                             )
+    //                         )}
+    //                     </b>{" "}
+    //                     {conversion.gainResource.displayName}
+    //                 </span>
+    //             </div>
+    //         </>
+    //     ),
+    //     dataAttributes: {
+    //         "augmented-ui": "border br-round-inset tl-clip"
+    //     },
+    //     onClick: () => {
+    //         dustLayer.reset.reset();
+    //     }
+    // }));
 
     const fullReset = () => {
         createReset(() => ({ thingsToReset: () => [layer] })).reset();
@@ -492,22 +529,26 @@ const layer = createLayer(id, () => {
         dustingChunksEffect,
         display: () => (
             <>
-                <h2>
-                    You have {format(chunks.value)} {chunks.displayName}
-                </h2>
-                <h4>Your best condensed Chunks is {format(bestChunks.value)}.</h4>
-                <h6>You have gathered a total of {format(dustLayer.totalMercurialDust.value)}</h6>
-                <Spacer />
+                <div id="chunks-layer">
+                    <h2>
+                        You have {format(chunks.value)} {chunks.displayName}
+                    </h2>
+                    <h4>Your best condensed Chunks is {format(bestChunks.value)}.</h4>
+                    <h6>
+                        You have gathered a total of {format(dustLayer.totalMercurialDust.value)}
+                    </h6>
+                    <Spacer />
 
-                {render(resetButton)}
-                <Spacer />
+                    {render(resetButton)}
+                    <Spacer />
 
-                <div style="margin-bottom: 4px;">
-                    <h3>Upgrades</h3>
+                    <div style="margin-bottom: 4px;">
+                        <h3>Upgrades</h3>
+                    </div>
+                    <hr class="section-divider" />
+                    <Spacer />
+                    {renderGroupedObjects(upgrades, 4)}
                 </div>
-                <hr class="section-divider" />
-                <Spacer />
-                {renderGroupedObjects(upgrades, 4)}
             </>
         )
     };

@@ -1,4 +1,4 @@
-import { createResource, trackTotal } from "features/resources/resource";
+import { createResource, displayResource, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import { DefaultValue, noPersist, Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -30,6 +30,8 @@ import milestonesLayer from "./milestones";
 import acceleratorsLayer from "./accelerators";
 import { JSX } from "vue/jsx-runtime";
 import { createClickable } from "features/clickables/clickable";
+import "./dust.css";
+import dustIcon from "../../../assets/icons/dust.png";
 
 // TODO:
 // Increase base chunk cost
@@ -811,10 +813,34 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     }
 
     const resetButton = createResetButton(() => ({
+        classes: { "dust-time-reset-button": true },
         conversion,
         treeNode,
         showNextAt: false,
-        resetDescription: () => `Reset Dust Time & Collision Time for `
+        display: () => (
+            <>
+                <div class="flex">
+                    <img src={dustIcon} style="width: 32px; padding: 0 4px;"></img>
+                    <div style="border-left: 2px solid var(--outline); height: 48px"></div>
+                    <span>
+                        Reset Dust Time & Collision Time for{" "}
+                        <b>
+                            {displayResource(
+                                conversion.gainResource,
+                                Decimal.max(
+                                    unref(conversion.actualGain),
+                                    unref(resetButton.minimumGain)
+                                )
+                            )}
+                        </b>{" "}
+                        {conversion.gainResource.displayName}
+                    </span>
+                </div>
+            </>
+        ),
+        dataAttributes: {
+            "augmented-ui": "border br-round-inset tl-clip"
+        }
     }));
 
     const treeNode = createLayerTreeNode(() => ({
