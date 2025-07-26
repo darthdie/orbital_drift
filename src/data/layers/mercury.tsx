@@ -61,11 +61,18 @@ const layer = createLayer(id, baseLayer => {
                 )
             );
         },
-        width: 512,
+        width: "100%",
         height: 10,
         direction: Direction.Right,
         containerStyle: {
             "text-align": "center"
+        },
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline-lighter)"
         }
     }));
 
@@ -79,19 +86,21 @@ const layer = createLayer(id, baseLayer => {
 
     const collisionTimeGainComputed = computed(() =>
         new Decimal(1)
+            .add(milestones.eightyMilestoneEffect.value)
             .times(baseTimeRateModifier.apply(1))
-            .times(dustTab.accelerationModifier.apply(1))
             .times(milestones.firstMilestoneModifier.apply(1))
             .times(solarLayer.mercuryTreeEffects.solarSpeed.value)
+            .times(dustTab.messengerGodModifier.apply(1))
             .pow(dustTab.collisionCourseEffect.value)
             .pow(milestones.fourthMilestoneModifier.value)
             .pow(chunksTab.collidingChunksEffect.value)
     );
 
     const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
+    // const hasCollidedComputed = computed(() => false);
 
     baseLayer.on("update", diff => {
-        if (!unlocked.value) {
+        if (!unlocked.value || hasCollidedComputed.value) {
             return;
         }
 
@@ -105,11 +114,11 @@ const layer = createLayer(id, baseLayer => {
         thingsToReset: (): Record<string, unknown>[] => [layer]
     }));
 
-    const displayGlow = computed(() => {
+    const showNotification = computed(() => {
         return (
-            dustTab.displayGlow.value ||
-            chunksTab.displayGlow.value ||
-            accelerators.displayGlow.value
+            dustTab.showNotification.value ||
+            chunksTab.showNotification.value ||
+            accelerators.showNotification.value
         );
     });
 
@@ -118,28 +127,28 @@ const layer = createLayer(id, baseLayer => {
         layerID: id,
         display: () => <CelestialBodyIcon body={"Mercury"} />,
         wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
-        glowColor: () => (displayGlow.value ? color : null),
+        glowColor: () => (showNotification.value ? color : null),
         color,
         reset
     }));
 
     const tabs = createTabFamily({
         dust: () => ({
-            display: "Dust",
+            display: () => <>Dust {dustTab.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: dustTab.display
             }))
         }),
         chunks: () => ({
             visibility: () => dustTab.unlocks.chunks.bought.value,
-            display: () => <>Chunks {chunksTab.showExclamation.value ? "!" : null}</>,
+            display: () => <>Chunks {chunksTab.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({
                 display: chunksTab.display
             }))
         }),
         accelerators: () => ({
             visibility: dustTab.unlocks.accelerators.bought,
-            display: () => <>Accelerators {accelerators.showExclamation.value ? "!" : null}</>,
+            display: () => <>Accelerators {accelerators.showNotification.value ? "!" : null}</>,
             tab: createTab(() => ({ display: accelerators.display }))
         }),
         milestones: () => {
@@ -163,18 +172,51 @@ const layer = createLayer(id, baseLayer => {
                 <h3>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h3>
             )}
 
-            <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
-            {render(collisionTimeProgressBar)}
+            <h4>-{format(Decimal.div(collisionTimeGainComputed.value, 86400))}/s</h4>
+
+            <div
+                data-augmented-ui="border tl-clip"
+                style="border-color: var(--outline); width: 512px"
+            >
+                {render(collisionTimeProgressBar)}
+            </div>
+
             <Spacer />
             {render(tabs)}
         </>
     ));
 
     const solarResetButton = createClickable(() => ({
+        classes: { "solar-reset-button": true },
         display: {
             title: "Mercury has collided with the Sun.",
-            description: "Reset for 1 Solar Energy."
+            description: "Reset for 1 Solar Energy & 1 Mercury Core."
         },
+        // display: (
+        //     <>
+        //         <div class="celestial-body-icon">B</div>
+        //     </>
+        // ),
+        // display: (
+        //     <>
+        //         <div style="height: 100%">
+        //             <div class="flex">
+        //                 <CelestialBodyIcon
+        //                     body="Sun"
+        //                     style={{
+        //                         color: "#FFCC33",
+        //                         margin: "auto",
+        //                         fontSize: "24px"
+        //                     }}
+        //                 />
+        //             </div>
+        //             <div class="flex" style="flex-direction: column;">
+        //                 <h3>Mercury has collided with the Sun</h3>
+        //                 <div>"Reset for 1 Solar Energy & 1 Mercury Core.</div>
+        //             </div>
+        //         </div>
+        //     </>
+        // ),
         onClick: () => {
             solarLayer.energy.value = Decimal.add(solarLayer.energy.value, 1);
             solarLayer.mercuryCores.value = Decimal.add(solarLayer.mercuryCores.value, 1);
@@ -187,6 +229,24 @@ const layer = createLayer(id, baseLayer => {
             collisionTime.value = maxCollisionTime;
         }
     }));
+    // const solarResetButton = (
+    //     <>
+    //         <div class="solar-reset-button">
+    //             <svg
+    //                 xmlns="http://www.w3.org/2000/svg"
+    //                 id="svg1"
+    //                 version="1.1"
+    //                 viewBox="0 0 2180 2184"
+    //             >
+    //                 <path
+    //                     id="path1"
+    //                     fill="currentColor"
+    //                     d="M1078 0q537 0 888 448 204 302 204 584v128q0 281-224 604-194 218-308 268-264 152-492 152h-128q-254 0-568-192-292-192-420-584-40-158-40-240v-132q0-266 204-592Q539 0 1078 0ZM234 1076v52q17 230 120 404 142 248 480 372 137 36 248 36 437 0 716-396 128-215 128-460 0-394-332-664-229-172-524-172-431 0-704 388-132 238-132 440Zm852-164q124 0 172 140 4 28 4 48 0 118-144 168-21 4-40 4-155 0-176-180 0-144 160-180z"
+    //                 />
+    //             </svg>
+    //         </div>
+    //     </>
+    // );
 
     const collidedDisplay = computed(() => (
         <>
@@ -208,7 +268,9 @@ const layer = createLayer(id, baseLayer => {
         display: () => renderDisplay(),
         treeNode,
         totalResets,
-        unlocked
+        unlocked,
+        solarResetButton,
+        hasCollidedComputed
     };
 });
 

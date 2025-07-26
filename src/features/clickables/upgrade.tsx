@@ -47,6 +47,8 @@ export interface UpgradeOptions extends VueFeatureOptions, ClickableOptions {
     requirements: Requirements;
     /** A function that is called when the upgrade is purchased. */
     onPurchase?: VoidFunction;
+
+    clickableDataAttributes?: MaybeRef<Record<string, string>>;
 }
 
 /** An object that represents a feature that can be purchased a single time. */
@@ -75,15 +77,22 @@ export function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
     const bought = persistent<boolean>(false, false);
     return createLazyProxy(() => {
         const options = optionsFunc();
-        const { requirements: _requirements, display: _display, onHold, ...props } = options;
+        const {
+            requirements: _requirements,
+            display: _display,
+            onHold,
+            clickableDataAttributes,
+            ...props
+        } = options;
 
         if (options.classes == null) {
-            options.classes = computed(() => ({ bought: unref(upgrade.bought) }));
+            options.classes = computed(() => ({ bought: unref(upgrade.bought), upgrade: true }));
         } else {
             const classes = processGetter(options.classes);
             options.classes = computed(() => ({
                 ...unref(classes),
-                bought: unref(upgrade.bought)
+                bought: unref(upgrade.bought),
+                upgrade: true
             }));
         }
         const vueFeature = vueFeatureMixin("upgrade", options, () => (
@@ -92,6 +101,7 @@ export function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
                 onHold={upgrade.onHold}
                 canClick={upgrade.canPurchase}
                 display={upgrade.display}
+                dataAttributes={upgrade.clickableDataAttributes}
             />
         ));
         const requirements = Array.isArray(_requirements) ? _requirements : [_requirements];
@@ -104,23 +114,26 @@ export function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
             const { title, description, effectDisplay } = _display;
 
             display = () => (
-                <span>
+                <span class="upgrade-content">
                     {title != null ? (
-                        <div>
+                        <div class="title">
                             {render(title, el => (
                                 <h3>{el}</h3>
                             ))}
                         </div>
                     ) : null}
+                    <hr class="title-divider" />
                     {render(description, el => (
-                        <div>{el}</div>
+                        <div class="description">{el}</div>
                     ))}
-                    {effectDisplay != null ? <div>Currently: {render(effectDisplay)}</div> : null}
+                    {effectDisplay != null ? (
+                        <div class="effect">Currently: {render(effectDisplay)}</div>
+                    ) : null}
                     {bought.value ? null : (
-                        <>
+                        <span class="requirements">
                             <br />
                             {displayRequirements(requirements)}
-                        </>
+                        </span>
                     )}
                 </span>
             );
@@ -137,6 +150,7 @@ export function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
             requirements,
             display,
             onHold,
+            clickableDataAttributes,
             purchase() {
                 if (!unref(upgrade.canPurchase)) {
                     return;

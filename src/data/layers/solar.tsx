@@ -43,14 +43,14 @@ const layer = createLayer(id, () => {
         first: createAchievement(() => ({
             requirements: createCountRequirement(totalEnergy, 1),
             display: {
-                requirement: "1 Solar Energy",
+                requirement: "1 Total Solar Energy",
                 optionsDisplay: "Start your journey. Unlock the Solar System."
             }
         })),
         second: createAchievement(() => ({
-            requirements: createCountRequirement(totalEnergy, 4),
+            requirements: createCountRequirement(totalEnergy, 2),
             display: {
-                requirement: "2 Solar Energy",
+                requirement: "2 Total Solar Energy",
                 optionsDisplay: "Unlock Planet Cores & Mastery Trees"
             }
         }))
@@ -60,7 +60,7 @@ const layer = createLayer(id, () => {
         skillTree: mercuryTree,
         upgrades: mercuryTreeUpgrades,
         effects: mercuryTreeEffects
-    } = createMercurySkillTree(solarRays);
+    } = createMercurySkillTree(mercuryCores);
 
     const solarSystemUpgrades = {
         mercury: createUpgrade(
@@ -74,7 +74,8 @@ const layer = createLayer(id, () => {
                         resource: energy,
                         cost: 1
                     }))
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         ),
         venus: createUpgrade(
@@ -89,20 +90,22 @@ const layer = createLayer(id, () => {
                         cost: 5
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         ),
         earth: createUpgrade(
             (): UpgradeOptions => ({
-                visibility: false,
+                visibility: solarSystemUpgrades.venus.bought,
                 display: "??",
                 requirements: [
                     createCostRequirement(() => ({
-                        resource: noPersist(solarRays),
-                        cost: 3
+                        resource: solarRays,
+                        cost: 100
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.venus)
-                ]
+                ],
+                classes: { "solar-tree-node": true }
             })
         )
     };
@@ -257,13 +260,16 @@ const layer = createLayer(id, () => {
         converters,
         display: () => (
             <>
-                <h2>
-                    You have <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} />{" "}
-                    {format(energy.value)} {energy.displayName}
-                </h2>
-                <h4>You have made a total of {format(totalEnergy.value)}</h4>
-                <Spacer />
-                {render(tabs)}
+                <div id="solar-layer">
+                    <h2>
+                        You have{" "}
+                        <CelestialBodyIcon body="Sun" style={{ display: "inline", color }} />{" "}
+                        {format(energy.value)} {energy.displayName}
+                    </h2>
+                    <h4>You have made a total of {format(totalEnergy.value)}</h4>
+                    <Spacer />
+                    {render(tabs)}
+                </div>
             </>
         ),
         treeNode

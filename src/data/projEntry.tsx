@@ -17,6 +17,8 @@ import mercuryMilestones from "./layers/mercury/milestones";
 import venus from "./layers/venus";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
+import { createHotkey } from "features/hotkey";
+import "./augmented-ui.css";
 
 /* planet mechanic themes
 mercury: acceleration
@@ -50,16 +52,26 @@ export const main = createLayer("main", () => {
         <>
             <SideNodes
                 nodes={rightSideNodes}
+                branches={branches}
                 style={{
                     position: "absolute",
                     right: "6px",
                     display: "flex",
                     gap: "20px",
-                    marginTop: "8px"
+                    marginTop: "32px",
+                    flexDirection: "column"
                 }}
             ></SideNodes>
         </>
     );
+
+    const pauseHotkey = createHotkey(() => ({
+        description: "pause",
+        key: "p",
+        onPress: () => {
+            player.devSpeed = player.devSpeed === 0 ? null : 0;
+        }
+    }));
 
     // const tabTreeNode = createLayerTreeNode(() => ({
     //   layerID: id,
@@ -118,10 +130,11 @@ export const main = createLayer("main", () => {
     //  but I'd recommend it over trying to remember what does and doesn't need to be included.
     // Officially all you need are anything with persistency or that you want to access elsewhere
     return {
-        name: "Galaxy",
+        name: "orbital Drift",
         links: [],
         minWidth: "250",
         minimizable: true,
+        pauseHotkey,
         display: () => (
             <>
                 {player.devSpeed === 0 ? (
@@ -150,6 +163,7 @@ export const main = createLayer("main", () => {
         points: planets,
         best,
         total,
+        minimizedDisplaya: minimizedDisplay,
         minimizedDisplay: () => minimizedDisplay
         // tree
     };

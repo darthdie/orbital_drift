@@ -37,9 +37,17 @@
     display: flex;
 }
 
+.justify-center {
+    justify-content: center;
+}
+
 .mx-0 {
     margin-left: 0;
     margin-right: 0;
+}
+
+.m-0 {
+    margin: 0;
 }
 
 @font-face {
@@ -49,7 +57,7 @@
 }
 
 .celestial-body-icon {
-    font-family:'AstronomicSigns';
+    font-family:"AstronomicSigns";
     display: flex;
     margin: 0;
 }
@@ -131,4 +139,31 @@
     border: none !important;
     color: var(--feature-foreground) !important;
     text-transform: none !important;
+}
+
+code {
+    font-family: monospace;
+}
+
+.normal-repeatable .clickable {
+    border: 0;
+    height: 180px;
+    width: 130px;
+    box-sizing: border-box;
+    .repeatable-content {
+        padding-bottom: 22px;
+    }
+}
+
+.sd-upgrade .clickable {
+    height: 150px;
+    width: 130px;
+    border: 0;
+    box-sizing: border-box;
+}
+
+.sd-upgrade.unlock .clickable {
+    .upgrade-content .requirements {
+        padding-bottom: 24px;
+    }
 }

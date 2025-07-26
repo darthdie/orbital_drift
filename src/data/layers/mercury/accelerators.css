@@ -1,0 +1,141 @@
+* {
+    --aug-border-bg: var(--outline) !important;
+    --aug-inlay-bg: none !important;
+
+    --outline-lighter: #526178;
+    --bought: #04724D;
+
+    /* #F98948 orange */
+    /* #261C15 brown */
+}
+
+.accelerator-container {
+    /* width: fit-content; */
+}
+
+/* .feature.repeatable .clickable {
+    height: 160px;
+    width: 160px;
+} */
+
+.section-divider {
+    background: #99E1D9 !important;
+    width: 128px !important;
+    margin: auto !important;
+    height: 2px !important;
+}
+
+.boost-repeatable,
+.level-repeatable {
+    flex: 1;
+    margin: 0;
+}
+
+.level-repeatable .clickable {
+    margin-right: 0;
+    border: 0;
+    margin-top: 0;
+}
+
+.boost-repeatable .clickable {
+    margin-left: 0;
+    border: 0;
+    margin-top: 0;
+}
+
+.level-repeatable .clickable,
+.boost-repeatable .clickable {
+    height: 190px;
+    /* width: 210px; */
+    width: 100%;
+    margin: 0;
+    /* padding: 2px; */
+}
+
+.repeatable-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: 6px;
+    padding-bottom: 2px;
+    box-sizing: border-box;
+    padding-left: 2px;
+    padding-right: 2px;
+
+    .title {
+        padding-bottom: 2px;
+        /* height: 18px; */
+        /* margin-bottom: 64px; */
+        /* padding-bottom: 12px; */
+    }
+
+    .title-divider {
+        color: var(--outline-lighter);
+        height: 2px;
+        width: 50%;
+        margin-left: auto;
+    }
+
+    .description {
+        /* flex: 1;
+        align-content: center; */
+        font-weight: 600;
+        padding-top: 12px;
+    }
+
+    .effect {
+        font-weight: 700;
+        font-size: 12px;
+        flex: 1;
+        align-content: center;
+    }
+}
+
+.upgrade-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: 6px;
+    padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+    box-sizing: border-box;
+
+    .title {
+        padding-bottom: 2px;
+    }
+
+    .title-divider {
+        color: var(--outline-lighter);
+        height: 2px;
+        width: 50%;
+        margin-left: auto;
+        /* -(.upgrade-content.padding-right + 1)px */
+        margin-right: -5px;
+    }
+
+    .description {
+        flex: 1;
+        align-content: center;
+        font-weight: 600;
+    }
+
+    .effect {
+        font-weight: 700;
+    }
+}
+
+#dust-layer {
+    .buy-max-button .clickable {
+        /* width: fit-content;
+        height: fit-content;
+        padding: 24px; */
+        width: 78px;
+        height: 42px;
+
+        min-width: 0;
+        min-height: 0;
+
+        border: 0;
+    }
+}

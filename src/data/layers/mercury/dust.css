@@ -1,0 +1,14 @@
+#dust-layer {
+    .dust-time-reset-button .clickable {
+        border: 0;
+        min-height: 0;
+        height: 90px;
+        width: 240px;
+
+        .can&:hover {
+            box-shadow: 0 0 20px var(--outline-lighter);
+        }
+    }
+}
+
+/* text-shadow: rgba(0,0,0,0.5) -1px 0, rgba(0,0,0,0.3) 0 -1px, rgba(255,255,255,0.5) 0 1px, rgba(0,0,0,0.3) -1px -2px; */
