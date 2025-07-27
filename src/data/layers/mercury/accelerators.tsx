@@ -119,8 +119,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const sharedBarSettings = {
         direction: Direction.Right,
-        height: 18,
-        width: 256
+        height: 14,
+        width: "100%",
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline-lighter)"
+        },
     };
 
     const dustAccelerator = {
@@ -137,15 +144,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(dustAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
@@ -571,15 +569,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(chunkAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
@@ -1004,15 +993,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(timeAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
