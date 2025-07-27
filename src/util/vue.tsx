@@ -158,6 +158,39 @@ export function renderGroupedObjects(
     );
 }
 
+export function renderGroupedItemBuilder(
+    items: (index: number) => Renderable,
+    itemCount: number,
+    groupSize: number,
+    style?: string,
+    klass?: string
+) {
+    const mergeAdjacent = true;
+
+    const classes = [...classNames({ row: true, mergeAdjacent: mergeAdjacent }), klass];
+
+    const builtItems: Renderable[] = [];
+    for (let i = 0; i < itemCount; i++) {
+        builtItems.push(items(i));
+    }
+
+    const chunkedItems = chunkArray(builtItems, groupSize);
+
+    return render(
+        <>
+            <div class="table grouped-table">
+                {chunkedItems.map(group => (
+                    <>
+                        <div style={style} class={classes}>
+                            {group.map(object => render(object))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </>
+    );
+}
+
 export function isJSXElement(element: unknown): element is JSX.Element {
     return (
         element != null && typeof element === "object" && "type" in element && "children" in element

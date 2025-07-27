@@ -70,7 +70,7 @@
 }
 
 .cappable-resource-container {
-    border-radius: 0 0 8px 8px;
+    /* border-radius: 0 0 8px 8px; */
     border: 2px solid var(--raised-background);
     margin: 0;
     flex: 1;

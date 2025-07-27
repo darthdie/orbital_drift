@@ -15,6 +15,7 @@ import Spacer from "components/layout/Spacer.vue";
 import acceleratorsTab from "./layers/mercury/accelerators";
 import mercuryMilestones from "./layers/mercury/milestones";
 import venus from "./layers/venus";
+import venusPressure from './layers/venus/pressure';
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 import { createHotkey } from "features/hotkey";
@@ -180,11 +181,12 @@ export const getInitialLayers = (
     main,
     solar,
     mercury,
-    venus,
     mercuryDustTab,
     mercuryChunksTab,
     acceleratorsTab,
-    mercuryMilestones
+    mercuryMilestones,
+    venus,
+    venusPressure
 ];
 
 /**
