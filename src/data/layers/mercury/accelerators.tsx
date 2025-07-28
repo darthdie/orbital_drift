@@ -1474,7 +1474,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     </div>
                 </div>
                 <div class="flex justify-center">
-                    <div class="flex">
+                    <div class="flex" style="width: 100%; margin: 0;">
                         {render(accelerator.levelBuyable)}
                         {render(accelerator.boostBuyable)}
                     </div>
