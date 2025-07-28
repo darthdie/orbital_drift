@@ -119,8 +119,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const sharedBarSettings = {
         direction: Direction.Right,
-        height: 18,
-        width: 256
+        height: 14,
+        width: "100%",
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline-lighter)"
+        }
     };
 
     const dustAccelerator = {
@@ -137,15 +144,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(dustAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
@@ -571,15 +569,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(chunkAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
@@ -971,8 +960,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return <>{effects}</>;
         },
 
+        unlocked: computed(() => dustAccelerator.upgrades.chunksUnlock.bought.value),
+
         tick: (diff: number) => {
-            if (!dustAccelerator.upgrades.chunksUnlock.bought.value) {
+            if (!unlocked.value) {
                 return;
             }
 
@@ -1004,15 +995,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
         bar: createBar(() => ({
             ...sharedBarSettings,
-            height: 14,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0",
-                borderColor: "var(--outline-lighter)"
-            },
             progress: (): Decimal => {
                 if (Decimal.lte(timeAccelerator.timerMax.value, 0.1)) {
                     return Decimal.fromNumber(100);
@@ -1363,8 +1345,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return <>{effects}</>;
         },
 
+        unlocked: computed(() => chunkAccelerator.upgrades.timeUnlock.bought.value),
+
         tick: (diff: number) => {
-            if (!chunkAccelerator.upgrades.timeUnlock.bought.value) {
+            if (!unlocked.value) {
                 return;
             }
 
@@ -1410,20 +1394,30 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             dustAccelerator.levelBuyable.canClick.value ||
             dustAccelerator.boostBuyable.canClick.value
     );
-    const showChunkNotification = computed(
-        () =>
+    const showChunkNotification = computed(() => {
+        if (!chunkAccelerator.unlocked.value) {
+            return false;
+        }
+
+        return (
             (chunkAccelerator.intervalBuyable.canClick.value &&
                 !timeAccelerator.upgrades.autoVonDoom.bought.value) ||
             Object.values(chunkAccelerator.upgrades).some(u => u.canPurchase.value) ||
             chunkAccelerator.levelBuyable.canClick.value ||
             chunkAccelerator.boostBuyable.canClick.value
-    );
-    const showTimeNotification = computed(
-        () =>
+        );
+    });
+    const showTimeNotification = computed(() => {
+        if (!timeAccelerator.unlocked.value) {
+            return false;
+        }
+
+        return (
             Object.values(timeAccelerator.upgrades).some(u => u.canPurchase.value) ||
             timeAccelerator.levelBuyable.canClick.value ||
             timeAccelerator.boostBuyable.canClick.value
-    );
+        );
+    });
 
     const showNotification = computed(() => {
         return (
