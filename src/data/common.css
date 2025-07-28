@@ -17,10 +17,6 @@
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }
 
-.gap-4 {
-    gap: 1rem;
-}
-
 .feature.small .treeNode {
     height: 64px;
     width: 64px;
@@ -31,23 +27,6 @@
     width: fit-content;
     height: fit-content;
     padding: 8px;
-}
-
-.flex {
-    display: flex;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.mx-0 {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.m-0 {
-    margin: 0;
 }
 
 @font-face {
