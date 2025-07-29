@@ -7,10 +7,11 @@ import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import { createLayerTreeNode } from "data/common";
 import { Direction } from "util/common";
 import { createTabFamily } from "features/tabs/tabFamily";
-import pressure from "./venus/pressure";
+import pressureLayer from "./venus/pressure";
 import { render } from "util/vue";
 import { createBar } from "features/bars/bar";
 import { DefaultValue } from "game/persistence";
+import lavaLayer from "./venus/lava";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -37,7 +38,12 @@ const layer = createLayer(id, () => {
     const tabs = createTabFamily({
         pressure: () => ({
             display: "Pressure",
-            tab: pressure.display
+            tab: pressureLayer.display
+        }),
+        lava: () => ({
+            display: "Lava",
+            visibility: lavaLayer.unlocked,
+            tab: lavaLayer.display
         })
     });
 
@@ -56,6 +62,10 @@ const layer = createLayer(id, () => {
             Decimal.div(Decimal.ln(planetMass.value), Decimal.ln(planetMass[DefaultValue]))
     }));
 
+    const massDestructionAmount = computed(() => {
+        return Decimal.sub(0.99, Decimal.times(lavaLayer.eruptions.value, 0.01));
+    });
+
     return {
         name,
         color,
@@ -64,6 +74,7 @@ const layer = createLayer(id, () => {
         unlocked,
         showNotification,
         tabs,
+        massDestructionAmount,
         display: () => (
             <>
                 <h2>

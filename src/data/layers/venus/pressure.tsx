@@ -1,37 +1,20 @@
 import { format } from "util/break_eternity";
-import Spacer from "components/layout/Spacer.vue";
-import { createResource, displayResource, Resource } from "features/resources/resource";
+import { createResource } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { computed, ComputedRef, ref, unref } from "vue";
+import { computed } from "vue";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
-import { joinJSX, render } from "util/vue";
+import { render } from "util/vue";
 import { createLayer } from "game/layers";
-import { createClickable } from "features/clickables/clickable";
-import Toggle from "components/fields/Toggle.vue";
-import Slider from "components/fields/Slider.vue";
-import { JSX } from "vue/jsx-runtime";
-import {
-    Conversion,
-    createCumulativeConversion,
-    createIndependentConversion
-} from "features/conversion";
-import { noPersist } from "game/persistence";
-import Formula from "game/formulas/formulas";
-import venusLayer from "../venus";
+
 import "./pressure.css";
+import lavaLayer from "./lava";
 
 const random = () => Math.random() * 100;
 
 const id = "VP";
 const pressureLayer = createLayer(id, baseLayer => {
     const pressure = createResource<DecimalSource>(1, "Pressure");
-
-    const lavaCapIncreases = createResource<DecimalSource>(0);
-    const lava = createResource<DecimalSource>(0, "Lava");
-    const lavaCap = computed(() =>
-        Decimal.fromNumber(250).times(Decimal.times(lavaCapIncreases.value, 2).clampMin(1))
-    );
 
     const pressureTimer = createResource<DecimalSource>(0);
     const pressureTimerMax = computed(
@@ -56,9 +39,9 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .times(riceCookerEffect.value)
         //     .pow(tephraPressureGainEffect.value)
     );
-    const eruptions = createResource<DecimalSource>(0);
+    
     const pressureMax = computed(() => {
-        const pow = Decimal.pow(2, eruptions.value);
+        const pow = Decimal.pow(2, lavaLayer.eruptions.value);
         return Decimal.fromNumber(1e25).pow(pow);
     });
     const pressureCapped = computed(() => Decimal.eq(pressure.value, pressureMax.value));
@@ -67,15 +50,20 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const pressureBar = createBar(() => ({
         direction: Direction.Right,
-        height: 14,
+        height: 24,
         width: "100%",
         style: {
             overflow: "hidden"
         },
         borderStyle: {
             borderRadius: "0",
-            borderColor: "var(--outline-lighter)"
+            borderColor: "var(--outline)"
         },
+        display: () => (
+            <span class="text-shadow-lg text-venus-500">
+                {format(pressure.value)}/{format(pressureMax.value)}
+            </span>
+        ),
         progress: () => Decimal.div(Decimal.ln(pressure.value), Decimal.ln(pressureMax.value))
     }));
 
@@ -94,7 +82,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         },
         borderStyle: {
             borderRadius: "0",
-            borderColor: "var(--outline-lighter)"
+            borderColor: "var(--outline)"
         }
     }));
 
@@ -125,8 +113,8 @@ const pressureLayer = createLayer(id, baseLayer => {
         if (Decimal.gte(pressureChance.value, rng)) {
             let buildAmount = pressureGainMultiplier.value;
 
-            if (Decimal.gt(lavaEffect.value, 0)) {
-                if (Decimal.gte(lavaEffect.value, random())) {
+            if (Decimal.gt(lavaLayer.lavaEffect.value, 0)) {
+                if (Decimal.gte(lavaLayer.lavaEffect.value, random())) {
                     buildAmount = buildAmount.times(5);
                     console.log("KICK");
                 }
@@ -152,475 +140,44 @@ const pressureLayer = createLayer(id, baseLayer => {
         Ultramafic?
     */
 
-    const calculateLavaEffect = (
-        resource: Resource,
-        cap: ComputedRef<DecimalSource>,
-        maxEffect: ComputedRef<DecimalSource>
-    ) => {
-        // Figured out the % of the resource vs the cap, and return that % of the max effect
-        return Decimal.times(maxEffect.value, Decimal.div(resource.value, cap.value));
-    };
-
-    const felsicLava = createResource<DecimalSource>(0, "Felsic");
-    const felsicLavaCapIncreases = createResource<DecimalSource>(0);
-    const felsicLavaCap = computed(() =>
-        Decimal.fromNumber(50).times(Decimal.times(felsicLavaCapIncreases.value, 2).clampMin(1))
-    );
-    const felsicMaxEffect = computed(() => {
-        // 50 -> Max +5%?
-        return Decimal.div(felsicLavaCap.value, 10);
-    });
-    const felsicEffect = computed(() =>
-        calculateLavaEffect(felsicLava, felsicLavaCap, felsicMaxEffect)
-    );
-
-    const intermediateLava = createResource<DecimalSource>(0, "Intermediate");
-    const intermediateLavaCapIncreases = createResource<DecimalSource>(0);
-    const intermediateLavaCap = computed(() =>
-        Decimal.fromNumber(75).times(
-            Decimal.times(intermediateLavaCapIncreases.value, 2).clampMin(1)
-        )
-    );
-
-    const intermediateMaxEffect = computed(() => {
-        return Decimal.div(intermediateLavaCap.value, 10);
-    });
-
-    const intermediateEffect = computed(() =>
-        calculateLavaEffect(intermediateLava, intermediateLavaCap, intermediateMaxEffect).clampMin(
-            1
-        )
-    );
-
-    const maficLava = createResource<DecimalSource>(0, "Mafic");
-    const maficLavaCapIncreases = createResource<DecimalSource>(0);
-    const maficLavaCap = computed(() =>
-        Decimal.fromNumber(100).times(Decimal.times(maficLavaCapIncreases.value, 2).clampMin(1))
-    );
-
-    const maficMaxEffect = computed(() => {
-        return Decimal.div(maficLavaCap.value, 66.66);
-    });
-
-    const maficEffect = computed(() =>
-        calculateLavaEffect(maficLava, maficLavaCap, maficMaxEffect)
-    );
-
-    const lavaMaxEffect = computed(() => Decimal.div(lavaCap.value, 20));
-    const lavaEffect = computed(() => calculateLavaEffect(lava, lavaCap, lavaMaxEffect));
-
-    const createLavaResourceDisplay = () => {
-        const resource = lava;
-        const resourceCap = lavaCap;
-        const capIncreases = lavaCapIncreases;
-        const increaseCap = createClickable(() => ({
-            canClick: () => Decimal.eq(resource.value, resourceCap.value),
-            classes: { "squashed-clickable": true, flex: true },
-            display: {
-                title: "Increase Cap",
-                description: <>Reset {resource.displayName} to double cap.</>
-            },
-            onClick: () => {
-                if (unref(increaseCap.canClick) === false) {
-                    return;
-                }
-
-                resource.value = 0;
-                capIncreases.value = Decimal.add(capIncreases.value, 1);
-            }
-        }));
-
-        const bar = createBar(() => ({
-            direction: Direction.Right,
-            height: 32,
-            width: "100%",
-            style: {
-                overflow: "hidden"
-            },
-            borderStyle: {
-                borderRadius: "0"
-            },
-            display: () => `${format(resource.value)}/${format(resourceCap.value)}`,
-            progress: () => {
-                if (Decimal.gt(resourceCap.value, 1e10)) {
-                    return Decimal.div(Decimal.ln(resource.value), Decimal.ln(resourceCap.value));
-                }
-
-                return Decimal.div(resource.value, resourceCap.value);
-            }
-        }));
-
-        return computed(() => (
-            <div
-                class="cappable-resource-container w-full"
-                data-augmented-ui="border tl-2-clip-x br-round-inset"
-                id="lava-display"
-            >
-                <h3 class="title py-6">{resource.displayName}</h3>
-                <div data-augmented-ui="border tl-clip">{render(bar)}</div>
-                <div class="flex flex-col bg-(--raised-background) p-2">
-                    <h5>Chance for pressure to build by an additional x5</h5>
-                    <br />
-                    <h5 class="font-semibold">
-                        {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
-                    </h5>
-                </div>
-                <div class="increase-cap-action">{render(increaseCap)}</div>
-            </div>
-        ));
-    };
-
-    const lavaDisplay = createLavaResourceDisplay();
-
-    const createLavaSubtypeResourceDisplay = (
-        resource: Resource,
-        cap: ComputedRef<DecimalSource>,
-        capIncreases: Resource,
-        effectDisplayTitle: string,
-        effectDisplayText: ComputedRef<string>,
-        effectDisplayAugmentedUi: string,
-        argumentedUi: string
-    ) => {
-        const bar = createBar(() => ({
-            direction: Direction.Up,
-            progress: () => Decimal.div(resource.value, cap.value),
-            display: () => (
-                <>
-                    <h4 class="text-venus-500 text-shadow-lg">
-                        {format(resource.value)}/{format(cap.value)}
-                    </h4>
-                </>
-            ),
-            width: "100%",
-            height: "128px",
-            borderStyle: {
-                border: "0",
-                borderRadius: "0"
-            }
-        }));
-
-        const increaseCap = createClickable(() => ({
-            canClick: () => Decimal.eq(resource.value, cap.value),
-            classes: { "squashed-clickable": true, flex: true },
-            display: {
-                title: "Increase Cap",
-                description: <>Reset {resource.displayName} to double cap & max effect.</>
-            },
-            onClick: () => {
-                if (unref(increaseCap.canClick) === false) {
-                    return;
-                }
-
-                resource.value = 0;
-                capIncreases.value = Decimal.add(capIncreases.value, 1);
-            }
-        }));
-
-        const id = `${resource.displayName.toLocaleLowerCase()}-display`;
-        return computed(() => (
-            <div data-augmented-ui={argumentedUi} class="flex-1 m-0 border-0" id={id}>
-                <div class="py-2">
-                    <h3>{resource.displayName}</h3>
-                </div>
-                <div data-augmented-ui={effectDisplayAugmentedUi} class="mt-1 py-2">
-                    <h5>{effectDisplayTitle}</h5>
-                    <h5 class="font-semibold">{effectDisplayText.value}</h5>
-                </div>
-                <div>{render(bar)}</div>
-                {render(increaseCap)}
-            </div>
-        ));
-    };
-
-    const felsicEffectDisplay = computed(() => {
-        return `+${format(felsicEffect.value)}%/+${format(felsicMaxEffect.value)}%`;
-    });
-
-    const felsicDisplay = createLavaSubtypeResourceDisplay(
-        felsicLava,
-        felsicLavaCap,
-        felsicLavaCapIncreases,
-        "Pressure Build Chance:",
-        felsicEffectDisplay,
-        "border br-clip",
-        "border tl-2-round-inset tr-clip"
-    );
-
-    // const felsicUpgrades = {
-
-    // };
-
-    const intermediateEffectDisplay = computed(() => {
-        return `x${format(intermediateEffect.value)}/x${format(intermediateMaxEffect.value)}`;
-    });
-    const intermediateDisplay = createLavaSubtypeResourceDisplay(
-        intermediateLava,
-        intermediateLavaCap,
-        intermediateLavaCapIncreases,
-        "Pressure Build Mult",
-        intermediateEffectDisplay,
-        "border br-clip bl-clip",
-        "border tl-clip tr-scoop-x"
-    );
-
-    const maficEffectDisplay = computed(() => {
-        return `÷${format(maficEffect.value)}/÷${format(maficMaxEffect.value)}`;
-    });
-    const maficDisplay = createLavaSubtypeResourceDisplay(
-        maficLava,
-        maficLavaCap,
-        maficLavaCapIncreases,
-        "Pressure Interval",
-        maficEffectDisplay,
-        "border bl-clip",
-        "border tl-scoop-x tr-2-clip-y"
-    );
-
-    const lavaConversionEnabled = ref(false);
-    const lavaConvertTo = ref(0);
-
-    const lavaConversion = createCumulativeConversion(() => ({
-        formula: x =>
-            x
-                .log2()
-                // .add(residualHeatEffect)
-                // .if(
-                //     () => pressureCapped.value,
-                //     f => f.times(1.5)
-                // )
-                // .pow(tephraLavaGainEffect.value)
-                .clampMax(lavaCap.value),
-        baseResource: pressure,
-        gainResource: noPersist(lava),
-        onConvert: () => {
-            pressure.value = 1;
-            lava.value = Decimal.min(lava.value, lavaCap.value);
-        }
-    }));
-
-    const tephra = createResource<DecimalSource>(0, "Tephra");
-
-    const tephraConversion = createIndependentConversion(() => ({
-        gainResource: noPersist(tephra),
-        baseResource: pressure,
-        formula: () =>
-            Formula.variable(Decimal.dZero).if(
-                () => pressureCapped.value,
-                () => Formula.variable(Decimal.dOne)
-            ),
-        convert: () => (tephra.value = Decimal.add(tephra.value, 1))
-    }));
+    
 
     const eruptionPressureDivisor = 0.6;
     const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
 
-    const massDestructionAmount = computed(() => {
-        return Decimal.sub(0.99, Decimal.times(eruptions.value, 0.01));
-    });
-
-    const convertPressureButton = createClickable(() => ({
-        classes: {
-            "pressure-reset-button": true
-        },
-        display: (): JSX.Element => {
-            const gainDisplay = (conversion: Conversion, cap: DecimalSource) => {
-                const capped = Decimal.gte(unref(conversion.currentGain), cap);
-                const willBeCapped = Decimal.gte(
-                    Decimal.add(unref(conversion.currentGain), conversion.gainResource.value),
-                    cap
-                );
-                const gain = willBeCapped
-                    ? Decimal.sub(cap, conversion.gainResource.value)
-                    : Decimal.max(unref(conversion.currentGain), 1);
-
-                const cappedDisplay = capped ? "(capped)" : willBeCapped ? "(after cap)" : null;
-                return joinJSX(
-                    [
-                        <b>{displayResource(conversion.gainResource, gain)}</b>,
-                        <> </>,
-                        <>
-                            {conversion.gainResource.displayName} {cappedDisplay}
-                        </>
-                    ],
-                    <></>
-                );
-            };
-
-            if (!pressureCapped.value) {
-                return (
-                    <span>
-                        <h3>Effusive Eruption</h3>
-                        <br />
-                        Reset Pressure
-                        <br />
-                        <span class="font-semibold">
-                            Gain {gainDisplay(lavaConversion, lavaCap.value)}
-                        </span>
-                    </span>
-                );
-            }
-
-            return (
-                <>
-                    <span>
-                        <h3>Explosive Eruption</h3>
-                        <br />
-                        Reset Pressure and <b>all</b> Lava types for:
-                        <br />
-                        <span class="font-semibold">
-                            {gainDisplay(lavaConversion, lavaCap.value)}
-                        </span>
-                        <br />
-                        <span class="font-semibold">{gainDisplay(tephraConversion, 999)}</span>
-                        <br />
-                        <span class="font-semibold">
-                            Destroy ^{format(massDestructionAmount.value)} of the planet's mass.
-                        </span>
-                        <br />
-                        <span class="font-semibold">
-                            Raise Explosive Eruption requirement to ^2.
-                        </span>
-                        <br />
-                        <span class="font-semibold">
-                            Decrease interval by x{format(eruptionPenalityDisplay.value)}
-                        </span>
-                        .
-                    </span>
-                </>
-            );
-        },
-        onClick: () => {
-            if (convertPressureButton.canClick === false) {
-                return;
-            }
-
-            if (pressureCapped.value) {
-                venusLayer.planetMass.value = Decimal.pow(
-                    venusLayer.planetMass.value,
-                    massDestructionAmount.value
-                ); // must be before eruptions is increased
-
-                //             const pressureToKeep = undergroundLavaEffect.value;
-
-                lavaConversion.convert();
-
-                tephraConversion.convert();
-                eruptions.value = Decimal.add(eruptions.value, 1);
-
-                // TODO:
-                //             pressureTabReset.reset();
-
-                //             if (Decimal.gt(pressureToKeep, 0)) {
-                //                 pressure.value = pressureToKeep;
-                //             }
-            } else {
-                lavaConversion.convert();
-            }
-
-            //         timeSinceLastEruption.value = Decimal.dZero;
-        },
-        canClick: computed(() => Decimal.gte(unref(lavaConversion.actualGain), 1)),
-        dataAttributes: {
-            "augmented-ui": "border br-round-inset tl-clip"
-        }
-    }));
-
-    const selectedLavaConversionType = computed(() => {
-        switch (lavaConvertTo.value) {
-            case 0:
-                return felsicLava.displayName;
-            case 1:
-                return intermediateLava.displayName;
-            default:
-                return maficLava.displayName;
-        }
-    });
-
-    const lavaConversionRate = computed(() => Decimal.fromNumber(0.5));
-    const lavaConversionTimeRate = computed(() => Decimal.fromNumber(5));
-
     return {
         pressure,
         pressureTimer,
-        eruptions,
-        lava,
-        lavaCapIncreases,
-        felsicLava,
-        felsicLavaCapIncreases,
-        felsicDisplay,
-        intermediateLava,
-        intermediateLavaCapIncreases,
-        intermediateDisplay,
-        maficLava,
-        maficLavaCapIncreases,
-        maficDisplay,
-        tephra,
+        eruptionPenalityDisplay,
         display: () => (
             <>
                 <div id="pressure-tab">
-                    <div
-                        data-augmented-ui="border tl-clip-y tr-round-inset"
-                        class="border-(--outline) w-[256px]"
-                    >
-                        <div class="p-2">
-                            <h3>{pressure.displayName}</h3>
-                            <h4>
-                                {format(pressure.value)}/{format(pressureMax.value)}
-                            </h4>
+                    <div class="w-[312px]">
+                        <div
+                            data-augmented-ui="border tl-clip-y tr-round-inset"
+                            class="border-(--outline)"
+                        >
+                            <div class="p-4">
+                                <h3>{pressure.displayName}</h3>
+                                <h6 class="font-semibold">
+                                    {format(pressureChance.value)}% chance for pressure to build by
+                                    x{format(pressureGainMultiplier.value)} every{" "}
+                                    {format(pressureTimerMax.value)} seconds.
+                                </h6>
+                            </div>
                         </div>
-                    </div>
-                    <div data-augmented-ui="border br-clip" class="border-(--outline) w-[256px]">
-                        {render(pressureBar)}
-                    </div>
-                    <Spacer />
 
-                    <h6>
-                        {format(pressureChance.value)}% chance for pressure to build by x
-                        {format(pressureGainMultiplier.value)} every{" "}
-                        {format(pressureTimerMax.value)} seconds.
-                    </h6>
-                    <Spacer />
+                        <div
+                            data-augmented-ui="border bl-clip"
+                            class="border-(--outline)"
+                            id="pressure-timer-bar"
+                        >
+                            {render(pressureTimerBar)}
+                        </div>
 
-                    <div
-                        data-augmented-ui="border bl-clip"
-                        class="border-(--outline) w-[128px] mb-12"
-                        id="pressure-timer-bar"
-                    >
-                        {render(pressureTimerBar)}
-                    </div>
-                    <Spacer />
-
-                    {render(convertPressureButton)}
-
-                    <div class="w-3/5 mb-10">{render(lavaDisplay.value)}</div>
-                    <div class="flex justify-center">
-                        <Toggle
-                            onUpdate:modelValue={value => (lavaConversionEnabled.value = value)}
-                            modelValue={lavaConversionEnabled.value}
-                            title={"Toggle Lava Conversion"}
-                        />
-                    </div>
-
-                    <div class="flex gap-6 justify-center">
-                        <Slider
-                            min={0}
-                            max={2}
-                            onUpdate:modelValue={value => (lavaConvertTo.value = value)}
-                            modelValue={lavaConvertTo.value}
-                            displayTooltip={false}
-                        />
-                    </div>
-                    <h5>
-                        1 Lava will be converted into {format(lavaConversionRate.value)}{" "}
-                        {selectedLavaConversionType.value} every{" "}
-                        {format(lavaConversionTimeRate.value)} seconds.
-                    </h5>
-                    <Spacer />
-
-                    <div class="flex">
-                        {render(felsicDisplay.value)}
-                        {render(intermediateDisplay.value)}
-                        {render(maficDisplay.value)}
+                        <div data-augmented-ui="border br-clip" class="border-(--outline)">
+                            {render(pressureBar)}
+                        </div>
                     </div>
                 </div>
             </>
