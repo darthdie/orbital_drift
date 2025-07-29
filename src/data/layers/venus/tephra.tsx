@@ -7,7 +7,7 @@ import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { DecimalSource } from "lib/break_eternity";
 
-const id = "VL";
+const id = "VT";
 const tephraLayer = createLayer(id, () => {
     const tephra = createResource<DecimalSource>(0, "Tephra");
 

@@ -1,5 +1,5 @@
 import { format } from "util/break_eternity";
-import { createResource } from "features/resources/resource";
+import { createResource, trackBest } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed } from "vue";
 import { createBar } from "features/bars/bar";
@@ -15,10 +15,11 @@ const random = () => Math.random() * 100;
 const id = "VP";
 const pressureLayer = createLayer(id, baseLayer => {
     const pressure = createResource<DecimalSource>(1, "Pressure");
+    const bestPressure = trackBest(pressure);
 
     const pressureTimer = createResource<DecimalSource>(0);
     const pressureTimerMax = computed(
-        () => Decimal.fromNumber(15)
+        () => Decimal.div(15, lavaLayer.maficEffect.value)
         // Decimal.times(15, Decimal.times(eruptionPressureDivisor, eruptions.value).add(1))
         //     .div(pressureIntervalBuyableEffect.value)
         //     .div(lavaIsFloorEffect.value)
@@ -27,14 +28,14 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .pow(tephraPressureIntervalEffect.value)
     );
     const pressureChance = computed(
-        () => Decimal.fromNumber(10)
+        () => Decimal.add(10, lavaLayer.felsicEffect.value)
         // Decimal.add(10, pressureChanceBuyableEffect.apply(0))
         //     .add(floorIsLavaEffect.value)
         //     .add(bubblingEffect.value)
         //     .pow(tephraPressureChanceEffect.value)
     );
     const pressureGainMultiplier = computed(
-        () => Decimal.fromNumber(1.3)
+        () => Decimal.times(1.3, lavaLayer.intermediateEffect.value)
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
         //     .pow(tephraPressureGainEffect.value)
@@ -140,13 +141,12 @@ const pressureLayer = createLayer(id, baseLayer => {
         Ultramafic?
     */
 
-    
-
     const eruptionPressureDivisor = 0.6;
     const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
 
     return {
         pressure,
+        bestPressure,
         pressureTimer,
         eruptionPenalityDisplay,
         display: () => (

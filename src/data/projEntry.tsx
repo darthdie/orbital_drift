@@ -16,6 +16,8 @@ import acceleratorsTab from "./layers/mercury/accelerators";
 import mercuryMilestones from "./layers/mercury/milestones";
 import venus from "./layers/venus";
 import venusPressure from './layers/venus/pressure';
+import venusLava from "./layers/venus/lava";
+import venusTephra from "./layers/venus/tephra";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 import { createHotkey } from "features/hotkey";
@@ -186,7 +188,9 @@ export const getInitialLayers = (
     acceleratorsTab,
     mercuryMilestones,
     venus,
-    venusPressure
+    venusPressure,
+    venusLava,
+    venusTephra
 ];
 
 /**
