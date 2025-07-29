@@ -2,7 +2,7 @@ import { format } from "util/break_eternity";
 import Spacer from "components/layout/Spacer.vue";
 import { createResource, displayResource, Resource } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { computed, ComputedRef, ref, Ref, unref } from "vue";
+import { computed, ComputedRef, ref, unref } from "vue";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
 import { joinJSX, render } from "util/vue";
