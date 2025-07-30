@@ -22,6 +22,11 @@ const tephraLayer = createLayer(id, () => {
         convert: () => (tephra.value = Decimal.add(tephra.value, 1))
     }));
 
+    // Buyables that boost shit
+    // Unlock passive generators for lava subtypes?
+    // Unlock more volcanos/pressure timers?
+    // Increase tephra gain - some sort of inherent scaling bonus?
+
     return {
         id,
         tephra,

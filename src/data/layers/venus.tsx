@@ -12,6 +12,8 @@ import { render } from "util/vue";
 import { createBar } from "features/bars/bar";
 import { DefaultValue } from "game/persistence";
 import lavaLayer from "./venus/lava";
+import { format } from "util/bignum";
+import Spacer from "components/layout/Spacer.vue";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -83,6 +85,38 @@ const layer = createLayer(id, () => {
                 <div data-augmented-ui="border tr-clip" class="w-[312px]">
                     {render(planetMassBar)}
                 </div>
+                <Spacer />
+
+                <div class="w-[312px]">
+                    <div
+                        data-augmented-ui="border tl-clip-y tr-round-inset"
+                        class="border-(--outline)"
+                    >
+                        <div class="p-4">
+                            <h3>{pressureLayer.pressure.displayName}</h3>
+                            <h6 class="font-semibold">
+                                {format(pressureLayer.pressureChance.value)}% chance for pressure to build by
+                                x{format(pressureLayer.pressureGainMultiplier.value)} every{" "}
+                                {format(pressureLayer.pressureTimerMax.value)} seconds.
+                            </h6>
+                        </div>
+                    </div>
+
+                    <div
+                        data-augmented-ui="border bl-clip"
+                        class="border-(--outline)"
+                        id="pressure-timer-bar"
+                    >
+                        {render(pressureLayer.pressureTimerBar)}
+                    </div>
+
+                    <div data-augmented-ui="border br-clip" class="border-(--outline)">
+                        {render(pressureLayer.pressureBar)}
+                    </div>
+                </div>
+
+                <h5>Softcap Divisor: {format(pressureLayer.pressureSoftcapDivisor.evaluate())}</h5>
+                <Spacer />
 
                 {render(tabs)}
             </>

@@ -4,11 +4,13 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed } from "vue";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
-import { render } from "util/vue";
+import { renderGroupedObjects } from "util/vue";
 import { createLayer } from "game/layers";
-
 import "./pressure.css";
 import lavaLayer from "./lava";
+import { createUpgrade } from "features/clickables/upgrade";
+import { createCostRequirement } from "game/requirements";
+import Formula from "game/formulas/formulas";
 
 const random = () => Math.random() * 100;
 
@@ -19,7 +21,8 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const pressureTimer = createResource<DecimalSource>(0);
     const pressureTimerMax = computed(
-        () => Decimal.div(15, lavaLayer.maficEffect.value)
+        () => Formula.variable(15).times(pressureSoftcapDivisor).div(lavaLayer.mafic.effect.value).evaluate()
+            // Decimal.times(15, pressureSoftcapDivisor.evaluate()).div(lavaLayer.maficEffect.value)
         // Decimal.times(15, Decimal.times(eruptionPressureDivisor, eruptions.value).add(1))
         //     .div(pressureIntervalBuyableEffect.value)
         //     .div(lavaIsFloorEffect.value)
@@ -28,19 +31,26 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .pow(tephraPressureIntervalEffect.value)
     );
     const pressureChance = computed(
-        () => Decimal.add(10, lavaLayer.felsicEffect.value)
+        () => Decimal.add(10, lavaLayer.felsic.effect.value)
         // Decimal.add(10, pressureChanceBuyableEffect.apply(0))
         //     .add(floorIsLavaEffect.value)
         //     .add(bubblingEffect.value)
         //     .pow(tephraPressureChanceEffect.value)
     );
     const pressureGainMultiplier = computed(
-        () => Decimal.times(1.3, lavaLayer.intermediateEffect.value)
+        () => Decimal.times(1.3, lavaLayer.intermediate.effect.value)
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
         //     .pow(tephraPressureGainEffect.value)
     );
-    
+
+    const pressureSoftcapDivisor = Formula.if(
+        Formula.variable(pressure),
+        () => Decimal.lt(pressure.value, 1e25),
+        f => f.min(1),
+        f => f.step(1e25, f => f.log10().cbrt())
+    );
+
     const pressureMax = computed(() => {
         const pow = Decimal.pow(2, lavaLayer.eruptions.value);
         return Decimal.fromNumber(1e25).pow(pow);
@@ -128,18 +138,24 @@ const pressureLayer = createLayer(id, baseLayer => {
         }
     }
 
-    /*
-        Pressure
-        -> Lava
-        --> Felsic
-        ---> Pressure Build %
-        --> Intermediate
-        ---> Pressure Build X
-        --> Mafic
-        ---> Pressure Interval
-
-        Ultramafic?
-    */
+    const upgrades = {
+        // ???
+        effusiveEruption: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 5
+            })),
+            display: {
+                title: "Effusive Eruption",
+                description: "Unlock Lava & Passive Lava gain."
+                // unlock lava, passive flow?, 
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            },
+        }))
+    };
 
     const eruptionPressureDivisor = 0.6;
     const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
@@ -149,40 +165,28 @@ const pressureLayer = createLayer(id, baseLayer => {
         bestPressure,
         pressureTimer,
         eruptionPenalityDisplay,
+        pressureBar,
+        pressureTimerMax,
+        pressureChance,
+        pressureGainMultiplier,
+        pressureTimerBar,
+        pressureSoftcapDivisor,
         display: () => (
             <>
                 <div id="pressure-tab">
-                    <div class="w-[312px]">
-                        <div
-                            data-augmented-ui="border tl-clip-y tr-round-inset"
-                            class="border-(--outline)"
-                        >
-                            <div class="p-4">
-                                <h3>{pressure.displayName}</h3>
-                                <h6 class="font-semibold">
-                                    {format(pressureChance.value)}% chance for pressure to build by
-                                    x{format(pressureGainMultiplier.value)} every{" "}
-                                    {format(pressureTimerMax.value)} seconds.
-                                </h6>
-                            </div>
-                        </div>
-
-                        <div
-                            data-augmented-ui="border bl-clip"
-                            class="border-(--outline)"
-                            id="pressure-timer-bar"
-                        >
-                            {render(pressureTimerBar)}
-                        </div>
-
-                        <div data-augmented-ui="border br-clip" class="border-(--outline)">
-                            {render(pressureBar)}
-                        </div>
+                    <div class="mb-2">
+                        <h3>Upgrades</h3>
                     </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+
+                    {renderGroupedObjects(upgrades, 4)}
                 </div>
             </>
         ),
-        pressureCapped
+        pressureCapped,
+        upgrades
     };
 });
 

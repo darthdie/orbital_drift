@@ -1,3 +1,7 @@
 #pressure-tab {
-
+    .upgrade .clickable {
+        .can {
+            color: var(--color-venus-700);
+        }
+    }
 }
