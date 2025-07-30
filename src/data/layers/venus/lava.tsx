@@ -376,6 +376,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                                         }
                                         modelValue={lavaConversionEnabled.value}
                                         title={"Toggle Lava Conversion"}
+                                        class={{"lava-conversion-toggle": true}}
                                     />
                                 </div>
 
@@ -386,6 +387,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                                         onUpdate:modelValue={value => (lavaConvertTo.value = value)}
                                         modelValue={lavaConvertTo.value}
                                         displayTooltip={false}
+                                        class={{"lava-type-slider": true, "accent-venus-400": true}}
                                     />
                                 </div>
                                 <h5>

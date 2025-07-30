@@ -1,4 +1,9 @@
 #lava-layer {
+    * {
+        /* --aug-border-bg: var(--color-venus-300) !important; */
+    }
+    
+
     .lava-reset-button .clickable {
         border: 0;
         min-height: 0;
@@ -39,5 +44,19 @@
         .increase-cap-action .clickable {
             border-radius: 0 0 8px 8px;
         }
+    }
+
+    .lava-conversion-toggle {
+        span:before {
+            background-color: var(--color-venus-500);
+        }
+
+        span:after {
+            background-color: var(--color-venus-300);
+        }
+    }
+
+    .lava-type-slider input {
+        accent-color: var(--color-venus-400);
     }
 }
