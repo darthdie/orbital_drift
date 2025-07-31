@@ -12,8 +12,9 @@ import { render } from "util/vue";
 import { createBar } from "features/bars/bar";
 import { DefaultValue } from "game/persistence";
 import lavaLayer from "./venus/lava";
-import { format } from "util/bignum";
 import Spacer from "components/layout/Spacer.vue";
+import { format } from "util/bignum";
+import silicateLayer from "./venus/silicate";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -46,6 +47,11 @@ const layer = createLayer(id, () => {
             display: "Lava",
             visibility: lavaLayer.unlocked,
             tab: lavaLayer.display
+        }),
+        silicate: () => ({
+            display: "Silicate",
+            visibility: silicateLayer.unlocked,
+            tab: silicateLayer.display
         })
     });
 
@@ -68,6 +74,59 @@ const layer = createLayer(id, () => {
         return Decimal.sub(0.99, Decimal.times(lavaLayer.eruptions.value, 0.01));
     });
 
+    const pressureBar = createBar(() => ({
+        direction: Direction.Right,
+        height: 24,
+        width: "100%",
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline)"
+        },
+        display: () => (
+            <span class="text-shadow-lg text-venus-500">
+                {format(pressureLayer.pressure.value)}/{format(pressureLayer.pressureMax.value)}
+            </span>
+        ),
+        progress: () =>
+            Decimal.div(
+                Decimal.ln(pressureLayer.pressure.value),
+                Decimal.ln(pressureLayer.pressureMax.value)
+            )
+    }));
+
+    const lavaBar = createBar(() => ({
+        direction: Direction.Right,
+        height: 32,
+        width: "100%",
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline)"
+        },
+        display: () => (
+            <>
+                <h4 class="text-venus-500 text-shadow-lg">
+                    {format(lavaLayer.lava.value)}/{format(lavaLayer.lavaCap.value)}
+                </h4>
+            </>
+        ),
+        progress: () => {
+            if (Decimal.gt(lavaLayer.lavaCap.value, 1e10)) {
+                return Decimal.div(
+                    Decimal.ln(lavaLayer.lava.value),
+                    Decimal.ln(lavaLayer.lavaCap.value)
+                );
+            }
+
+            return Decimal.div(lavaLayer.lava.value, lavaLayer.lavaCap.value);
+        }
+    }));
+
     return {
         name,
         color,
@@ -87,35 +146,24 @@ const layer = createLayer(id, () => {
                 </div>
                 <Spacer />
 
-                <div class="w-[312px]">
-                    <div
-                        data-augmented-ui="border tl-clip-y tr-round-inset"
-                        class="border-(--outline)"
-                    >
-                        <div class="p-4">
-                            <h3>{pressureLayer.pressure.displayName}</h3>
-                            <h6 class="font-semibold">
-                                {format(pressureLayer.pressureChance.value)}% chance for pressure to build by
-                                x{format(pressureLayer.pressureGainMultiplier.value)} every{" "}
-                                {format(pressureLayer.pressureTimerMax.value)} seconds.
-                            </h6>
-                        </div>
+                <div class="w-[256px]">
+                    <div data-augmented-ui="border tl-clip br-clip">
+                        <h3>Pressure</h3>
                     </div>
+                    <div data-augmented-ui="border tr-clip br-clip">{render(pressureBar)}</div>
 
-                    <div
-                        data-augmented-ui="border bl-clip"
-                        class="border-(--outline)"
-                        id="pressure-timer-bar"
-                    >
-                        {render(pressureLayer.pressureTimerBar)}
-                    </div>
-
-                    <div data-augmented-ui="border br-clip" class="border-(--outline)">
-                        {render(pressureLayer.pressureBar)}
-                    </div>
+                    {lavaLayer.unlocked.value ? (
+                        <>
+                            <div data-augmented-ui="border bl-clip tr-clip">
+                                <h3>Lava</h3>
+                            </div>
+                            <div data-augmented-ui="border tl-clip br-clip-inset">
+                                {render(lavaBar)}
+                            </div>
+                        </>
+                    ) : null}
                 </div>
 
-                <h5>Softcap Divisor: {format(pressureLayer.pressureSoftcapDivisor.evaluate())}</h5>
                 <Spacer />
 
                 {render(tabs)}

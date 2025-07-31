@@ -15,8 +15,9 @@ import Spacer from "components/layout/Spacer.vue";
 import acceleratorsTab from "./layers/mercury/accelerators";
 import mercuryMilestones from "./layers/mercury/milestones";
 import venus from "./layers/venus";
-import venusPressure from './layers/venus/pressure';
+import venusPressure from "./layers/venus/pressure";
 import venusLava from "./layers/venus/lava";
+import venusSilicate from "./layers/venus/silicate";
 import venusTephra from "./layers/venus/tephra";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
@@ -190,6 +191,7 @@ export const getInitialLayers = (
     venus,
     venusPressure,
     venusLava,
+    venusSilicate,
     venusTephra
 ];
 

@@ -4,13 +4,14 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed } from "vue";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
-import { renderGroupedObjects } from "util/vue";
+import { render, renderGroupedObjects } from "util/vue";
 import { createLayer } from "game/layers";
 import "./pressure.css";
 import lavaLayer from "./lava";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import Formula from "game/formulas/formulas";
+import silicateLayer from "./silicate";
 
 const random = () => Math.random() * 100;
 
@@ -21,8 +22,12 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const pressureTimer = createResource<DecimalSource>(0);
     const pressureTimerMax = computed(
-        () => Formula.variable(15).times(pressureSoftcapDivisor).div(lavaLayer.mafic.effect.value).evaluate()
-            // Decimal.times(15, pressureSoftcapDivisor.evaluate()).div(lavaLayer.maficEffect.value)
+        () =>
+            Formula.variable(15)
+                .times(pressureSoftcapDivisor)
+                .div(silicateLayer.mafic.effect.value)
+                .evaluate()
+        // Decimal.times(15, pressureSoftcapDivisor.evaluate()).div(lavaLayer.maficEffect.value)
         // Decimal.times(15, Decimal.times(eruptionPressureDivisor, eruptions.value).add(1))
         //     .div(pressureIntervalBuyableEffect.value)
         //     .div(lavaIsFloorEffect.value)
@@ -31,14 +36,14 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .pow(tephraPressureIntervalEffect.value)
     );
     const pressureChance = computed(
-        () => Decimal.add(10, lavaLayer.felsic.effect.value)
+        () => Decimal.add(10, silicateLayer.felsic.effect.value)
         // Decimal.add(10, pressureChanceBuyableEffect.apply(0))
         //     .add(floorIsLavaEffect.value)
         //     .add(bubblingEffect.value)
         //     .pow(tephraPressureChanceEffect.value)
     );
     const pressureGainMultiplier = computed(
-        () => Decimal.times(1.3, lavaLayer.intermediate.effect.value)
+        () => Decimal.times(1.3, silicateLayer.intermediate.effect.value)
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
         //     .pow(tephraPressureGainEffect.value)
@@ -194,11 +199,42 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureGainMultiplier,
         pressureTimerBar,
         pressureSoftcapDivisor,
+        pressureMax,
         lavaFlowffect,
         display: () => (
             <>
                 <div id="pressure-tab">
-                    <div class="mb-2">
+                    <div class="w-[312px] mb-2">
+                        <div
+                            data-augmented-ui="border tl-clip-y tr-round-inset"
+                            class="border-(--outline)"
+                        >
+                            <div class="p-4">
+                                <h3>{pressure.displayName}</h3>
+                                <h6 class="font-semibold">
+                                    {format(pressureChance.value)}% chance for pressure to build by
+                                    x{format(pressureGainMultiplier.value)} every{" "}
+                                    {format(pressureTimerMax.value)} seconds.
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div
+                            data-augmented-ui="border bl-clip"
+                            class="border-(--outline)"
+                            id="pressure-timer-bar"
+                        >
+                            {render(pressureTimerBar)}
+                        </div>
+
+                        <div data-augmented-ui="border br-clip" class="border-(--outline)">
+                            {render(pressureBar)}
+                        </div>
+                    </div>
+
+                    <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
+
+                    <div class="mb-2 mt-6">
                         <h3>Upgrades</h3>
                     </div>
                     <div class="mb-4">

@@ -61,18 +61,4 @@
             border-radius: 0 0 8px 8px;
         }
     }
-
-    .lava-conversion-toggle {
-        span:before {
-            background-color: var(--color-venus-500);
-        }
-
-        span:after {
-            background-color: var(--color-venus-300);
-        }
-    }
-
-    .lava-type-slider input {
-        accent-color: var(--color-venus-400);
-    }
 }

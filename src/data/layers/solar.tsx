@@ -7,7 +7,7 @@ import { createResource, trackBest, trackTotal } from "features/resources/resour
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
-import Decimal, { DecimalSource } from "lib/break_eternity";
+import { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
