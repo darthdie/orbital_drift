@@ -217,6 +217,10 @@ const pressureLayer = createLayer(id, baseLayer => {
     const eruptionPressureDivisor = 0.6;
     const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
 
+    const showNotification = computed(() => {
+        return unlocked.value && Object.values(upgrades).some(u => u.canPurchase.value);
+    })
+
     return {
         pressure,
         bestPressure,
@@ -230,6 +234,9 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureSoftcapDivisor,
         pressureMax,
         lavaFlowffect,
+        pressureCapped,
+        upgrades,
+        showNotification,
         display: () => (
             <>
                 <div id="pressure-tab">
@@ -273,9 +280,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                     {renderGroupedObjects(upgrades, 4)}
                 </div>
             </>
-        ),
-        pressureCapped,
-        upgrades
+        )
     };
 });
 

@@ -318,6 +318,10 @@ const lavaLayer = createLayer(id, baseLayer => {
         }))
     };
 
+    const showNotification = computed(() => {
+        return unlocked.value && Object.values(lavaUpgrades).some(u => u.canPurchase.value);
+    })
+
     return {
         id,
         lava,
@@ -328,6 +332,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         unlocked,
         passiveLavaGain,
         lavaUpgrades,
+        showNotification,
         display: () => (
             <>
                 <div id="lava-layer">

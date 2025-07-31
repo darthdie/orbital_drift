@@ -179,6 +179,10 @@ const silicateLayer = createLayer(id, baseLayer => {
         onClick: () => (selectedConversionLavaIndex.value = -1)
     }));
 
+    const showNotification = computed(() => {
+        return unlocked.value && Object.values(silicateBuyables).some(b => b.canClick.value);
+    });
+
     return {
         id,
         felsic,
@@ -192,6 +196,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         selectedConversionLava,
         disableConversionButton,
         selectedConversionLavaIndex,
+        showNotification,
         display: () => (
             <>
                 <div id="silicate-layer">

@@ -37,20 +37,18 @@ const layer = createLayer(id, () => {
         // reset: fullReset
     }));
 
-    const showNotification = computed(() => false);
-
     const tabs = createTabFamily({
         pressure: () => ({
-            display: "Pressure",
+            display: () => <>Pressure{pressureLayer.showNotification.value ? " !" : null}</>,
             tab: pressureLayer.display
         }),
         lava: () => ({
-            display: "Lava",
+            display: () => <>Lava{lavaLayer.showNotification.value ? " !" : null}</>,
             visibility: lavaLayer.unlocked,
             tab: lavaLayer.display
         }),
         silicate: () => ({
-            display: "Silicate",
+            display: () => <>Silicate{silicateLayer.showNotification.value ? " !" : null}</>,
             visibility: silicateLayer.unlocked,
             tab: silicateLayer.display
         })
@@ -163,6 +161,14 @@ const layer = createLayer(id, () => {
     const felsicBar = createSilicateBar(silicateLayer.felsic);
     const intermediateBar = createSilicateBar(silicateLayer.intermediate);
     const maficBar = createSilicateBar(silicateLayer.mafic);
+
+    const showNotification = computed(() => {
+        return (
+            (unlocked.value && pressureLayer.showNotification.value) ||
+            lavaLayer.showNotification.value ||
+            silicateLayer.showNotification.value
+        );
+    })
 
     return {
         name,
