@@ -15,6 +15,7 @@ import lavaLayer from "./venus/lava";
 import Spacer from "components/layout/Spacer.vue";
 import { format } from "util/bignum";
 import silicateLayer from "./venus/silicate";
+import { LavaSubtype } from "./venus/createLavaSubtype";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -127,6 +128,42 @@ const layer = createLayer(id, () => {
         }
     }));
 
+    function createSilicateBar(silicate: LavaSubtype) {
+        return createBar(() => ({
+            direction: Direction.Right,
+            height: 32,
+            width: "152px",
+            style: {
+                overflow: "hidden"
+            },
+            borderStyle: {
+                borderRadius: "0",
+                borderColor: "var(--outline)"
+            },
+            display: () => (
+                <>
+                    <h4 class="text-venus-500 text-shadow-lg">
+                        {format(silicate.resource.value)}/{format(silicate.cap.value)}
+                    </h4>
+                </>
+            ),
+            progress: () => {
+                if (Decimal.gt(silicate.cap.value, 1e10)) {
+                    return Decimal.div(
+                        Decimal.ln(silicate.resource.value),
+                        Decimal.ln(silicate.cap.value)
+                    );
+                }
+
+                return Decimal.div(silicate.resource.value, silicate.cap.value);
+            }
+        }));
+    }
+
+    const felsicBar = createSilicateBar(silicateLayer.felsic);
+    const intermediateBar = createSilicateBar(silicateLayer.intermediate);
+    const maficBar = createSilicateBar(silicateLayer.mafic);
+
     return {
         name,
         color,
@@ -163,6 +200,25 @@ const layer = createLayer(id, () => {
                         </>
                     ) : null}
                 </div>
+
+                {silicateLayer.unlocked.value ? (
+                    <div class="w-fit flex">
+                        <div class="flex-1" data-augmented-ui="border tl-clip">
+                            <h4 class="p-1">Felsic</h4>
+                            {render(felsicBar)}
+                        </div>
+
+                        <div class="flex-1" data-augmented-ui="border">
+                            <h4 class="p-1">Intermediate</h4>
+                            {render(intermediateBar)}
+                        </div>
+
+                        <div class="flex-1" data-augmented-ui="border tr-clip">
+                            <h4 class="p-1">Mafic</h4>
+                            {render(maficBar)}
+                        </div>
+                    </div>
+                ) : null}
 
                 <Spacer />
 

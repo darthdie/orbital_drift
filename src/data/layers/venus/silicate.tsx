@@ -147,9 +147,16 @@ const silicateLayer = createLayer(id, baseLayer => {
         display: () => (
             <>
                 <div id="silicate-layer">
+                    <div class="mb-2">
+                        <h2>Silicate Lavas</h2>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+
                     <div
                         data-augmented-ui="border tl-2-clip-y br-round-x"
-                        class="flex-1 w-[300px] px-8 py-4 mb-12"
+                        class="flex-1 w-[300px] px-8 py-4 mb-4"
                     >
                         <div class="flex justify-center">
                             <Toggle
@@ -178,13 +185,6 @@ const silicateLayer = createLayer(id, baseLayer => {
                             {selectedConversionLava.value.resource.displayName} every{" "}
                             {format(lavaConversionTimeRate.value)} seconds.
                         </h5>
-                    </div>
-
-                    <div class="mb-2">
-                        <h2>Silicate Lavas</h2>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
                     </div>
 
                     <div class="flex mb-12">

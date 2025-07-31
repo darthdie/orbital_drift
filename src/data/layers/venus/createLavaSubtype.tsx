@@ -57,7 +57,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
         const maxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
         const minimumEffect = processGetter(_minimumEffect) ?? Decimal.dZero;
         const effect = computed(() =>
-            calculateLavaEffect(resource, cap.value, unref(minimumEffect), maxEffect.value)
+            calculateLavaEffect(resource.value, cap.value, unref(minimumEffect), maxEffect.value)
         );
 
         const effectDisplay = computed(() => effectDisplayBuilder(effect, maxEffect));
@@ -151,13 +151,13 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
 }
 
 export function calculateLavaEffect(
-    resource: Resource,
+    resource: DecimalSource,
     cap: DecimalSource,
     minEffect: DecimalSource,
     maxEffect: DecimalSource,
     exponent: number = 1
 ) {
-    const percent = Decimal.max(0, Decimal.div(resource.value, cap));
+    const percent = Decimal.max(0, Decimal.div(resource, cap));
     const curved = Decimal.pow(percent, exponent);
     const cal = Decimal.sub(maxEffect, minEffect).times(curved);
     return Decimal.add(minEffect, cal);

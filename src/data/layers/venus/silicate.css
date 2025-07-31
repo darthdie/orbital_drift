@@ -1,7 +1,7 @@
 #silicate-layer {
     .lava-conversion-toggle {
         margin: 0;
-        
+
         span:before {
             background-color: var(--color-venus-500);
         }
@@ -13,5 +13,10 @@
 
     .lava-type-slider input {
         accent-color: var(--color-venus-400);
+    }
+
+    .normal-repeatable .clickable {
+        height: 200px;
+        width: 150px;
     }
 }

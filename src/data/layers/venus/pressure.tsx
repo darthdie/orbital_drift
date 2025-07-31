@@ -43,7 +43,9 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .pow(tephraPressureChanceEffect.value)
     );
     const pressureGainMultiplier = computed(
-        () => Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+        () => {
+            return Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+        }
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
         //     .pow(tephraPressureGainEffect.value)
@@ -125,7 +127,6 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureTimer.value = 0;
 
         const rng = random();
-        console.log({ rng });
         if (Decimal.gte(pressureChance.value, rng)) {
             let buildAmount = pressureGainMultiplier.value;
 
@@ -145,13 +146,26 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const lavaFlowffect = computed(() => {
         if (upgrades.lavaFlow.bought.value) {
-            return Decimal.add(pressure.value, 1).log10().cbrt().clampMin(1);
+            return Decimal.add(pressure.value, 1)
+                .log10()
+                .cbrt()
+                .times(underPressureEffect.value)
+                .clampMin(1);
             // return Decimal.fromNumber(2);
         }
 
         return Decimal.dOne;
     });
 
+    const underPressureEffect = computed(() => {
+        if (upgrades.underPressure.bought.value) {
+            return Decimal.fromNumber(2);
+        }
+
+        return Decimal.dOne;
+    });
+
+    // Eventually, upgrades to reduce softcap.
     const upgrades = {
         effusiveEruption: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -177,6 +191,21 @@ const pressureLayer = createLayer(id, baseLayer => {
                 title: "Lava Flow",
                 description: "Increase Lava gain based on Pressure.",
                 effectDisplay: () => `x${format(lavaFlowffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        underPressure: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e6
+            })),
+            display: {
+                title: "Under Pressure",
+                description: "Double the effect of 'Lava Flow'",
+                effectDisplay: () => `x${format(underPressureEffect.value)}`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {

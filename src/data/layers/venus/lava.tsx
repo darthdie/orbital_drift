@@ -33,7 +33,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const lavaMaxEffect = computed(() => Decimal.div(lavaCap.value, 25));
     const lavaEffect = computed(() =>
-        calculateLavaEffect(lava, lavaCap.value, 0, lavaMaxEffect.value)
+        calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value)
     );
 
     const createLavaResourceDisplay = () => {
@@ -246,7 +246,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         },
         canClick: computed(() => pressureLayer.pressureCapped.value),
         dataAttributes: {
-            "augmented-ui": "border bl-2-scoop-xy br-2-scoop tl-clip tr-scoop-inset"
+            "augmented-ui": "border bl-round-inset br-2-scoop tr-scoop-inset"
         }
     }));
 
@@ -338,11 +338,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                         <hr class="section-divider" />
                     </div>
 
-                    <div class="w-3/4 mb-10 flex">
-                        <div class="flex flex-col m-0">
-                            {/* <div class="flex-1 m-0">{render(effusiveEruptionButton)}</div> */}
+                    <div class="w-[512px] mb-10 flex flex-col">
+                        <div class="flex m-0 flex-1">
                             <div
-                                class="m-0 h-[160px] flex flex-col"
+                                class="m-0 h-[160px] flex flex-col flex-1"
                                 data-augmented-ui="border br-round-inset tl-clip bl-2-clip-x tr-clip"
                             >
                                 <div>
@@ -353,7 +352,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                                     </h5>
                                 </div>
                             </div>
-                            <div class="m-0">{render(explosiveEruptionButton)}</div>
+                            <div class="m-0 flex-1">{render(explosiveEruptionButton)}</div>
                         </div>
                         <div class="flex flex-col flex-1 m-0">
                             <div class="flex-1 m-0">{render(lavaDisplay.value)}</div>
