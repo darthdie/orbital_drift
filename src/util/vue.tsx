@@ -110,15 +110,20 @@ export function renderCol(...objects: RenderableObjectsArray): JSX.Element {
 }
 
 export function joinJSX(objects: RenderableObjectsArray, joiner: JSX.Element): JSX.Element {
-    return objects.reduce<JSX.Element>(
-        (acc, curr) => (
-            <>
-                {acc}
-                {joiner}
-                {render(curr)}
-            </>
-        ),
-        <></>
+    // return objects.reduce<JSX.Element>((acc, curr) => {
+    //     if (acc == null) {
+    //         console.log("??", {acc, curr})
+    //         return <>{render(curr)}</>;
+    //     }
+    //     <>
+    //         {acc}
+    //         {joiner}
+    //         {render(curr)}
+    //     </>;
+    // }, null);
+
+    return (
+        <>{objects.flatMap((el, index) => (index === objects.length - 1 ? [el] : [el, joiner]))}</>
     );
 }
 

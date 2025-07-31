@@ -138,8 +138,16 @@ const pressureLayer = createLayer(id, baseLayer => {
         }
     }
 
+    const lavaFlowffect = computed(() => {
+        if (upgrades.lavaFlow.bought.value) {
+            return Decimal.add(pressure.value, 1).log10().cbrt().clampMin(1);
+            // return Decimal.fromNumber(2);
+        }
+
+        return Decimal.dOne;
+    });
+
     const upgrades = {
-        // ???
         effusiveEruption: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
                 resource: pressure,
@@ -147,13 +155,28 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Effusive Eruption",
-                description: "Unlock Lava & Passive Lava gain."
-                // unlock lava, passive flow?, 
+                description: "Unlock Lava & Passive Lava gain.",
+                effectDisplay: () => `${format(lavaLayer.passiveLavaGain.value)}/s`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
+            }
+        })),
+        lavaFlow: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 100
+            })),
+            display: {
+                title: "Lava Flow",
+                description: "Increase 'Effusive Eruption' effect based on Pressure.",
+                effectDisplay: () => `x${format(lavaFlowffect.value)}`
             },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
         }))
     };
 
@@ -171,6 +194,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureGainMultiplier,
         pressureTimerBar,
         pressureSoftcapDivisor,
+        lavaFlowffect,
         display: () => (
             <>
                 <div id="pressure-tab">

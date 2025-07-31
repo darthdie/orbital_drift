@@ -1,7 +1,17 @@
 #pressure-tab {
-    .upgrade .clickable {
-        .can {
+    .sd-upgrade .clickable {
+        &.can {
             color: var(--color-venus-700);
+
+            .upgrade-content {
+                color: var(--color-venus-800);
+            }
+        }
+
+        &.locked {
+            .upgrade-content {
+                color: var(--color-venus-100);
+            }
         }
     }
 }

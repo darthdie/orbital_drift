@@ -19,7 +19,6 @@ export interface LavaSubtype extends VueFeature {
 }
 
 export interface LavaSubtypeOptions extends VueFeatureOptions {
-    name: string;
     startingCap: number;
     maxEffectDivisor: number;
     effectDisplayBuilder: (
@@ -32,11 +31,16 @@ export interface LavaSubtypeOptions extends VueFeatureOptions {
     minimumEffect?: MaybeRefOrGetter<DecimalSource>;
 }
 
-export function createLavaSubtype<T extends LavaSubtypeOptions>(optionsFunc: () => T) {
+export function createLavaSubtype<T extends LavaSubtypeOptions>(
+    name: string,
+    optionsFunc: () => T
+) {
+    const resource = createResource<DecimalSource>(0, name);
+    const capIncreases = createResource<DecimalSource>(0);
+
     return createLazyProxy(() => {
         const options = optionsFunc();
         const {
-            name,
             startingCap,
             maxEffectDivisor,
             effectDisplayBuilder,
@@ -46,15 +50,14 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(optionsFunc: () 
             minimumEffect: _minimumEffect,
             ...props
         } = options;
-        const resource = createResource<DecimalSource>(0, name);
-        const capIncreases = createResource<DecimalSource>(0);
+
         const cap = computed(() =>
             Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
         );
         const maxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
-        const minimumEffect = processGetter(_minimumEffect) ?? 0;
+        const minimumEffect = processGetter(_minimumEffect) ?? Decimal.dZero;
         const effect = computed(() =>
-            calculateLavaEffect(resource, cap, maxEffect).clampMin(unref(minimumEffect))
+            calculateLavaEffect(resource, cap.value, unref(minimumEffect), maxEffect.value)
         );
 
         const effectDisplay = computed(() => effectDisplayBuilder(effect, maxEffect));
@@ -149,9 +152,13 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(optionsFunc: () 
 
 export function calculateLavaEffect(
     resource: Resource,
-    cap: ComputedRef<DecimalSource>,
-    maxEffect: ComputedRef<DecimalSource>
+    cap: DecimalSource,
+    minEffect: DecimalSource,
+    maxEffect: DecimalSource,
+    exponent: number = 1
 ) {
-    // Figure out the % of the resource vs the cap, and return that % of the max effect
-    return Decimal.times(maxEffect.value, Decimal.div(resource.value, cap.value));
+    const percent = Decimal.max(0, Decimal.div(resource.value, cap));
+    const curved = Decimal.pow(percent, exponent);
+    const cal = Decimal.sub(maxEffect, minEffect).times(curved);
+    return Decimal.add(minEffect, cal);
 }
