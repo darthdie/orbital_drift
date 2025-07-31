@@ -19,4 +19,18 @@
         height: 200px;
         width: 150px;
     }
+
+    .conversion-toggle-button {
+        .clickable {
+            width: 142px;
+            padding: 12px;
+            color: var(--color-venus-700);
+        }
+
+        &.toggled .clickable {
+            color: var(--color-venus-100);
+            background-color: var(--bought);
+            cursor: default;
+        }
+    }
 }

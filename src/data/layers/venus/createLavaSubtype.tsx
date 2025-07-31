@@ -101,7 +101,6 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
 
         if (options.classes == null) {
             options.classes = computed(() => ({
-                "flex-1": true,
                 "m-0": true,
                 "lava-subtype": true
             }));
@@ -109,7 +108,6 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             const classes = processGetter(options.classes);
             options.classes = computed(() => ({
                 ...unref(classes),
-                "flex-1": true,
                 "m-0": true,
                 "lava-subtype": true
             }));

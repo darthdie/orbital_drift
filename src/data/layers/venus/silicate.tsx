@@ -2,14 +2,14 @@ import { createLayer } from "game/layers";
 import { createLavaSubtype } from "./createLavaSubtype";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { render, renderGroupedObjects } from "util/vue";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { createRepeatable } from "features/clickables/repeatable";
 import { CostRequirementOptions, createCostRequirement } from "game/requirements";
 import { fibonacciCostFormula } from "data/formulas";
-import Toggle from "components/fields/Toggle.vue";
-import Slider from "components/fields/Slider.vue";
 import lavaLayer from "./lava";
 import "./silicate.css";
+import { createClickable } from "features/clickables/clickable";
+import { persistent } from "game/persistence";
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
@@ -87,20 +87,6 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionEnabled = ref(false);
-    const lavaConvertTo = ref(0);
-
-    const selectedConversionLava = computed(() => {
-        switch (lavaConvertTo.value) {
-            case 0:
-                return felsic;
-            case 1:
-                return intermediate;
-            default:
-                return mafic;
-        }
-    });
-
     const lavaConversionRate = computed(() =>
         Decimal.fromNumber(0.1).add(improvedFlowEffect.value)
     );
@@ -118,7 +104,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         const conversionLava = selectedConversionLava.value;
 
         if (
-            lavaConversionEnabled.value &&
+            conversionLava != null &&
             Decimal.gt(lavaLayer.lava.value, 0) &&
             Decimal.lt(conversionLava.resource.value, conversionLava.cap.value)
         ) {
@@ -137,6 +123,62 @@ const silicateLayer = createLayer(id, baseLayer => {
         }
     });
 
+    const selectedConversionLava = computed(() => {
+        switch (selectedConversionLavaIndex.value) {
+            case 0:
+                return felsic;
+            case 1:
+                return intermediate;
+            case 2:
+                return mafic;
+            default:
+                return null;
+        }
+    });
+
+    const conversionButtonClasses = (index: number) => {
+        return {
+            toggled: selectedConversionLavaIndex.value === index,
+            "fit-content": true,
+            "conversion-toggle-button": true
+        };
+    };
+
+    const selectedConversionLavaIndex = persistent<number>(-1);
+    const felsicConversionButton = createClickable(() => ({
+        canClick: () => selectedConversionLavaIndex.value !== 0,
+        classes: () => conversionButtonClasses(0),
+        display: "Convert to Felsic",
+        onClick: () => {
+            selectedConversionLavaIndex.value = 0;
+        }
+    }));
+
+    const intermediateConversionButton = createClickable(() => ({
+        canClick: () => selectedConversionLavaIndex.value !== 1,
+        classes: () => conversionButtonClasses(1),
+        display: "Convert to Intermediate",
+        onClick: () => {
+            selectedConversionLavaIndex.value = 1;
+        }
+    }));
+
+    const maficConversionButton = createClickable(() => ({
+        canClick: () => selectedConversionLavaIndex.value !== 2,
+        classes: () => conversionButtonClasses(2),
+        display: "Convert to Mafic",
+        onClick: () => {
+            selectedConversionLavaIndex.value = 2;
+        }
+    }));
+
+    const disableConversionButton = createClickable(() => ({
+        canClick: () => selectedConversionLavaIndex.value !== -1,
+        classes: () => conversionButtonClasses(-1),
+        display: "Disable Conversion",
+        onClick: () => (selectedConversionLavaIndex.value = -1)
+    }));
+
     return {
         id,
         felsic,
@@ -144,6 +186,12 @@ const silicateLayer = createLayer(id, baseLayer => {
         mafic,
         silicateBuyables,
         unlocked,
+        felsicConversionButton,
+        intermediateConversionButton,
+        maficConversionButton,
+        selectedConversionLava,
+        disableConversionButton,
+        selectedConversionLavaIndex,
         display: () => (
             <>
                 <div id="silicate-layer">
@@ -158,39 +206,26 @@ const silicateLayer = createLayer(id, baseLayer => {
                         data-augmented-ui="border tl-2-clip-y br-round-x"
                         class="flex-1 w-[300px] px-8 py-4 mb-4"
                     >
-                        <div class="flex justify-center">
-                            <Toggle
-                                onUpdate:modelValue={value => (lavaConversionEnabled.value = value)}
-                                modelValue={lavaConversionEnabled.value}
-                                title={"Toggle Lava Conversion"}
-                                class={{ "lava-conversion-toggle": true }}
-                            />
-                        </div>
-
-                        <div class="flex gap-6 justify-center">
-                            <Slider
-                                min={0}
-                                max={2}
-                                onUpdate:modelValue={value => (lavaConvertTo.value = value)}
-                                modelValue={lavaConvertTo.value}
-                                displayTooltip={false}
-                                class={{
-                                    "lava-type-slider": true,
-                                    "accent-venus-400": true
-                                }}
-                            />
-                        </div>
                         <h5 class="font-semibold">
-                            1 Lava will be converted into {format(lavaConversionRate.value)}{" "}
-                            {selectedConversionLava.value.resource.displayName} every{" "}
+                            1 Lava is converted to {format(lavaConversionRate.value)} Silicate over{" "}
                             {format(lavaConversionTimeRate.value)} seconds.
                         </h5>
                     </div>
 
+                    {render(disableConversionButton)}
                     <div class="flex mb-12">
-                        {render(felsic)}
-                        {render(intermediate)}
-                        {render(mafic)}
+                        <div class="flex-1">
+                            {render(felsicConversionButton)}
+                            {render(felsic)}
+                        </div>
+                        <div class="flex-1">
+                            {render(intermediateConversionButton)}
+                            {render(intermediate)}
+                        </div>
+                        <div class="flex-1">
+                            {render(maficConversionButton)}
+                            {render(mafic)}
+                        </div>
                     </div>
 
                     <div class="mb-2">
