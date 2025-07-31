@@ -170,7 +170,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Lava Flow",
-                description: "Increase 'Effusive Eruption' effect based on Pressure.",
+                description: "Increase Lava gain based on Pressure.",
                 effectDisplay: () => `x${format(lavaFlowffect.value)}`
             },
             classes: { "sd-upgrade": true },

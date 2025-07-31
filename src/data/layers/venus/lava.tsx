@@ -21,6 +21,7 @@ import { calculateLavaEffect, createLavaSubtype } from "./createLavaSubtype";
 import { createRepeatable } from "features/clickables/repeatable";
 import { CostRequirementOptions, createCostRequirement } from "game/requirements";
 import { fibonacciCostFormula } from "data/formulas";
+import { createUpgrade } from "features/clickables/upgrade";
 
 // Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
 
@@ -307,7 +308,9 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const passiveLavaGain = computed((): DecimalSource => {
         // unref(lavaConversion.currentGain)
-        return Decimal.times(1, 0.001).times(pressureLayer.lavaFlowffect.value);
+        return Decimal.times(1, 0.001)
+            .times(pressureLayer.lavaFlowffect.value)
+            .times(theStreamsAreAliveEffect.value);
     });
 
     baseLayer.on("preUpdate", diff => {
@@ -335,6 +338,40 @@ const lavaLayer = createLayer(id, baseLayer => {
             lava.value = Decimal.sub(lava.value, conversionAmount);
         }
     });
+
+    // Reduce lava cost for conversion.
+    // Reduce conversion time
+
+    const theStreamsAreAliveEffect = computed(() => {
+        if (lavaUpgrades.theStreamsAreAlive.bought.value) {
+            return Decimal.add(felsic.resource.value, intermediate.resource.value)
+                .add(mafic.resource.value)
+                .log2()
+                .cbrt()
+                .clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const lavaUpgrades = {
+        // Increase gain based on sum of silicates?
+        theStreamsAreAlive: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: lava,
+                cost: 100
+            })),
+            display: {
+                title: "The Streams Are Alive",
+                description: "Increase Lava Gain based on sum of Silicate Lavas.",
+                effectDisplay: () => `x${format(theStreamsAreAliveEffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        }))
+    };
 
     const improvedFlowEffect = computed((): DecimalSource => {
         if (Decimal.gt(silicateBuyables.improvedFlow.amount.value, 0)) {
@@ -370,6 +407,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                 title: "Improved Flow",
                 description: "Increase conversion rate of Silicate Lavas by +0.1 per level",
                 effectDisplay: () => `+${format(improvedFlowEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
             }
         }))
     };
@@ -386,14 +427,17 @@ const lavaLayer = createLayer(id, baseLayer => {
         mafic,
         passiveLavaGain,
         silicateBuyables,
+        lavaUpgrades,
         display: () => (
             <>
                 <div id="lava-layer">
-                    {/* <div data-augmented-ui="border tl-round-inset br-2-clip-x" class="w-fit p-8">
-                        <h5>
-                            You are gaining {format(passiveLavaGain.value)} {lava.displayName}/s
-                        </h5>
-                    </div> */}
+                    <div class="mb-2">
+                        <h2>Lava</h2>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+
                     <div class="w-3/4 mb-10 flex">
                         <div class="flex flex-col m-0">
                             {/* <div class="flex-1 m-0">{render(effusiveEruptionButton)}</div> */}
@@ -447,7 +491,23 @@ const lavaLayer = createLayer(id, baseLayer => {
                         </div>
                     </div>
 
+                    <div class="mb-2">
+                        <h3>Upgrades</h3>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+
+                    {renderGroupedObjects(lavaUpgrades, 4)}
+
                     <Spacer />
+
+                    <div class="mb-2">
+                        <h2>Silicate Lavas</h2>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
 
                     <div class="flex mb-12">
                         {render(felsic)}
@@ -456,7 +516,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                     </div>
 
                     <div class="mb-2">
-                        <h3>Silicate Lava Improvements</h3>
+                        <h3>Improvements</h3>
                     </div>
                     <div class="mb-4">
                         <hr class="section-divider" />

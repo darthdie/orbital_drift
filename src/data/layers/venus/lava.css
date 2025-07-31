@@ -1,8 +1,24 @@
 #lava-layer {
-    * {
-        /* --aug-border-bg: var(--color-venus-300) !important; */
+    .sd-upgrade .clickable, .normal-repeatable .clickable {
+        &.can {
+            color: var(--color-venus-700);
+
+            .upgrade-content {
+                color: var(--color-venus-800);
+            }
+        }
+
+        &.locked {
+            .upgrade-content {
+                color: var(--color-venus-100);
+            }
+        }
     }
-    
+
+    .normal-repeatable .clickable {
+        height: 200px;
+        width: 150px;
+    }
 
     .lava-reset-button .clickable {
         border: 0;
