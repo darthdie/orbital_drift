@@ -88,7 +88,8 @@ const layer = createLayer(id, () => {
                 requirements: [
                     createCostRequirement(() => ({
                         resource: mercuryCores,
-                        cost: 5
+                        cost: 3,
+                        requiresPay: false
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
                 ],

@@ -12,6 +12,7 @@ import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import Formula from "game/formulas/formulas";
 import silicateLayer from "./silicate";
+import { createReset } from "features/reset";
 
 const random = () => Math.random() * 100;
 
@@ -44,7 +45,7 @@ const pressureLayer = createLayer(id, baseLayer => {
     );
     const pressureGainMultiplier = computed(
         () => {
-            return Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+            return Decimal.times(1.3, silicateLayer.intermediate.effect.value);
         }
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
@@ -55,7 +56,11 @@ const pressureLayer = createLayer(id, baseLayer => {
         Formula.variable(pressure),
         () => Decimal.lt(pressure.value, 1e25),
         f => f.min(1),
-        f => f.step(1e25, f => f.log10().cbrt())
+        f => {
+            // Decimal.log10(1e10).div(5).times(.01).add(1)  -> 1.02 (1.02 * 15) -> 15.3
+            // Decimal.log10(1e10).div(5).times(.1).add(1) -> 1.2 (1.2 * 15) -> 18
+            return f.sub(1e25).add(10).log10().cbrt().clampMin(1);
+        }
     );
 
     const pressureMax = computed(() => {
@@ -219,7 +224,11 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const showNotification = computed(() => {
         return unlocked.value && Object.values(upgrades).some(u => u.canPurchase.value);
-    })
+    });
+
+    const explosiveEruptionReset = createReset(() => ({
+        thingsToReset: (): Record<string, unknown>[] => [pressureLayer]
+    }));
 
     return {
         pressure,
@@ -237,6 +246,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureCapped,
         upgrades,
         showNotification,
+        explosiveEruptionReset,
         display: () => (
             <>
                 <div id="pressure-tab">

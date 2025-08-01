@@ -10,6 +10,7 @@ import lavaLayer from "./lava";
 import "./silicate.css";
 import { createClickable } from "features/clickables/clickable";
 import { persistent } from "game/persistence";
+import { createReset } from "features/reset";
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
@@ -45,40 +46,52 @@ const silicateLayer = createLayer(id, baseLayer => {
         minimumEffect: 1
     }));
 
-    const improvedFlowEffect = computed((): DecimalSource => {
-        if (Decimal.gt(silicateBuyables.improvedFlow.amount.value, 0)) {
-            return Decimal.times(0.1, silicateBuyables.improvedFlow.amount.value);
+    const feelTheHeatEffect = computed((): DecimalSource => {
+        if (Decimal.gt(silicateBuyables.feelTheHeat.amount.value, 0)) {
+            return Decimal.times(0.1, silicateBuyables.feelTheHeat.amount.value);
         }
 
         return Decimal.dZero;
     });
 
     const silicateBuyables = {
-        improvedFlow: createRepeatable(() => ({
+        feelTheHeat: createRepeatable(() => ({
             requirements: [
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: felsic.resource,
-                        cost: () => fibonacciCostFormula(silicateBuyables.improvedFlow.amount.value)
+                        cost: () => fibonacciCostFormula(silicateBuyables.feelTheHeat.amount.value)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: intermediate.resource,
-                        cost: () => fibonacciCostFormula(silicateBuyables.improvedFlow.amount.value)
+                        cost: () => fibonacciCostFormula(silicateBuyables.feelTheHeat.amount.value)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: mafic.resource,
-                        cost: () => fibonacciCostFormula(silicateBuyables.improvedFlow.amount.value)
+                        cost: () => fibonacciCostFormula(silicateBuyables.feelTheHeat.amount.value)
                     })
                 )
             ],
             display: {
-                title: "Improved Flow",
+                title: "Feel The Heat",
                 description: "Increase conversion rate of Silicate Lavas by +0.1 per level",
-                effectDisplay: () => `+${format(improvedFlowEffect.value)}`
+                effectDisplay: () => `+${format(feelTheHeatEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        })),
+        bringTheHeat: createRepeatable(() => ({
+            requirements: [],
+            display: {
+                title: "Bring The Heat",
+                description: "Decrease amount of Lava needed for conversion by ? per level",
+                effectDisplay: () => ``
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
@@ -87,9 +100,8 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionRate = computed(() =>
-        Decimal.fromNumber(0.1).add(improvedFlowEffect.value)
-    );
+    const lavaConversionFromRate = computed(() => 1);
+    const lavaConversionToRate = computed(() => Decimal.fromNumber(0.1).add(feelTheHeatEffect.value));
     const lavaConversionTimeRate = computed(() => Decimal.fromNumber(10));
 
     const unlocked = computed(() => {
@@ -108,12 +120,15 @@ const silicateLayer = createLayer(id, baseLayer => {
             Decimal.gt(lavaLayer.lava.value, 0) &&
             Decimal.lt(conversionLava.resource.value, conversionLava.cap.value)
         ) {
-            const conversionRate = Decimal.div(1, lavaConversionTimeRate.value);
+            const conversionRate = Decimal.div(
+                lavaConversionFromRate.value,
+                lavaConversionTimeRate.value
+            );
             const conversionAmount = Decimal.min(
                 lavaLayer.lava.value,
                 Decimal.times(conversionRate, diff)
             );
-            const producedAmount = Decimal.times(conversionAmount, lavaConversionRate.value);
+            const producedAmount = Decimal.times(conversionAmount, lavaConversionToRate.value);
 
             conversionLava.resource.value = Decimal.add(
                 conversionLava.resource.value,
@@ -183,6 +198,15 @@ const silicateLayer = createLayer(id, baseLayer => {
         return unlocked.value && Object.values(silicateBuyables).some(b => b.canClick.value);
     });
 
+    const explosiveEruptionReset = createReset(() => ({
+        thingsToReset: () => [],
+        onReset: () => {
+            felsic.resource.value = 0;
+            intermediate.resource.value = 0;
+            mafic.resource.value = 0;
+        }
+    }));
+
     return {
         id,
         felsic,
@@ -197,6 +221,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         disableConversionButton,
         selectedConversionLavaIndex,
         showNotification,
+        explosiveEruptionReset,
         display: () => (
             <>
                 <div id="silicate-layer">
@@ -212,7 +237,8 @@ const silicateLayer = createLayer(id, baseLayer => {
                         class="flex-1 w-[300px] px-8 py-4 mb-4"
                     >
                         <h5 class="font-semibold">
-                            1 Lava is converted to {format(lavaConversionRate.value)} Silicate over{" "}
+                            {format(lavaConversionFromRate.value)} Lava is converted to{" "}
+                            {format(lavaConversionToRate.value)} Silicate over{" "}
                             {format(lavaConversionTimeRate.value)} seconds.
                         </h5>
                     </div>

@@ -18,6 +18,7 @@ import "./lava.css";
 import { calculateLavaEffect } from "./createLavaSubtype";
 import { createCostRequirement } from "game/requirements";
 import { createUpgrade } from "features/clickables/upgrade";
+import { createReset } from "features/reset";
 
 // Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
 
@@ -105,6 +106,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const lavaDisplay = createLavaResourceDisplay();
 
+    // Now only used for explosive eruption. Need to double check the conversion rate
     const lavaConversion = createCumulativeConversion(() => ({
         formula: x =>
             x
@@ -119,7 +121,6 @@ const lavaLayer = createLayer(id, baseLayer => {
         baseResource: pressureLayer.pressure,
         gainResource: noPersist(lava),
         onConvert: () => {
-            pressureLayer.pressure.value = 1;
             lava.value = Decimal.min(lava.value, lavaCap.value);
         }
     }));
@@ -178,6 +179,13 @@ const lavaLayer = createLayer(id, baseLayer => {
         }
     }));
 
+    const explosiveEruptionReset = createReset(() => ({
+        thingsToReset: [],
+        onReset: () => {
+            lava.value = 0;
+        }
+    }));
+
     const explosiveEruptionButton = createClickable(() => ({
         classes: {
             "lava-reset-button": true
@@ -188,12 +196,13 @@ const lavaLayer = createLayer(id, baseLayer => {
                     <span>
                         <h3>Explosive Eruption</h3>
                         <br />
-                        Reset Pressure Tab & Lava/Silicate resources for:
+                        Reset Pressure Tab & Molten/Silicate Lava resources for:
                         <br />
                         {pressureLayer.pressureCapped.value ? (
                             <>
                                 <span class="font-semibold">
-                                    {eruptionGainDisplay(lavaConversion, lavaCap.value)}
+                                    {/* {eruptionGainDisplay(lavaConversion, lavaCap.value)} */}
+                                    Keep ?% Lava of Molten Lava (currently 0).
                                 </span>
                                 <br />
                                 <span class="font-semibold">
@@ -235,8 +244,12 @@ const lavaLayer = createLayer(id, baseLayer => {
             tephraLayer.tephraConversion.convert();
             eruptions.value = Decimal.add(eruptions.value, 1);
 
+            explosiveEruptionReset.reset();
+            silicateLayer.explosiveEruptionReset.reset();
+            pressureLayer.explosiveEruptionReset.reset();
+
             // TODO:
-            //             pressureTabReset.reset();
+            //
 
             //             if (Decimal.gt(pressureToKeep, 0)) {
             //                 pressure.value = pressureToKeep;
@@ -318,9 +331,13 @@ const lavaLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const showNotification = computed(() => {
-        return unlocked.value && Object.values(lavaUpgrades).some(u => u.canPurchase.value);
-    })
+    const showNotification = computed((): boolean => {
+        return (
+            unlocked.value &&
+            (Object.values(lavaUpgrades).some(u => u.canPurchase.value) ||
+                unref(explosiveEruptionButton.canClick) === true)
+        );
+    });
 
     return {
         id,
@@ -337,7 +354,7 @@ const lavaLayer = createLayer(id, baseLayer => {
             <>
                 <div id="lava-layer">
                     <div class="mb-2">
-                        <h2>Lava</h2>
+                        <h2>Molten Lava</h2>
                     </div>
                     <div class="mb-4">
                         <hr class="section-divider" />

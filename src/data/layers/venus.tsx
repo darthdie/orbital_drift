@@ -16,6 +16,7 @@ import Spacer from "components/layout/Spacer.vue";
 import { format } from "util/bignum";
 import silicateLayer from "./venus/silicate";
 import { LavaSubtype } from "./venus/createLavaSubtype";
+import tephraLayer from "./venus/tephra";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -51,6 +52,11 @@ const layer = createLayer(id, () => {
             display: () => <>Silicate{silicateLayer.showNotification.value ? " !" : null}</>,
             visibility: silicateLayer.unlocked,
             tab: silicateLayer.display
+        }),
+        tepra: () => ({
+            display: () => <>Tephra{tephraLayer.showNotification.value ? " !" : null}</>,
+            visibility: tephraLayer.unlocked,
+            tab: tephraLayer.display
         })
     });
 
