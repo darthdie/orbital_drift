@@ -19,6 +19,7 @@ import venusPressure from "./layers/venus/pressure";
 import venusLava from "./layers/venus/lava";
 import venusSilicate from "./layers/venus/silicate";
 import venusTephra from "./layers/venus/tephra";
+import venusMilestones from "./layers/venus/milestones";
 import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 import { createHotkey } from "features/hotkey";
@@ -192,7 +193,8 @@ export const getInitialLayers = (
     venusPressure,
     venusLava,
     venusSilicate,
-    venusTephra
+    venusTephra,
+    venusMilestones
 ];
 
 /**

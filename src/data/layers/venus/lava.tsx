@@ -46,7 +46,7 @@ const lavaLayer = createLayer(id, baseLayer => {
             classes: { "squashed-clickable": true, flex: true },
             display: {
                 title: "Increase Cap",
-                description: <>Reset {resource.displayName} to double cap.</>
+                description: <>Reset {resource.displayName} to double cap & max effect.</>
             },
             onClick: () => {
                 if (unref(increaseCap.canClick) === false) {

@@ -453,15 +453,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     "augmented-ui": "border bl-scoop-x"
                 },
                 visibility: () =>
-                    milestonesLayer.milestones.first.earned.value === true ||
-                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value === true
+                    milestonesLayer.milestones.first.earned.value ||
+                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value
             })
         )
     };
 
     const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
-            if (milestonesLayer.milestones.five.earned.value === true) {
+            if (milestonesLayer.milestones.five.earned.value) {
                 return Decimal.min(chunksLayer.bestChunks.value, bestAmount.value);
             }
 

@@ -100,9 +100,9 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionFromRate = computed(() => 3);
+    const lavaConversionFromRate = computed(() => 1);
     const lavaConversionToRate = computed(() =>
-        Decimal.fromNumber(0.5).add(feelTheHeatEffect.value)
+        Decimal.fromNumber(0.1).add(feelTheHeatEffect.value)
     );
     const lavaConversionTimeRate = computed(() => Decimal.fromNumber(10));
 

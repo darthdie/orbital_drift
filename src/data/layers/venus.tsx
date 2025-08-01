@@ -17,6 +17,7 @@ import { format } from "util/bignum";
 import silicateLayer from "./venus/silicate";
 import { LavaSubtype } from "./venus/createLavaSubtype";
 import tephraLayer from "./venus/tephra";
+import milestonesLayer from "./venus/milestones";
 
 const id = "V";
 const layer = createLayer(id, () => {
@@ -57,6 +58,11 @@ const layer = createLayer(id, () => {
             display: () => <>Tephra{tephraLayer.showNotification.value ? " !" : null}</>,
             visibility: tephraLayer.unlocked,
             tab: tephraLayer.display
+        }),
+        milestones: () => ({
+            display: "Milestones",
+            // visibility: milestonesLayer.unlocked,
+            tab: milestonesLayer.display
         })
     });
 
@@ -174,7 +180,7 @@ const layer = createLayer(id, () => {
             lavaLayer.showNotification.value ||
             silicateLayer.showNotification.value
         );
-    })
+    });
 
     return {
         name,
