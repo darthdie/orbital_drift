@@ -84,24 +84,27 @@ const lavaLayer = createLayer(id, baseLayer => {
             }
         }));
 
-        return computed(() => (
-            <div
-                class="cappable-resource-container w-full h-full"
-                data-augmented-ui="border tl-2-clip-x br-round-inset bl-round-inset"
-                id="lava-display"
-            >
-                <h3 class="title py-6">{resource.displayName}</h3>
-                <div data-augmented-ui="border tl-clip">{render(bar)}</div>
-                <div class="flex flex-col bg-(--raised-background) p-2">
-                    <h5>Chance for Pressure to build by an additional x5</h5>
-                    <br />
-                    <h5 class="font-semibold">
-                        {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
-                    </h5>
+        return {
+            display: computed(() => (
+                <div
+                    class="cappable-resource-container w-full h-full"
+                    data-augmented-ui="border tl-2-clip-x br-round-inset bl-round-inset"
+                    id="lava-display"
+                >
+                    <h3 class="title py-6">{resource.displayName}</h3>
+                    <div data-augmented-ui="border tl-clip">{render(bar)}</div>
+                    <div class="flex flex-col bg-(--raised-background) p-2">
+                        <h5>Chance for Pressure to build by an additional x5</h5>
+                        <br />
+                        <h5 class="font-semibold">
+                            {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
+                        </h5>
+                    </div>
+                    <div class="increase-cap-action">{render(increaseCap)}</div>
                 </div>
-                <div class="increase-cap-action">{render(increaseCap)}</div>
-            </div>
-        ));
+            )),
+            increaseCap
+        };
     };
 
     const lavaDisplay = createLavaResourceDisplay();
@@ -335,7 +338,8 @@ const lavaLayer = createLayer(id, baseLayer => {
         return (
             unlocked.value &&
             (Object.values(lavaUpgrades).some(u => u.canPurchase.value) ||
-                unref(explosiveEruptionButton.canClick) === true)
+                unref(explosiveEruptionButton.canClick) === true ||
+                unref(lavaDisplay.increaseCap.canClick) === true)
         );
     });
 
@@ -377,7 +381,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                             <div class="m-0 flex-1">{render(explosiveEruptionButton)}</div>
                         </div>
                         <div class="flex flex-col flex-1 m-0">
-                            <div class="flex-1 m-0">{render(lavaDisplay.value)}</div>
+                            <div class="flex-1 m-0">{render(lavaDisplay.display.value)}</div>
                         </div>
                     </div>
 

@@ -16,6 +16,7 @@ export interface LavaSubtype extends VueFeature {
     maxEffect: ComputedRef<DecimalSource>;
     effect: ComputedRef<DecimalSource>;
     effectDisplay: ComputedRef<DecimalSource>;
+    showNotification: ComputedRef<boolean>;
 }
 
 export interface LavaSubtypeOptions extends VueFeatureOptions {
@@ -113,6 +114,8 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             }));
         }
 
+        const showNotification = computed(() => unref(increaseCap.canClick) === true);
+
         const lavaSubtype = {
             resource,
             capIncreases,
@@ -120,6 +123,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             maxEffect,
             effect,
             effectDisplay,
+            showNotification,
             augmentedUi: processGetter(augmentedUi),
             effectDisplayAugmentedUi: processGetter(effectDisplayAugmentedUi),
             effectDisplayTitle: processGetter(effectDisplayTitle),

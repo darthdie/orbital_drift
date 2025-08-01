@@ -100,8 +100,10 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionFromRate = computed(() => 1);
-    const lavaConversionToRate = computed(() => Decimal.fromNumber(0.1).add(feelTheHeatEffect.value));
+    const lavaConversionFromRate = computed(() => 3);
+    const lavaConversionToRate = computed(() =>
+        Decimal.fromNumber(0.5).add(feelTheHeatEffect.value)
+    );
     const lavaConversionTimeRate = computed(() => Decimal.fromNumber(10));
 
     const unlocked = computed(() => {
@@ -195,7 +197,13 @@ const silicateLayer = createLayer(id, baseLayer => {
     }));
 
     const showNotification = computed(() => {
-        return unlocked.value && Object.values(silicateBuyables).some(b => b.canClick.value);
+        return (
+            unlocked.value &&
+            (Object.values(silicateBuyables).some(b => b.canClick.value) ||
+                felsic.showNotification.value ||
+                intermediate.showNotification.value ||
+                mafic.showNotification.value)
+        );
     });
 
     const explosiveEruptionReset = createReset(() => ({

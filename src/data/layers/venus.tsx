@@ -206,9 +206,7 @@ const layer = createLayer(id, () => {
                             <div data-augmented-ui="border bl-clip tr-clip">
                                 <h3>Lava</h3>
                             </div>
-                            <div data-augmented-ui="border tl-clip br-clip-inset">
-                                {render(lavaBar)}
-                            </div>
+                            <div data-augmented-ui="border tl-clip br-rect">{render(lavaBar)}</div>
                         </>
                     ) : null}
                 </div>
