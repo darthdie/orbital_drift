@@ -19,6 +19,7 @@ import { calculateLavaEffect } from "./createLavaSubtype";
 import { createCostRequirement } from "game/requirements";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
+import milestonesLayer from "./milestones";
 
 // Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
 
@@ -271,6 +272,7 @@ const lavaLayer = createLayer(id, baseLayer => {
     const passiveLavaGain = computed((): DecimalSource => {
         // unref(lavaConversion.currentGain)
         return Decimal.times(1, 0.001)
+            .add(milestonesLayer.oneMilestoneEffect.value)
             .times(pressureLayer.lavaFlowffect.value)
             .times(theStreamsAreAliveEffect.value);
     });

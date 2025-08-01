@@ -6,8 +6,9 @@ import { createIndependentConversion } from "features/conversion";
 import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { DecimalSource } from "lib/break_eternity";
-import { computed } from "vue";
+import { computed, unref } from "vue";
 import lavaLayer from "./lava";
+import milestonesLayer from "./milestones";
 
 const id = "VT";
 const tephraLayer = createLayer(id, () => {
@@ -19,9 +20,11 @@ const tephraLayer = createLayer(id, () => {
         formula: () =>
             Formula.variable(Decimal.dZero).if(
                 () => pressureLayer.pressureCapped.value,
-                () => Formula.variable(Decimal.dOne)
+                () => Formula.variable(Decimal.dOne).add(milestonesLayer.threeMilestoneEffect.value)
             ),
-        convert: () => (tephra.value = Decimal.add(tephra.value, 1))
+        convert: () => {
+            tephra.value = unref(tephraConversion.currentGain);
+        }
     }));
 
     // Buyables that boost shit
@@ -42,7 +45,7 @@ const tephraLayer = createLayer(id, () => {
         tephraConversion,
         unlocked,
         showNotification,
-        display: () => (<>???</>)
+        display: () => <>???</>
     };
 });
 
