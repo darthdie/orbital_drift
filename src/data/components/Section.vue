@@ -4,7 +4,7 @@
             <h2>{{header}}</h2>
         </div>
         <div class="mb-4">
-            <hr class="section-divider" />
+            <hr :style="dividerStyle" />
         </div>
 
         <slot></slot>
@@ -12,5 +12,14 @@
 </template>
 
 <script setup lang="tsx">
-const { header } = defineProps<{header: string}>();
+import { CSSProperties, reactive } from 'vue';
+
+const { header,  } = defineProps<{header: string}>();
+
+const dividerStyle = reactive<CSSProperties>({
+    background: "#99E1D9",
+    width: "128px",
+    margin: "auto",
+    height: "2px"
+});
 </script>

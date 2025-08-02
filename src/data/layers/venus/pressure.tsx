@@ -14,6 +14,7 @@ import Formula from "game/formulas/formulas";
 import silicateLayer from "./silicate";
 import { createReset } from "features/reset";
 import tephraLayer from "./tephra";
+import Section from "data/components/Section.vue";
 
 const random = () => Math.random() * 100;
 
@@ -283,44 +284,39 @@ const pressureLayer = createLayer(id, baseLayer => {
         display: () => (
             <>
                 <div id="pressure-tab">
-                    <div class="w-[312px] mb-2">
-                        <div
-                            data-augmented-ui="border tl-clip-y tr-round-inset"
-                            class="border-(--outline)"
-                        >
-                            <div class="p-4">
-                                <h3>{pressure.displayName}</h3>
-                                <h6 class="font-semibold">
-                                    {format(pressureChance.value)}% chance for pressure to build by
-                                    x{format(pressureGainMultiplier.value)} every{" "}
-                                    {format(pressureTimerMax.value)} seconds.
-                                </h6>
+                    <Section header="Volcano">
+                        <div class="w-[312px] mb-2">
+                            <div
+                                data-augmented-ui="border tl-clip-y tr-round-inset"
+                                class="border-(--outline)"
+                            >
+                                <div class="p-4">
+                                    <h3>{pressure.displayName}</h3>
+                                    <h6 class="font-semibold">
+                                        {format(pressureChance.value)}% chance for pressure to build by
+                                        x{format(pressureGainMultiplier.value)} every{" "}
+                                        {format(pressureTimerMax.value)} seconds.
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div
+                                data-augmented-ui="border bl-clip"
+                                class="border-(--outline)"
+                                id="pressure-timer-bar"
+                            >
+                                {render(pressureTimerBar)}
+                            </div>
+
+                            <div data-augmented-ui="border br-clip" class="border-(--outline)">
+                                {render(pressureBar)}
                             </div>
                         </div>
 
-                        <div
-                            data-augmented-ui="border bl-clip"
-                            class="border-(--outline)"
-                            id="pressure-timer-bar"
-                        >
-                            {render(pressureTimerBar)}
-                        </div>
+                        <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
+                    </Section>
 
-                        <div data-augmented-ui="border br-clip" class="border-(--outline)">
-                            {render(pressureBar)}
-                        </div>
-                    </div>
-
-                    <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
-
-                    <div class="mb-2 mt-6">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
-
-                    {renderGroupedObjects(upgrades, 4)}
+                    <Section header="Upgrades">{renderGroupedObjects(upgrades, 4)}</Section>
                 </div>
             </>
         )

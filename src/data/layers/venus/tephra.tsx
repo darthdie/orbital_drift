@@ -210,8 +210,8 @@ const tephraLayer = createLayer(id, () => {
                 <div id="tephra-layer">
                     <Section header="Tephra">
                         <div
-                            data-augmented-ui="border tl-2-scoop-x br-rect"
-                            class="w-[156px] h-fit p-6"
+                            data-augmented-ui="border tl-rect br-rect"
+                            class="w-[212px] h-fit p-6"
                         >
                             <h5 class="font-semibold">
                                 You have {format(tephra.value, 0)} {tephra.displayName}
@@ -219,12 +219,12 @@ const tephraLayer = createLayer(id, () => {
                         </div>
                     </Section>
 
-                    <Section header="Buyables">
-                        <div class="mb-4">{renderGroupedObjects(buyables, 4)}</div>
-                    </Section>
-
                     <Section header="Upgrades">
                         <div>{renderGroupedObjects(upgrades, 4)}</div>
+                    </Section>
+
+                    <Section header="Buyables">
+                        <div class="mb-4">{renderGroupedObjects(buyables, 4)}</div>
                     </Section>
                 </div>
             </>
