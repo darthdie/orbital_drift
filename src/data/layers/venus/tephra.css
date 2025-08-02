@@ -1,0 +1,6 @@
+#tephra-layer {
+    .normal-repeatable .clickable {
+        height: 200px;
+        width: 150px;
+    }
+}

@@ -7,13 +7,14 @@ import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
-import lavaLayer from "./lava";
 import milestonesLayer from "./milestones";
 import { createUpgrade, Upgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import { createRepeatable, Repeatable } from "features/clickables/repeatable";
 import { renderGroupedObjects } from "util/vue";
 import { format } from "util/bignum";
+import "./tephra.css";
+import Section from "data/components/Section.vue";
 
 const id = "VT";
 const tephraLayer = createLayer(id, () => {
@@ -55,7 +56,7 @@ const tephraLayer = createLayer(id, () => {
             })),
             display: {
                 title: "Ultramafic",
-                description: "Unlock a new Silicate Lava, Ultramafic. Effect tbd"
+                description: "Unlock a new Silicate Lava, which boosts the other Silicate effects."
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
@@ -70,6 +71,10 @@ const tephraLayer = createLayer(id, () => {
             display: {
                 title: "Secrets Long Buried",
                 description: "Unlock more Volcano & Molten Lava upgrades."
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
             }
         }))
     };
@@ -79,10 +84,6 @@ const tephraLayer = createLayer(id, () => {
     // 4 upgrades:
     // Ultramafic? - effect tbd
     // Unlock more  upgrades?
-
-    // Buyables:
-    // Reduce Explosive Eruption Requirement
-    // X1.01|^1.01 resources?
 
     const gamblingManEffect = computed(() => {
         if (Decimal.gt(buyables.gamblingMan.amount.value, 0)) {
@@ -182,10 +183,10 @@ const tephraLayer = createLayer(id, () => {
         }))
     };
 
-//       const divisor = Math.pow(x, 1 -  0.92);
+    //       const divisor = Math.pow(x, 1 -  0.92);
 
-//   // Return the scaled result
-//   return x / divisor;
+    //   // Return the scaled result
+    //   return x / divisor;
 
     // const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
     const unlocked = computed(() => true);
@@ -207,22 +208,24 @@ const tephraLayer = createLayer(id, () => {
         display: () => (
             <>
                 <div id="tephra-layer">
-                    <div class="mb-2">
-                        <h2>Buyables</h2>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
+                    <Section header="Tephra">
+                        <div
+                            data-augmented-ui="border tl-2-scoop-x br-rect"
+                            class="w-[156px] h-fit p-6"
+                        >
+                            <h5 class="font-semibold">
+                                You have {format(tephra.value, 0)} {tephra.displayName}
+                            </h5>
+                        </div>
+                    </Section>
 
-                    <div class="mb-4">{renderGroupedObjects(buyables, 4)}</div>
+                    <Section header="Buyables">
+                        <div class="mb-4">{renderGroupedObjects(buyables, 4)}</div>
+                    </Section>
 
-                    <div class="mb-2">
-                        <h2>Upgrades</h2>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
-                    ...
+                    <Section header="Upgrades">
+                        <div>{renderGroupedObjects(upgrades, 4)}</div>
+                    </Section>
                 </div>
             </>
         )
