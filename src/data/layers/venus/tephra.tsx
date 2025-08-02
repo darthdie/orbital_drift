@@ -9,6 +9,7 @@ import { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import lavaLayer from "./lava";
 import milestonesLayer from "./milestones";
+import { createUpgrade, Upgrade } from "features/clickables/upgrade";
 
 const id = "VT";
 const tephraLayer = createLayer(id, () => {
@@ -35,6 +36,28 @@ const tephraLayer = createLayer(id, () => {
     // Going to have ~30 presses, and therefore 30 Tephra to buy stuff.
     // Either need to forgo buyables, or add a way to increase tephra gain.
 
+    const upgrades: Record<string, Upgrade> = {
+        // whatAboutSecondVolcano: createUpgrade(() => ({
+        //     requirements: [],
+        //     display: {
+        //         title: "What about second volcano?",
+        //         description: "Unlock a second volcano."
+        //     }
+        // }))
+    };
+
+    // Have ~4 upgrades that cost 1 Tephra
+    // Have buyables start at cost 2 and increase by 1 each level
+    // 4 upgrades:
+    // Ultramafic? - effect tbd
+    // Unlock more  upgrades?
+
+    // Buyables:
+    // Reduce Explosive Eruption Requirement
+    // X1.01|^1.01 resources?
+
+    const generatorBuyables = {};
+
     const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
 
     const showNotification = computed(() => false);
@@ -44,6 +67,7 @@ const tephraLayer = createLayer(id, () => {
         tephra,
         tephraConversion,
         unlocked,
+        upgrades,
         showNotification,
         display: () => <>???</>
     };

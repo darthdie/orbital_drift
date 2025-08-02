@@ -155,6 +155,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                 .log10()
                 .cbrt()
                 .times(underPressureEffect.value)
+                .times(redHotEffect.value)
                 .clampMin(1);
             // return Decimal.fromNumber(2);
         }
@@ -165,6 +166,14 @@ const pressureLayer = createLayer(id, baseLayer => {
     const underPressureEffect = computed(() => {
         if (upgrades.underPressure.bought.value) {
             return Decimal.fromNumber(2);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const redHotEffect = computed(() => {
+        if (upgrades.redHot.bought.value) {
+            return Decimal.log(pressure.value, 1e15).sqrt().clampMin(1);
         }
 
         return Decimal.dOne;
@@ -194,7 +203,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Lava Flow",
-                description: "Increase Lava gain based on Pressure.",
+                description: "Increase Effusive Eruption based on Pressure.",
                 effectDisplay: () => `x${format(lavaFlowffect.value)}`
             },
             classes: { "sd-upgrade": true },
@@ -216,7 +225,23 @@ const pressureLayer = createLayer(id, baseLayer => {
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
+        })),
+        redHot: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e15
+            })),
+            display: {
+                title: "Red Hot",
+                description: "Increase the effect of 'Lava Flow' based Pressure.",
+                effectDisplay: () => `x${format(redHotEffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
         }))
+        // Uncap pressure chance, and each /100% has a chance to proc?
     };
 
     const eruptionPressureDivisor = 0.6;

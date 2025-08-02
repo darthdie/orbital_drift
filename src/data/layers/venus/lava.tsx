@@ -44,7 +44,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         const capIncreases = lavaCapIncreases;
         const increaseCap = createClickable(() => ({
             canClick: () => Decimal.eq(resource.value, resourceCap.value),
-            classes: { "squashed-clickable": true, flex: true },
+            classes: { "squashed-clickable": true, flex: true, "increase-lava-cap": true },
             display: {
                 title: "Increase Cap",
                 description: <>Reset {resource.displayName} to double cap & max effect.</>
@@ -56,6 +56,9 @@ const lavaLayer = createLayer(id, baseLayer => {
 
                 resource.value = 0;
                 capIncreases.value = Decimal.add(capIncreases.value, 1);
+            },
+            dataAttributes: {
+                "augmented-ui": "border br-round-inset bl-round-inset"
             }
         }));
 
@@ -87,9 +90,10 @@ const lavaLayer = createLayer(id, baseLayer => {
 
         return {
             display: computed(() => (
+                <>
                 <div
                     class="cappable-resource-container w-full h-full"
-                    data-augmented-ui="border tl-2-clip-x br-round-inset bl-round-inset"
+                    data-augmented-ui="border tl-2-clip-x"
                     id="lava-display"
                 >
                     <h3 class="title py-6">{resource.displayName}</h3>
@@ -101,8 +105,9 @@ const lavaLayer = createLayer(id, baseLayer => {
                             {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
                         </h5>
                     </div>
-                    <div class="increase-cap-action">{render(increaseCap)}</div>
                 </div>
+                <div class="increase-cap-action">{render(increaseCap)}</div>
+                </>
             )),
             increaseCap
         };
@@ -282,7 +287,9 @@ const lavaLayer = createLayer(id, baseLayer => {
             return;
         }
 
-        lava.value = Decimal.add(lava.value, Decimal.times(passiveLavaGain.value, diff));
+        lava.value = Decimal.add(lava.value, Decimal.times(passiveLavaGain.value, diff)).clampMax(
+            lavaCap.value
+        );
     });
 
     // Reduce lava cost for conversion.
@@ -299,6 +306,14 @@ const lavaLayer = createLayer(id, baseLayer => {
                 .log2()
                 .cbrt()
                 .clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const liveStreamingEffect = computed(() => {
+        if (lavaUpgrades.liveStreaming.bought.value) {
+            return Decimal.add(lava.value, 10).log10().sqrt().clampMin(1);
         }
 
         return Decimal.dOne;
@@ -326,8 +341,23 @@ const lavaLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "The Streams Are Alive",
-                description: "Increase Lava Gain based on sum of Silicate Lavas.",
+                description: "Increase Effusive Eruption based on sum of Silicate Lavas.",
                 effectDisplay: () => `x${format(theStreamsAreAliveEffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        liveStreaming: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: lava,
+                cost: 500
+            })),
+            display: {
+                title: "Live Streaming",
+                description: "Increase Effusive Eruption based on Molten Lava.",
+                effectDisplay: () => `x${format(liveStreamingEffect.value)}`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
@@ -394,7 +424,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                         <hr class="section-divider" />
                     </div>
 
-                    {renderGroupedObjects(lavaUpgrades, 4)}
+                    {renderGroupedObjects(lavaUpgrades, 3)}
                 </div>
             </>
         )

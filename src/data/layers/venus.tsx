@@ -41,16 +41,16 @@ const layer = createLayer(id, () => {
 
     const tabs = createTabFamily({
         pressure: () => ({
-            display: () => <>Pressure{pressureLayer.showNotification.value ? " !" : null}</>,
+            display: () => <>Volcano{pressureLayer.showNotification.value ? " !" : null}</>,
             tab: pressureLayer.display
         }),
         lava: () => ({
-            display: () => <>Lava{lavaLayer.showNotification.value ? " !" : null}</>,
+            display: () => <>Molten Lava{lavaLayer.showNotification.value ? " !" : null}</>,
             visibility: lavaLayer.unlocked,
             tab: lavaLayer.display
         }),
         silicate: () => ({
-            display: () => <>Silicate{silicateLayer.showNotification.value ? " !" : null}</>,
+            display: () => <>Silicate Lava{silicateLayer.showNotification.value ? " !" : null}</>,
             visibility: silicateLayer.unlocked,
             tab: silicateLayer.display
         }),

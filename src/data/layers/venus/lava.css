@@ -15,6 +15,19 @@
         }
     }
 
+    .increase-lava-cap .clickable {
+        border: none;
+        margin: 0;
+
+        &.can {
+            color: var(--color-venus-700);
+        }
+
+        .can&:hover {
+            box-shadow: 0 0 20px var(--outline-lighter);
+        }
+    }
+
     .lava-reset-button .clickable {
         border: 0;
         min-height: 0;
