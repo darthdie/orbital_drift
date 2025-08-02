@@ -13,6 +13,7 @@ import { createCostRequirement } from "game/requirements";
 import Formula from "game/formulas/formulas";
 import silicateLayer from "./silicate";
 import { createReset } from "features/reset";
+import tephraLayer from "./tephra";
 
 const random = () => Math.random() * 100;
 
@@ -23,10 +24,11 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const pressureTimer = createResource<DecimalSource>(0);
     const pressureTimerMax = computed(
-        () =>
+        (): DecimalSource =>
             Formula.variable(15)
                 .times(pressureSoftcapDivisor)
                 .div(silicateLayer.mafic.effect.value)
+                .div(tephraLayer.greenIsNotACreativeColorEffect.value)
                 .evaluate()
         // Decimal.times(15, pressureSoftcapDivisor.evaluate()).div(lavaLayer.maficEffect.value)
         // Decimal.times(15, Decimal.times(eruptionPressureDivisor, eruptions.value).add(1))
@@ -36,16 +38,22 @@ const pressureLayer = createLayer(id, baseLayer => {
         //     .div(hotPotEffect.value)
         //     .pow(tephraPressureIntervalEffect.value)
     );
+
     const pressureChance = computed(
-        () => Decimal.add(10, silicateLayer.felsic.effect.value)
+        (): Decimal =>
+            Decimal.add(10, silicateLayer.felsic.effect.value).times(
+                tephraLayer.gamblingManEffect.value
+            )
         // Decimal.add(10, pressureChanceBuyableEffect.apply(0))
         //     .add(floorIsLavaEffect.value)
         //     .add(bubblingEffect.value)
         //     .pow(tephraPressureChanceEffect.value)
     );
     const pressureGainMultiplier = computed(
-        () => {
-            return Decimal.times(1.3, silicateLayer.intermediate.effect.value);
+        (): Decimal => {
+            return Decimal.times(1.3, silicateLayer.intermediate.effect.value).times(
+                tephraLayer.blobTheBuilderEffect.value
+            );
         }
         // Decimal.times(1.3, pressureMultBuyableEffect.value)
         //     .times(riceCookerEffect.value)
@@ -63,11 +71,11 @@ const pressureLayer = createLayer(id, baseLayer => {
         }
     );
 
-    const pressureMax = computed(() => {
+    const pressureMax = computed((): DecimalSource => {
         const pow = Decimal.pow(2, lavaLayer.eruptions.value);
-        return Decimal.fromNumber(1e25).pow(pow);
+        return Decimal.fromNumber(1e25).pow(pow).pow(tephraLayer.youreGonnaMakeMeBlowEffect.value);
     });
-    const pressureCapped = computed(() => Decimal.eq(pressure.value, pressureMax.value));
+    const pressureCapped = computed(() => Decimal.gte(pressure.value, pressureMax.value));
 
     const unlocked = computed(() => true);
 

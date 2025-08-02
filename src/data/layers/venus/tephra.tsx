@@ -10,6 +10,10 @@ import { computed, unref } from "vue";
 import lavaLayer from "./lava";
 import milestonesLayer from "./milestones";
 import { createUpgrade, Upgrade } from "features/clickables/upgrade";
+import { createCostRequirement } from "game/requirements";
+import { createRepeatable, Repeatable } from "features/clickables/repeatable";
+import { renderGroupedObjects } from "util/vue";
+import { format } from "util/bignum";
 
 const id = "VT";
 const tephraLayer = createLayer(id, () => {
@@ -44,6 +48,30 @@ const tephraLayer = createLayer(id, () => {
         //         description: "Unlock a second volcano."
         //     }
         // }))
+        ultraMafic: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: 1
+            })),
+            display: {
+                title: "Ultramafic",
+                description: "Unlock a new Silicate Lava, Ultramafic. Effect tbd"
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        secretsLongBuried: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: 1
+            })),
+            display: {
+                title: "Secrets Long Buried",
+                description: "Unlock more Volcano & Molten Lava upgrades."
+            }
+        }))
     };
 
     // Have ~4 upgrades that cost 1 Tephra
@@ -56,9 +84,111 @@ const tephraLayer = createLayer(id, () => {
     // Reduce Explosive Eruption Requirement
     // X1.01|^1.01 resources?
 
-    const generatorBuyables = {};
+    const gamblingManEffect = computed(() => {
+        if (Decimal.gt(buyables.gamblingMan.amount.value, 0)) {
+            return Decimal.times(buyables.gamblingMan.amount.value, 1.2).clampMin(1);
+        }
 
-    const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
+        return Decimal.dOne;
+    });
+
+    const blobTheBuilderEffect = computed(() => {
+        if (Decimal.gt(buyables.blobTheBuilder.amount.value, 0)) {
+            return Decimal.times(buyables.blobTheBuilder.amount.value, 1.2).clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const greenIsNotACreativeColorEffect = computed(() => {
+        if (Decimal.gt(buyables.greenIsNotACreativeColor.amount.value, 0)) {
+            return Decimal.times(buyables.greenIsNotACreativeColor.amount.value, 1.2).clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const youreGonnaMakeMeBlowEffect = computed(() => {
+        if (Decimal.gt(buyables.youreGonnaMakeMeBlow.amount.value, 0)) {
+            return Decimal.sub(1, Decimal.times(buyables.youreGonnaMakeMeBlow.amount.value, 0.02));
+        }
+
+        return Decimal.dOne;
+    });
+
+    const buyables: Record<string, Repeatable> = {
+        gamblingMan: createRepeatable(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: Formula.variable(buyables.gamblingMan.amount).add(2)
+            })),
+            display: {
+                title: "Gambling Man",
+                description: "Increase Pressure Build Chance by x1.2 per level.",
+                effectDisplay: () => `x${format(gamblingManEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        })),
+
+        blobTheBuilder: createRepeatable(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: Formula.variable(buyables.blobTheBuilder.amount).add(2)
+            })),
+            display: {
+                title: "Blob The Builder",
+                description: "Increase Pressure Build Mult by x1.2 per level.",
+                effectDisplay: () => `x${format(blobTheBuilderEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        })),
+
+        greenIsNotACreativeColor: createRepeatable(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: Formula.variable(buyables.greenIsNotACreativeColor.amount).add(2)
+            })),
+            display: {
+                title: "Green is Not a Creative Color",
+                description: "Divide Pressure Interval by ÷1.2 per level.",
+                effectDisplay: () => `÷${format(greenIsNotACreativeColorEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        })),
+
+        youreGonnaMakeMeBlow: createRepeatable(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: Formula.variable(buyables.youreGonnaMakeMeBlow.amount).add(2)
+            })),
+            display: {
+                title: "You're Gonna Make Me Blow",
+                description: "Raise the Explosive Eruption by ^α. Each level reduces α by -0.02.",
+                effectDisplay: () => `${format(youreGonnaMakeMeBlowEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        }))
+    };
+
+//       const divisor = Math.pow(x, 1 -  0.92);
+
+//   // Return the scaled result
+//   return x / divisor;
+
+    // const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
+    const unlocked = computed(() => true);
 
     const showNotification = computed(() => false);
 
@@ -68,8 +198,34 @@ const tephraLayer = createLayer(id, () => {
         tephraConversion,
         unlocked,
         upgrades,
+        buyables,
         showNotification,
-        display: () => <>???</>
+        gamblingManEffect,
+        blobTheBuilderEffect,
+        greenIsNotACreativeColorEffect,
+        youreGonnaMakeMeBlowEffect,
+        display: () => (
+            <>
+                <div id="tephra-layer">
+                    <div class="mb-2">
+                        <h2>Buyables</h2>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+
+                    <div class="mb-4">{renderGroupedObjects(buyables, 4)}</div>
+
+                    <div class="mb-2">
+                        <h2>Upgrades</h2>
+                    </div>
+                    <div class="mb-4">
+                        <hr class="section-divider" />
+                    </div>
+                    ...
+                </div>
+            </>
+        )
     };
 });
 
