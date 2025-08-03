@@ -21,6 +21,8 @@ import { createUpgrade } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import milestonesLayer from "./milestones";
 import Section from "data/components/Section.vue";
+import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
+import Formula from "game/formulas/formulas";
 
 // Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
 
@@ -92,22 +94,22 @@ const lavaLayer = createLayer(id, baseLayer => {
         return {
             display: computed(() => (
                 <>
-                <div
-                    class="cappable-resource-container w-full h-full"
-                    data-augmented-ui="border tl-2-clip-x"
-                    id="lava-display"
-                >
-                    <h3 class="title py-6">{resource.displayName}</h3>
-                    <div data-augmented-ui="border tl-clip">{render(bar)}</div>
-                    <div class="flex flex-col bg-(--raised-background) p-2">
-                        <h5>Chance for Pressure to build by an additional x5</h5>
-                        <br />
-                        <h5 class="font-semibold">
-                            {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
-                        </h5>
+                    <div
+                        class="cappable-resource-container w-full h-full"
+                        data-augmented-ui="border tl-2-clip-x"
+                        id="lava-display"
+                    >
+                        <h3 class="title py-6">{resource.displayName}</h3>
+                        <div data-augmented-ui="border tl-clip">{render(bar)}</div>
+                        <div class="flex flex-col bg-(--raised-background) p-2">
+                            <h5>Chance for Pressure to build by an additional x5</h5>
+                            <br />
+                            <h5 class="font-semibold">
+                                {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
+                            </h5>
+                        </div>
                     </div>
-                </div>
-                <div class="increase-cap-action">{render(increaseCap)}</div>
+                    <div class="increase-cap-action">{render(increaseCap)}</div>
                 </>
             )),
             increaseCap
@@ -263,6 +265,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         // unref(lavaConversion.currentGain)
         return Decimal.times(1, 0.001)
             .add(milestonesLayer.oneMilestoneEffect.value)
+            .times(itsGettingHotInHereEffect.value)
             .times(pressureLayer.lavaFlowffect.value)
             .times(theStreamsAreAliveEffect.value);
     });
@@ -361,13 +364,67 @@ const lavaLayer = createLayer(id, baseLayer => {
     });
 
     const tephraUpgrades = {
-        // Increase bonus mult?
+        // Need 3
         // Improve streams are alive effect
     };
 
+    const itsGettingHotInHereEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.itsGettingHotInHere.amount.value, 0)) {
+            return Decimal.times(tephraBuyables.itsGettingHotInHere.amount.value, 0.001);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const allSevensEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.allSevens.amount.value, 0)) {
+            return Decimal.times(tephraBuyables.allSevens.amount.value, 0.25);
+        }
+
+        return Decimal.dZero;
+    });
+
     const tephraBuyables = {
-        // base lava gain
-        // Increase mult?
+        itsGettingHotInHere: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: lava,
+                    cost: Formula.variable(tephraBuyables.itsGettingHotInHere.amount)
+                        .pow_base(1.5)
+                        .times(250)
+                })),
+                display: {
+                    title: "It's Getting Hot In Here",
+                    description: "Increase Effusive Eruption by x1.1 per level.",
+                    effectDisplay: () => `x${format(itsGettingHotInHereEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        ),
+        allSevens: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(() => ({
+                    resource: lava,
+                    cost: Formula.variable(tephraBuyables.itsGettingHotInHere.amount)
+                        .pow_base(1.5)
+                        .times(100)
+                })),
+                display: {
+                    title: "All Sevens",
+                    description: "Increase Lava Pressure Build effect by +0.777 per level.",
+                    effectDisplay: () => `x${format(allSevensEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        )
     };
 
     return {
@@ -407,6 +464,12 @@ const lavaLayer = createLayer(id, baseLayer => {
                             </div>
                         </div>
                     </Section>
+
+                    {tephraLayer.upgrades.shinyRocks.bought.value ? (
+                        <Section header="Buyables">
+                            {renderGroupedObjects(tephraBuyables, 2)}
+                        </Section>
+                    ) : null}
 
                     <Section header="Upgrades">
                         {renderGroupedObjects(lavaUpgrades, 3)}
