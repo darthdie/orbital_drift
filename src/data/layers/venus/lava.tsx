@@ -41,6 +41,8 @@ const lavaLayer = createLayer(id, baseLayer => {
         calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value)
     );
 
+    const lavaEffectBuildAmount = computed(() => Decimal.add(5, allSevensEffect.value));
+
     const createLavaResourceDisplay = () => {
         const resource = lava;
         const resourceCap = lavaCap;
@@ -102,7 +104,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                         <h3 class="title py-6">{resource.displayName}</h3>
                         <div data-augmented-ui="border tl-clip">{render(bar)}</div>
                         <div class="flex flex-col bg-(--raised-background) p-2">
-                            <h5>Chance for Pressure to build by an additional x5</h5>
+                            <h5>
+                                Chance for Pressure to build by an additional x
+                                {format(lavaEffectBuildAmount.value)}
+                            </h5>
                             <br />
                             <h5 class="font-semibold">
                                 {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
@@ -262,7 +267,6 @@ const lavaLayer = createLayer(id, baseLayer => {
     const unlocked = computed((): boolean => pressureLayer.upgrades.effusiveEruption.bought.value);
 
     const passiveLavaGain = computed((): DecimalSource => {
-        // unref(lavaConversion.currentGain)
         return Decimal.times(1, 0.001)
             .add(milestonesLayer.oneMilestoneEffect.value)
             .times(itsGettingHotInHereEffect.value)
@@ -439,6 +443,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         lavaUpgrades,
         showNotification,
         tephraBuyables,
+        lavaEffectBuildAmount,
         display: () => (
             <>
                 <div id="lava-layer">

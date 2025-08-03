@@ -132,7 +132,7 @@ const pressureLayer = createLayer(id, baseLayer => {
 
             if (Decimal.gt(lavaLayer.lavaEffect.value, 0)) {
                 if (Decimal.gte(lavaLayer.lavaEffect.value, random())) {
-                    buildAmount = buildAmount.times(5);
+                    buildAmount = buildAmount.times(lavaLayer.lavaEffectBuildAmount.value);
                     console.log("KICK");
                 }
             }
