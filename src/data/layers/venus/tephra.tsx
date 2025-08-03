@@ -215,7 +215,13 @@ const tephraLayer = createLayer(id, () => {
     const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
     // const unlocked = computed(() => true);
 
-    const showNotification = computed(() => false);
+    const showNotification = computed(() => {
+        return (
+            unlocked.value &&
+            (Object.values(upgrades).some(u => u.canPurchase.value) ||
+                Object.values(buyables).some(b => b.canClick.value))
+        );
+    });
 
     return {
         id,

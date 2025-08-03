@@ -137,7 +137,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                 .clampMax(lavaCap.value),
         baseResource: pressureLayer.pressure,
         gainResource: noPersist(lava),
-        onConvert: () => {
+        convert: () => {
             lava.value = Decimal.min(lava.value, lavaCap.value);
         }
     }));
@@ -264,14 +264,21 @@ const lavaLayer = createLayer(id, baseLayer => {
         }
     }));
 
-    const unlocked = computed((): boolean => pressureLayer.upgrades.effusiveEruption.bought.value);
+    const unlocked = computed(
+        (): boolean =>
+            pressureLayer.upgrades.effusiveEruption.bought.value || Decimal.gt(eruptions.value, 0)
+    );
 
     const passiveLavaGain = computed((): DecimalSource => {
-        return Decimal.times(1, 0.001)
-            .add(milestonesLayer.oneMilestoneEffect.value)
-            .times(itsGettingHotInHereEffect.value)
-            .times(pressureLayer.lavaFlowffect.value)
-            .times(theStreamsAreAliveEffect.value);
+        if (pressureLayer.upgrades.effusiveEruption.bought.value) {
+            return Decimal.times(1, 0.001)
+                .add(milestonesLayer.oneMilestoneEffect.value)
+                .times(itsGettingHotInHereEffect.value)
+                .times(pressureLayer.lavaFlowffect.value)
+                .times(theStreamsAreAliveEffect.value);
+        }
+
+        return Decimal.dZero;
     });
 
     baseLayer.on("preUpdate", diff => {
@@ -279,9 +286,12 @@ const lavaLayer = createLayer(id, baseLayer => {
             return;
         }
 
-        lava.value = Decimal.add(lava.value, Decimal.times(passiveLavaGain.value, diff)).clampMax(
-            lavaCap.value
-        );
+        if (pressureLayer.upgrades.effusiveEruption.bought.value) {
+            lava.value = Decimal.add(
+                lava.value,
+                Decimal.times(passiveLavaGain.value, diff)
+            ).clampMax(lavaCap.value);
+        }
     });
 
     // Reduce lava cost for conversion.
