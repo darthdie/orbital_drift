@@ -12,4 +12,4 @@ export function fibonacciCostFormula(amount: DecimalSource): DecimalSource {
     }
 
     return b;
-};
+}
