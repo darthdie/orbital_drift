@@ -165,7 +165,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                     return;
                 }
                 conversion.convert();
-                if (resetTree && tree) {
+                if (unref(resetButton.resetTree) === true && tree) {
                     tree.reset(treeNode);
                 }
                 if (resetTime) {

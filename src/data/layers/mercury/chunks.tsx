@@ -435,7 +435,7 @@ const layer = createLayer(id, () => {
     }));
 
     const reset = createReset(() => ({
-        thingsToReset: (): Record<string, unknown>[] => [dustLayer, mercuryLayer]
+        thingsToReset: (): Record<string, unknown>[] => [] // dustLayer, mercuryLayer
     }));
 
     const resetButton = createResetButton(() => ({
@@ -474,6 +474,9 @@ const layer = createLayer(id, () => {
         ),
         dataAttributes: {
             "augmented-ui": "border br-round-inset tl-clip"
+        },
+        onClick: () => {
+            dustLayer.reset.reset();
         }
     }));
 

@@ -95,14 +95,16 @@ function gatherLayerProps(layer: Layer) {
 </style>
 
 <style>
-.tab hr {
-    height: 4px;
-    border: none;
-    background: var(--outline);
-    margin: var(--feature-margin) 0;
-}
+@layer component {
+    .tab hr {
+        height: 4px;
+        border: none;
+        background: var(--outline);
+        margin: var(--feature-margin) 0;
+    }
 
-.tab .modal-body hr {
-    margin: 7px 0;
+    .tab .modal-body hr {
+        margin: 7px 0;
+    }
 }
 </style>

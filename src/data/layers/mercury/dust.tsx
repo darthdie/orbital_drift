@@ -453,15 +453,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     "augmented-ui": "border bl-scoop-x"
                 },
                 visibility: () =>
-                    milestonesLayer.milestones.first.earned.value === true ||
-                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value === true
+                    milestonesLayer.milestones.first.earned.value ||
+                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value
             })
         )
     };
 
     const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
-            if (milestonesLayer.milestones.five.earned.value === true) {
+            if (milestonesLayer.milestones.five.earned.value) {
                 return Decimal.min(chunksLayer.bestChunks.value, bestAmount.value);
             }
 
@@ -761,11 +761,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const fullReset = () => {
         createReset(() => ({ thingsToReset: (): Record<string, unknown>[] => [layer] })).reset();
 
-        // mercurialDust.value = 0;
-        // totalMercurialDust.value = 0;
-        // timeSinceReset.value = 0;
-        // totalTimeSinceReset.value = 0;
-
         Object.values(repeatableBestAmounts).forEach(r => (r.value = 0));
 
         applyDustyTome();
@@ -805,6 +800,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }
     }
 
+    // Why is this here?
     function applyAutoAutoChunks() {
         if (solarLayer.mercuryTreeUpgrades.autoAutoChunks.bought.value) {
             chunksLayer.upgrades.autoChunks.bought.value = true;

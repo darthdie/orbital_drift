@@ -1,0 +1,52 @@
+#silicate-layer {
+    .lava-conversion-toggle {
+        margin: 0;
+
+        span:before {
+            background-color: var(--color-venus-500);
+        }
+
+        span:after {
+            background-color: var(--color-venus-300);
+        }
+    }
+
+    .lava-type-slider input {
+        accent-color: var(--color-venus-400);
+    }
+
+    .normal-repeatable .clickable {
+        height: 200px;
+        width: 150px;
+    }
+
+    .conversion-toggle-button {
+        .clickable {
+            width: 142px;
+            padding: 12px;
+            color: var(--color-venus-700);
+        }
+
+        &.toggled .clickable {
+            color: var(--color-venus-100);
+            background-color: var(--bought);
+            cursor: default;
+        }
+    }
+
+    .sd-upgrade .clickable, .normal-repeatable .clickable {
+        &.can {
+            color: var(--color-venus-700);
+
+            .upgrade-content {
+                color: var(--color-venus-800);
+            }
+        }
+
+        &.locked {
+            .upgrade-content {
+                color: var(--color-venus-100);
+            }
+        }
+    }
+}
