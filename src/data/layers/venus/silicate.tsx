@@ -11,6 +11,7 @@ import "./silicate.css";
 import { createClickable } from "features/clickables/clickable";
 import { persistent } from "game/persistence";
 import { createReset } from "features/reset";
+import Section from "data/components/Section.vue";
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
@@ -233,48 +234,36 @@ const silicateLayer = createLayer(id, baseLayer => {
         display: () => (
             <>
                 <div id="silicate-layer">
-                    <div class="mb-2">
-                        <h2>Silicate Lavas</h2>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
-
-                    <div
-                        data-augmented-ui="border tl-2-clip-y br-round-x"
-                        class="flex-1 w-[300px] px-8 py-4 mb-4"
-                    >
-                        <h5 class="font-semibold">
-                            {format(lavaConversionFromRate.value)} Lava is converted to{" "}
-                            {format(lavaConversionToRate.value)} Silicate over{" "}
-                            {format(lavaConversionTimeRate.value)} seconds.
-                        </h5>
-                    </div>
-
-                    {render(disableConversionButton)}
-                    <div class="flex mb-12">
-                        <div class="flex-1">
-                            {render(felsicConversionButton)}
-                            {render(felsic)}
+                    <Section header="Silicate Buyables">
+                        <div
+                            data-augmented-ui="border tl-2-clip-y br-round-x"
+                            class="flex-1 w-[300px] px-8 py-4 mb-4"
+                        >
+                            <h5 class="font-semibold">
+                                {format(lavaConversionFromRate.value)} Lava is converted to{" "}
+                                {format(lavaConversionToRate.value)} Silicate over{" "}
+                                {format(lavaConversionTimeRate.value)} seconds.
+                            </h5>
                         </div>
-                        <div class="flex-1">
-                            {render(intermediateConversionButton)}
-                            {render(intermediate)}
-                        </div>
-                        <div class="flex-1">
-                            {render(maficConversionButton)}
-                            {render(mafic)}
-                        </div>
-                    </div>
 
-                    <div class="mb-2">
-                        <h3>Improvements</h3>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
+                        {render(disableConversionButton)}
+                        <div class="flex mb-12">
+                            <div class="flex-1">
+                                {render(felsicConversionButton)}
+                                {render(felsic)}
+                            </div>
+                            <div class="flex-1">
+                                {render(intermediateConversionButton)}
+                                {render(intermediate)}
+                            </div>
+                            <div class="flex-1">
+                                {render(maficConversionButton)}
+                                {render(mafic)}
+                            </div>
+                        </div>
+                    </Section>
 
-                    {renderGroupedObjects(silicateBuyables, 4)}
+                    <Section header="Buyables">{renderGroupedObjects(silicateBuyables, 4)}</Section>
                 </div>
             </>
         )

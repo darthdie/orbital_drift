@@ -25,6 +25,11 @@
     height: 2px !important;
 }
 
+div:has(> .level-repeatable) {
+    flex: 1;
+    margin: 0;
+}
+
 .boost-repeatable,
 .level-repeatable {
     flex: 1;

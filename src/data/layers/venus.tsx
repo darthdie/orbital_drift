@@ -61,7 +61,7 @@ const layer = createLayer(id, () => {
         }),
         milestones: () => ({
             display: "Milestones",
-            // visibility: milestonesLayer.unlocked,
+            visibility: milestonesLayer.unlocked,
             tab: milestonesLayer.display
         })
     });

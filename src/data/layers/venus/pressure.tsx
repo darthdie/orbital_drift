@@ -9,12 +9,13 @@ import { createLayer } from "game/layers";
 import "./pressure.css";
 import lavaLayer from "./lava";
 import { createUpgrade } from "features/clickables/upgrade";
-import { createCostRequirement } from "game/requirements";
+import { CostRequirementOptions, createCostRequirement } from "game/requirements";
 import Formula from "game/formulas/formulas";
 import silicateLayer from "./silicate";
 import { createReset } from "features/reset";
 import tephraLayer from "./tephra";
 import Section from "data/components/Section.vue";
+import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 
 const random = () => Math.random() * 100;
 
@@ -30,46 +31,31 @@ const pressureLayer = createLayer(id, baseLayer => {
                 .times(pressureSoftcapDivisor)
                 .div(silicateLayer.mafic.effect.value)
                 .div(tephraLayer.greenIsNotACreativeColorEffect.value)
+                .div(anxietyInducingEffect.value)
                 .evaluate()
-        // Decimal.times(15, pressureSoftcapDivisor.evaluate()).div(lavaLayer.maficEffect.value)
-        // Decimal.times(15, Decimal.times(eruptionPressureDivisor, eruptions.value).add(1))
-        //     .div(pressureIntervalBuyableEffect.value)
-        //     .div(lavaIsFloorEffect.value)
-        //     .div(maficEffect.value)
-        //     .div(hotPotEffect.value)
-        //     .pow(tephraPressureIntervalEffect.value)
     );
 
     const pressureChance = computed(
         (): Decimal =>
-            Decimal.add(10, silicateLayer.felsic.effect.value).times(
-                tephraLayer.gamblingManEffect.value
-            )
-        // Decimal.add(10, pressureChanceBuyableEffect.apply(0))
-        //     .add(floorIsLavaEffect.value)
-        //     .add(bubblingEffect.value)
-        //     .pow(tephraPressureChanceEffect.value)
+            Decimal.add(10, silicateLayer.felsic.effect.value)
+                .add(whatreTheOddsEffect.value)
+                .times(tephraLayer.gamblingManEffect.value)
+                .clampMax(100)
     );
+    const pressureChanceMaxed = computed(() => Decimal.gte(pressureChance.value, 100));
     const pressureGainMultiplier = computed(
-        (): Decimal => {
-            return Decimal.times(1.3, silicateLayer.intermediate.effect.value).times(
-                tephraLayer.blobTheBuilderEffect.value
-            );
-        }
-        // Decimal.times(1.3, pressureMultBuyableEffect.value)
-        //     .times(riceCookerEffect.value)
-        //     .pow(tephraPressureGainEffect.value)
+        (): Decimal =>
+            Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+                .add(imFineEffect.value)
+                .times(tephraLayer.blobTheBuilderEffect.value)
     );
 
     const pressureSoftcapDivisor = Formula.if(
         Formula.variable(pressure),
         () => Decimal.lt(pressure.value, 1e25),
         f => f.min(1),
-        f => {
-            // Decimal.log10(1e10).div(5).times(.01).add(1)  -> 1.02 (1.02 * 15) -> 15.3
-            // Decimal.log10(1e10).div(5).times(.1).add(1) -> 1.2 (1.2 * 15) -> 18
-            return f.sub(1e25).add(10).log10().cbrt().clampMin(1);
-        }
+        // Increase interval for every OOM past 1e25
+        f => f.sub(1e25).add(10).log10().cbrt().clampMin(1)
     );
 
     const pressureMax = computed((): DecimalSource => {
@@ -253,6 +239,151 @@ const pressureLayer = createLayer(id, baseLayer => {
         // Uncap pressure chance, and each /100% has a chance to proc?
     };
 
+    const whatreTheOddsEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.whatreTheOdds.amount.value, 0)) {
+            return Decimal.times(0.25, tephraBuyables.whatreTheOdds.amount.value);
+        }
+
+        return Decimal.dZero;
+    });
+
+    const imFineEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.imFine.amount.value, 0)) {
+            return Decimal.times(0.25, tephraBuyables.imFine.amount.value);
+        }
+
+        return Decimal.dZero;
+    });
+
+    const anxietyInducingEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.anxietyInducing.amount.value, 0)) {
+            return Decimal.times(0.01, tephraBuyables.anxietyInducing.amount.value).add(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const tephraBuyables = {
+        whatreTheOdds: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        // 100 is the starting cost, increase by an OOM every level
+                        cost: Formula.variable(100).times(
+                            Formula.pow(10, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "What're The Odds?",
+                    description: "Increase base Pressure Build Chance by +0.25% per level.",
+                    effectDisplay: (): string => `+${format(whatreTheOddsEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        ),
+        imFine: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        cost: Formula.variable(1e4).times(
+                            Formula.pow(100, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "I'M FINE",
+                    description: "Increase base Pressure Build Mult by +0.25 per level.",
+                    effectDisplay: (): string => `+${format(imFineEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        ),
+        anxietyInducing: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        cost: Formula.variable(1e7).times(
+                            Formula.pow(10000, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "anxiety inducING",
+                    description: "Decrease Pressure Interval by ÷1.01 per level.",
+                    effectDisplay: (): string => `+${format(anxietyInducingEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        )
+    };
+
+    const tephraUpgrades = {
+        placeholder1: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e30
+            })),
+            display: "Placeholder 1",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder2: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e50
+            })),
+            display: "Placeholder 2",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder3: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e100
+            })),
+            display: "Placeholder 3",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder4: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e250
+            })),
+            display: "Placeholder 4",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        }))
+    };
+
     const eruptionPressureDivisor = 0.6;
     const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
 
@@ -281,6 +412,8 @@ const pressureLayer = createLayer(id, baseLayer => {
         upgrades,
         showNotification,
         explosiveEruptionReset,
+        tephraUpgrades,
+        tephraBuyables,
         display: () => (
             <>
                 <div id="pressure-tab">
@@ -293,9 +426,10 @@ const pressureLayer = createLayer(id, baseLayer => {
                                 <div class="p-4">
                                     <h3>{pressure.displayName}</h3>
                                     <h6 class="font-semibold">
-                                        {format(pressureChance.value)}% chance for pressure to build by
-                                        x{format(pressureGainMultiplier.value)} every{" "}
-                                        {format(pressureTimerMax.value)} seconds.
+                                        {format(pressureChance.value)}%
+                                        {pressureChanceMaxed.value ? " (capped)" : null} chance for
+                                        pressure to build by x{format(pressureGainMultiplier.value)}{" "}
+                                        every {format(pressureTimerMax.value)} seconds.
                                     </h6>
                                 </div>
                             </div>
@@ -316,7 +450,16 @@ const pressureLayer = createLayer(id, baseLayer => {
                         <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
                     </Section>
 
-                    <Section header="Upgrades">{renderGroupedObjects(upgrades, 4)}</Section>
+                    {tephraLayer.upgrades.shinyRocks.bought.value ? (
+                        <Section header="Buyables">
+                            {renderGroupedObjects(tephraBuyables, 4)}
+                        </Section>
+                    ) : null}
+
+                    <Section header="Upgrades">
+                        {renderGroupedObjects(upgrades, 4)}
+                        {renderGroupedObjects(tephraUpgrades, 4)}
+                    </Section>
                 </div>
             </>
         )

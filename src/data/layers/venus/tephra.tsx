@@ -2,36 +2,42 @@ import Formula from "game/formulas/formulas";
 import Decimal from "util/break_eternity";
 import pressureLayer from "./pressure";
 import { noPersist } from "game/persistence";
-import { createIndependentConversion } from "features/conversion";
+import { ConversionOptions, createIndependentConversion } from "features/conversion";
 import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import milestonesLayer from "./milestones";
-import { createUpgrade, Upgrade } from "features/clickables/upgrade";
+import { createUpgrade } from "features/clickables/upgrade";
 import { createCostRequirement } from "game/requirements";
 import { createRepeatable, Repeatable } from "features/clickables/repeatable";
 import { renderGroupedObjects } from "util/vue";
 import { format } from "util/bignum";
 import "./tephra.css";
 import Section from "data/components/Section.vue";
+import lavaLayer from "./lava";
 
 const id = "VT";
 const tephraLayer = createLayer(id, () => {
     const tephra = createResource<DecimalSource>(0, "Tephra");
 
-    const tephraConversion = createIndependentConversion(() => ({
-        gainResource: noPersist(tephra),
-        baseResource: pressureLayer.pressure,
-        formula: () =>
-            Formula.variable(Decimal.dZero).if(
-                () => pressureLayer.pressureCapped.value,
-                () => Formula.variable(Decimal.dOne).add(milestonesLayer.threeMilestoneEffect.value)
-            ),
-        convert: () => {
-            tephra.value = unref(tephraConversion.currentGain);
-        }
-    }));
+    const tephraConversion = createIndependentConversion(
+        (): ConversionOptions => ({
+            gainResource: noPersist(tephra),
+            baseResource: pressureLayer.pressure,
+            formula: () =>
+                Formula.variable(Decimal.dZero).if(
+                    () => pressureLayer.pressureCapped.value,
+                    () =>
+                        Formula.variable(Decimal.dOne).add(
+                            milestonesLayer.threeMilestoneEffect.value
+                        )
+                ),
+            convert: () => {
+                tephra.value = unref(tephraConversion.currentGain);
+            }
+        })
+    );
 
     // Buyables that boost shit
     // Unlock passive generators for lava subtypes?
@@ -41,7 +47,11 @@ const tephraLayer = createLayer(id, () => {
     // Going to have ~30 presses, and therefore 30 Tephra to buy stuff.
     // Either need to forgo buyables, or add a way to increase tephra gain.
 
-    const upgrades: Record<string, Upgrade> = {
+    // Add upgrade to add buyables?
+    // Silicate buyable: Decrease amount needed to increase cap (without affecting max effect) - should start a bit more expensive
+    // Silicate buyable: Decrease conversion time (probably should add the ability to sell)
+
+    const upgrades = {
         // whatAboutSecondVolcano: createUpgrade(() => ({
         //     requirements: [],
         //     display: {
@@ -69,8 +79,22 @@ const tephraLayer = createLayer(id, () => {
                 cost: 1
             })),
             display: {
-                title: "Secrets Long Buried",
+                title: "Secrets Once Buried",
                 description: "Unlock more Volcano & Molten Lava upgrades."
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        shinyRocks: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: 1
+            })),
+            display: {
+                title: "Shiny Rocks",
+                description: "Unlock Volcano & Molten Lava Buyables."
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
@@ -188,8 +212,8 @@ const tephraLayer = createLayer(id, () => {
     //   // Return the scaled result
     //   return x / divisor;
 
-    // const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
-    const unlocked = computed(() => true);
+    const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
+    // const unlocked = computed(() => true);
 
     const showNotification = computed(() => false);
 
@@ -209,10 +233,7 @@ const tephraLayer = createLayer(id, () => {
             <>
                 <div id="tephra-layer">
                     <Section header="Tephra">
-                        <div
-                            data-augmented-ui="border tl-rect br-rect"
-                            class="w-[212px] h-fit p-6"
-                        >
+                        <div data-augmented-ui="border tl-rect br-rect" class="w-[212px] h-fit p-6">
                             <h5 class="font-semibold">
                                 You have {format(tephra.value, 0)} {tephra.displayName}
                             </h5>

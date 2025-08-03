@@ -20,6 +20,7 @@ import { createCostRequirement } from "game/requirements";
 import { createUpgrade } from "features/clickables/upgrade";
 import { createReset } from "features/reset";
 import milestonesLayer from "./milestones";
+import Section from "data/components/Section.vue";
 
 // Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
 
@@ -191,7 +192,8 @@ const lavaLayer = createLayer(id, baseLayer => {
     const explosiveEruptionReset = createReset(() => ({
         thingsToReset: [],
         onReset: () => {
-            lava.value = 0;
+            eruptions.value = Decimal.add(eruptions.value, 1);
+            lava.value = Decimal.min(milestonesLayer.fiveMilestoneEffect.value, lavaCap.value);
         }
     }));
 
@@ -209,11 +211,6 @@ const lavaLayer = createLayer(id, baseLayer => {
                         <br />
                         {pressureLayer.pressureCapped.value ? (
                             <>
-                                <span class="font-semibold">
-                                    {/* {eruptionGainDisplay(lavaConversion, lavaCap.value)} */}
-                                    Keep ?% Lava of Molten Lava (currently 0).
-                                </span>
-                                <br />
                                 <span class="font-semibold">
                                     {eruptionGainDisplay(tephraLayer.tephraConversion)}
                                 </span>
@@ -244,27 +241,15 @@ const lavaLayer = createLayer(id, baseLayer => {
             venusLayer.planetMass.value = Decimal.pow(
                 venusLayer.planetMass.value,
                 venusLayer.massDestructionAmount.value
-            ); // must be before eruptions is increased
-
-            //             const pressureToKeep = undergroundLavaEffect.value;
+            );
 
             lavaConversion.convert();
 
             tephraLayer.tephraConversion.convert();
-            eruptions.value = Decimal.add(eruptions.value, 1);
 
             explosiveEruptionReset.reset();
             silicateLayer.explosiveEruptionReset.reset();
             pressureLayer.explosiveEruptionReset.reset();
-
-            // TODO:
-            //
-
-            //             if (Decimal.gt(pressureToKeep, 0)) {
-            //                 pressure.value = pressureToKeep;
-            //             }
-
-            //         timeSinceLastEruption.value = Decimal.dZero;
         },
         canClick: computed(() => pressureLayer.pressureCapped.value),
         dataAttributes: {
@@ -375,6 +360,16 @@ const lavaLayer = createLayer(id, baseLayer => {
         );
     });
 
+    const tephraUpgrades = {
+        // Increase bonus mult?
+        // Improve streams are alive effect
+    };
+
+    const tephraBuyables = {
+        // base lava gain
+        // Increase mult?
+    };
+
     return {
         id,
         lava,
@@ -386,45 +381,37 @@ const lavaLayer = createLayer(id, baseLayer => {
         passiveLavaGain,
         lavaUpgrades,
         showNotification,
+        tephraBuyables,
         display: () => (
             <>
                 <div id="lava-layer">
-                    <div class="mb-2">
-                        <h2>Molten Lava</h2>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
-
-                    <div class="w-[512px] mb-10 flex flex-col">
-                        <div class="flex m-0 flex-1">
-                            <div
-                                class="m-0 h-[160px] flex flex-col flex-1"
-                                data-augmented-ui="border br-round-inset tl-clip bl-2-clip-x tr-clip"
-                            >
-                                <div>
-                                    <h5 class="m-0">Effusive Eruption</h5>
-                                    <h5 class="font-semibold m-0">
-                                        You are gaining {format(passiveLavaGain.value)}{" "}
-                                        {lava.displayName}/s
-                                    </h5>
+                    <Section header="Molten Lava">
+                        <div class="w-[512px] mb-10 flex flex-col">
+                            <div class="flex m-0 flex-1">
+                                <div
+                                    class="m-0 h-[160px] flex flex-col flex-1"
+                                    data-augmented-ui="border br-round-inset tl-clip bl-2-clip-x tr-clip"
+                                >
+                                    <div>
+                                        <h5 class="m-0">Effusive Eruption</h5>
+                                        <h5 class="font-semibold m-0">
+                                            You are gaining {format(passiveLavaGain.value)}{" "}
+                                            {lava.displayName}/s
+                                        </h5>
+                                    </div>
                                 </div>
+                                <div class="m-0 flex-1">{render(explosiveEruptionButton)}</div>
                             </div>
-                            <div class="m-0 flex-1">{render(explosiveEruptionButton)}</div>
+                            <div class="flex flex-col flex-1 m-0">
+                                <div class="flex-1 m-0">{render(lavaDisplay.display.value)}</div>
+                            </div>
                         </div>
-                        <div class="flex flex-col flex-1 m-0">
-                            <div class="flex-1 m-0">{render(lavaDisplay.display.value)}</div>
-                        </div>
-                    </div>
+                    </Section>
 
-                    <div class="mb-2">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <div class="mb-4">
-                        <hr class="section-divider" />
-                    </div>
-
-                    {renderGroupedObjects(lavaUpgrades, 3)}
+                    <Section header="Upgrades">
+                        {renderGroupedObjects(lavaUpgrades, 3)}
+                        {renderGroupedObjects(tephraUpgrades, 3)}
+                    </Section>
                 </div>
             </>
         )
