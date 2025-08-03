@@ -78,7 +78,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
                 optionsDisplay: () => (
                     <>
-                        Unlock the `Dust Piles` buyable
+                        Unlock the 'Dust Piles' buyable
                         <br />
                         Boost time by x1.5 per best Chunk
                     </>

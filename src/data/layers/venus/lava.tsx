@@ -380,6 +380,48 @@ const lavaLayer = createLayer(id, baseLayer => {
     const tephraUpgrades = {
         // Need 3
         // Improve streams are alive effect
+        // placeholder1: createUpgrade(() => ({
+        //     requirements: createCostRequirement(() => ({
+        //         resource: lava,
+        //         cost: 1000
+        //     })),
+        //     display: {
+        //         title: "Placeholder 1",
+        //         description: "Placeholdre 1"
+        //     },
+        //     classes: { "sd-upgrade": true },
+        //     clickableDataAttributes: {
+        //         "augmented-ui": "border tr-clip"
+        //     }
+        // })),
+        // placeholder2: createUpgrade(() => ({
+        //     requirements: createCostRequirement(() => ({
+        //         resource: lava,
+        //         cost: 1500
+        //     })),
+        //     display: {
+        //         title: "Placeholder 2",
+        //         description: "Placeholder 2"
+        //     },
+        //     classes: { "sd-upgrade": true },
+        //     clickableDataAttributes: {
+        //         "augmented-ui": "border tr-clip"
+        //     }
+        // })),
+        // placeholder3: createUpgrade(() => ({
+        //     requirements: createCostRequirement(() => ({
+        //         resource: lava,
+        //         cost: 2000
+        //     })),
+        //     display: {
+        //         title: "Placeholder 3",
+        //         description: "Placeholdre 3"
+        //     },
+        //     classes: { "sd-upgrade": true },
+        //     clickableDataAttributes: {
+        //         "augmented-ui": "border tr-clip"
+        //     }
+        // }))
     };
 
     const itsGettingHotInHereEffect = computed(() => {
