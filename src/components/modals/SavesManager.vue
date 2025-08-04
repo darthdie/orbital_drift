@@ -65,7 +65,7 @@ import type { Player } from "game/player";
 import player, { stringifySave } from "game/player";
 import settings from "game/settings";
 import LZString from "lz-string";
-import { galaxy, syncedSaves } from "util/galaxy";
+// import { galaxy, syncedSaves } from "util/galaxy";
 import {
     clearCachedSave,
     clearCachedSaves,
@@ -156,7 +156,8 @@ const saves = computed(() =>
 );
 
 const showNotSyncedWarning = computed(
-    () => galaxy.value?.loggedIn === true && settings.saves.length < syncedSaves.value.length
+    // () => galaxy.value?.loggedIn === true && settings.saves.length < syncedSaves.value.length
+    () => false
 );
 
 function exportSave(id: string) {
@@ -201,23 +202,23 @@ function duplicateSave(id: string) {
 }
 
 function deleteSave(id: string) {
-    if (galaxy.value?.loggedIn === true) {
-        galaxy.value.getSaveList().then(list => {
-            const slot = Object.keys(list).find(slot => {
-                const content = list[parseInt(slot)].content;
-                try {
-                    if (JSON.parse(content).id === id) {
-                        return true;
-                    }
-                } catch (e) {
-                    return false;
-                }
-            });
-            if (slot != null) {
-                galaxy.value?.save(parseInt(slot), "", "").catch(console.error);
-            }
-        });
-    }
+    // if (galaxy.value?.loggedIn === true) {
+    //     galaxy.value.getSaveList().then(list => {
+    //         const slot = Object.keys(list).find(slot => {
+    //             const content = list[parseInt(slot)].content;
+    //             try {
+    //                 if (JSON.parse(content).id === id) {
+    //                     return true;
+    //                 }
+    //             } catch (e) {
+    //                 return false;
+    //             }
+    //         });
+    //         if (slot != null) {
+    //             galaxy.value?.save(parseInt(slot), "", "").catch(console.error);
+    //         }
+    //     });
+    // }
     settings.saves = settings.saves.filter((save: string) => save !== id);
     localStorage.removeItem(id);
     clearCachedSave(id);

@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import player from "game/player";
 import { Direction } from "util/common";
-import { galaxy, syncedSaves } from "util/galaxy";
+// import { galaxy, syncedSaves } from "util/galaxy";
 import { LoadablePlayerData } from "util/save";
 import { computed, ref, watch } from "vue";
 import Tooltip from "wrappers/tooltips/Tooltip.vue";
@@ -121,9 +121,9 @@ const currentTime = computed(() =>
 );
 const synced = computed(
     () =>
-        !props.readonly &&
+        !props.readonly /*&&
         galaxy.value?.loggedIn === true &&
-        syncedSaves.value.includes(props.save.id)
+        syncedSaves.value.includes(props.save.id)*/
 );
 
 function changeName() {
