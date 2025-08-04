@@ -35,6 +35,7 @@ export interface ClickableOptions extends VueFeatureOptions {
     onClick?: (e?: MouseEvent | TouchEvent) => void;
     /** A function that is called when the clickable is held down. */
     onHold?: VoidFunction;
+    dataAttributes?: Record<string, string>;
 }
 
 /** An object that represents a feature that can be clicked or held down. */
@@ -58,7 +59,14 @@ export interface Clickable extends VueFeature {
 export function createClickable<T extends ClickableOptions>(optionsFunc?: () => T) {
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { canClick, display: _display, onClick: onClick, onHold: onHold, ...props } = options;
+        const {
+            canClick,
+            display: _display,
+            onClick: onClick,
+            onHold: onHold,
+            dataAttributes,
+            ...props
+        } = options;
 
         let display: MaybeGetter<Renderable> | undefined = undefined;
         if (typeof _display === "object" && !isJSXElement(_display)) {
@@ -89,10 +97,12 @@ export function createClickable<T extends ClickableOptions>(optionsFunc?: () => 
                     onClick={clickable.onClick}
                     onHold={clickable.onClick}
                     display={clickable.display}
+                    dataAttributes={clickable.dataAttributes}
                 />
             )),
             canClick: processGetter(canClick) ?? true,
             display,
+            dataAttributes,
             onClick:
                 onClick == null
                     ? undefined

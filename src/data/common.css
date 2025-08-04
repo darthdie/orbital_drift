@@ -17,11 +17,103 @@
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }
 
-.gap-4 {
-    gap: 1rem;
-}
-
 .feature.small .treeNode {
     height: 64px;
     width: 64px;
+}
+
+.fit-content .clickable {
+    min-height: 32px;
+    width: fit-content;
+    height: fit-content;
+    padding: 8px;
+}
+
+@font-face {
+    font-family:"AstronomicSigns";
+    src: url("../assets/fonts/AstronomicSignsSt.ttf");
+    ascent-override: 65%;
+}
+
+.celestial-body-icon {
+    font-family:"AstronomicSigns";
+    display: flex;
+    margin: 0;
+}
+
+.feature.squashed-clickable .clickable {
+    min-height: 0;
+    width: 100%;
+    margin: 0;
+    /* border-bottom-left-radius: 8px; */
+}
+
+.grouped-table {
+    .row {
+        gap: 8px; margin-bottom: 8px;
+    }
+}
+
+.skill-tree-2 {
+    border-radius: var(--border-radius) !important;
+    background: var(--locked);
+    width: 75px !important;
+    height: 80px !important;
+    box-shadow: inset black 0 0 20px;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    padding: 10px !important;
+    z-index: 1;
+}
+
+.skill-tree-2.can {
+    box-shadow: inset black 0 0 20px, 0 0 10px #b949de;
+}
+
+.skill-tree-2.can:hover {
+    transform: none;
+    box-shadow: inset black 0 0 0px, 0 0 20px #b949de;
+}
+
+.skill-tree-2.bought {
+    box-shadow: inset black 0 0 0px;
+}
+
+.skill-tree-2:not(.can) {
+    cursor: not-allowed;
+}
+
+
+.treeNode.skill-tree-2 > *:first-child {
+    font-size: 10px !important;
+    box-shadow: unset !important;
+    border: none !important;
+    color: var(--feature-foreground) !important;
+    text-transform: none !important;
+}
+
+code {
+    font-family: monospace;
+}
+
+.normal-repeatable .clickable {
+    border: 0;
+    height: 180px;
+    width: 130px;
+    box-sizing: border-box;
+    .repeatable-content {
+        padding-bottom: 22px;
+    }
+}
+
+.sd-upgrade .clickable {
+    height: 150px;
+    width: 130px;
+    border: 0;
+    box-sizing: border-box;
+}
+
+.sd-upgrade.unlock .clickable {
+    .upgrade-content .requirements {
+        padding-bottom: 24px;
+    }
 }

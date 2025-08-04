@@ -1,23 +1,22 @@
 <template>
     <ErrorVue v-if="errors.length > 0" :errors="errors" />
-    <div class="layer-container" :style="{ '--layer-color': unref(color) }" v-bind="$attrs" v-else>
+    <div :class="containerClasses" :style="{ '--layer-color': unref(color) }" v-bind="$attrs" v-else>
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
 
-        <button
-            class="layer-tab minimized"
-            v-if="unref(minimized)"
-            @click="$emit('setMinimized', false)"
-        >
-            <MinimizedComponent v-if="minimizedDisplay" />
+        <template v-if="unref(minimized)">
+            <Context v-if="minimizedDisplay">
+                <MinimizedComponent/>
+            </Context>
             <div v-else>{{ unref(name) }}</div>
-        </button>
+        </template>
+
         <div class="layer-tab" :class="{ showGoBack }" v-else>
             <Context @update-nodes="updateNodes">
                 <Component />
             </Context>
         </div>
 
-        <button v-if="unref(minimizable)" class="minimize" @click="$emit('setMinimized', true)">
+        <button v-if="unref(minimizable)" class="minimize" @click="$emit('setMinimized', !unref(minimized))">
             ▼
         </button>
     </div>
@@ -29,9 +28,11 @@ import { type FeatureNode } from "game/layers";
 import player from "game/player";
 import { MaybeGetter } from "util/computed";
 import { render, Renderable } from "util/vue";
-import { computed, MaybeRef, onErrorCaptured, Ref, ref, unref } from "vue";
+import { computed, MaybeRef, onErrorCaptured, reactive, Ref, ref, unref } from "vue";
 import Context from "./Context.vue";
 import ErrorVue from "./Error.vue";
+
+const emit = defineEmits(['setMinimized'])
 
 const props = defineProps<{
     display: MaybeGetter<Renderable>;
@@ -66,6 +67,11 @@ onErrorCaptured((err, instance, info) => {
         err instanceof Error ? (err as Error) : new Error(JSON.stringify(err))
     );
     return false;
+});
+
+const containerClasses = reactive({
+    "layer-container": true,
+    "minimized": props.minimized
 });
 </script>
 
@@ -111,7 +117,7 @@ onErrorCaptured((err, instance, info) => {
 
 .layer-tab.minimized > * {
     margin: 0;
-    writing-mode: vertical-rl;
+    /* writing-mode: vertical-rl; */
     text-align: left;
     padding-left: 10px;
     width: 50px;
@@ -133,7 +139,7 @@ onErrorCaptured((err, instance, info) => {
 .minimize {
     position: sticky;
     top: 6px;
-    right: 9px;
+    right: 28px;
     z-index: 7;
     line-height: 30px;
     border: none;
@@ -147,11 +153,11 @@ onErrorCaptured((err, instance, info) => {
     margin-right: -30px;
 }
 
-.minimized + .minimize {
+.minimized .minimize {
     transform: rotate(-90deg);
     top: 10px;
-    right: 18px;
-    pointer-events: none;
+    right: 28px;
+    /* pointer-events: none; */
 }
 
 .goBack {

@@ -283,7 +283,7 @@ export function createSequentialModifier<
                       (
                           modifiers
                               .filter(m => unref(m.enabled) !== false)
-                              .map(m => unref(m.description) || "??")
+                              .map(m => unref(m.description))
                               .filter(d => d) as MaybeGetter<Renderable>[]
                       ).map(m => render(m))
                 : undefined
@@ -324,41 +324,42 @@ export function createModifierSection({
     smallerIsBetter
 }: ModifierSectionOptions) {
     return () => {
-            const total = modifier.apply(base ?? 1);
-    return (
-        <div style={{ "--unit": settings.alignUnits && unit != null ? "'" + unit + "'" : "" }}>
-            <h3>
-                {title}
-                {subtitle == null ? null : <span class="subtitle"> ({subtitle})</span>}
-            </h3>
-            <br />
-            <div class="modifier-container">
-                <span class="modifier-description">{render(baseText ?? "Base")}</span>
-                <span class="modifier-amount">
-                    {formatSmall(base ?? 1)}
-                    {unit}
-                </span>
+        const total = modifier.apply(base ?? 1);
+        return (
+            <div style={{ "--unit": settings.alignUnits && unit != null ? "'" + unit + "'" : "" }}>
+                <h3>
+                    {title}
+                    {subtitle == null ? null : <span class="subtitle"> ({subtitle})</span>}
+                </h3>
+                <br />
+                <div class="modifier-container">
+                    <span class="modifier-description">{render(baseText ?? "Base")}</span>
+                    <span class="modifier-amount">
+                        {formatSmall(base ?? 1)}
+                        {unit}
+                    </span>
+                </div>
+                {render(modifier.description)}
+                <hr />
+                <div class="modifier-container">
+                    <span class="modifier-description">Total</span>
+                    <span
+                        class="modifier-amount"
+                        style={
+                            (
+                                smallerIsBetter === true
+                                    ? Decimal.gt(total, base ?? 1)
+                                    : Decimal.lt(total, base ?? 1)
+                            )
+                                ? "color: var(--danger)"
+                                : ""
+                        }
+                    >
+                        {formatSmall(total)}
+                        {unit}
+                    </span>
+                </div>
             </div>
-            {render(modifier.description)}
-            <hr />
-            <div class="modifier-container">
-                <span class="modifier-description">Total</span>
-                <span
-                    class="modifier-amount"
-                    style={
-                        (
-                            smallerIsBetter === true
-                                ? Decimal.gt(total, base ?? 1)
-                                : Decimal.lt(total, base ?? 1)
-                        )
-                            ? "color: var(--danger)"
-                            : ""
-                    }
-                >
-                    {formatSmall(total)}
-                    {unit}
-                </span>
-            </div>
-        </div>
-    );}
+        );
+    };
 }

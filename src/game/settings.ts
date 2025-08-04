@@ -23,16 +23,22 @@ export interface Settings {
     alignUnits: boolean;
     /** Whether or not to show a video game health warning after playing excessively. */
     showHealthWarning: boolean;
+    /** Whether to show the planet orbit motion */
+    showPlanetOrbitAnimation: boolean;
+    /** Whether to force showing all planets, regardless of unlock status */
+    forceShowAllPlanets: boolean;
 }
 
 const state = reactive<Partial<Settings>>({
     active: "",
     saves: [],
     showTPS: true,
-    theme: Themes.Nordic,
+    theme: Themes.Drift,
     unthrottled: false,
     alignUnits: false,
-    showHealthWarning: true
+    showHealthWarning: true,
+    showPlanetOrbitAnimation: true,
+    forceShowAllPlanets: false
 });
 
 watch(
@@ -65,7 +71,7 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Nordic,
+        theme: Themes.Drift,
         unthrottled: false,
         alignUnits: false,
         showHealthWarning: true

@@ -1,0 +1,42 @@
+#pressure-tab {
+    .sd-upgrade .clickable {
+        &.can {
+            color: var(--color-venus-700);
+
+            .upgrade-content {
+                color: var(--color-venus-800);
+            }
+        }
+
+        &.locked {
+            .upgrade-content {
+                color: var(--color-venus-100);
+            }
+        }
+    }
+
+    /* .volcano-wrapper {
+        width: 312px;
+        height: 125px;
+        background: #5c4033;
+        clip-path: polygon(0% 100%, 20% 58%, 40% 1%, 50% 15%, 60% 1%, 80% 58%, 100% 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .volcano {
+        width: 95%;
+        height: 95%;
+        background: var(--background);
+        clip-path: polygon(0% 100%, 20% 58%, 40% 1%, 50% 15%, 60% 1%, 80% 58%, 100% 100%);
+    } */
+
+
+
+    /* #8B4513 */
+
+
+
+
+}

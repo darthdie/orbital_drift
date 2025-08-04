@@ -23,6 +23,8 @@
                 <SettingFields />
                 <Toggle :title="showTPSTitle" v-model="showTPS" />
                 <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
+                <Toggle :title="showPlanetOrbitAnimationTitle" v-model="showPlanetOrbitAnimation"/>
+                <Toggle :title="forceShowAllPlanetsTitle" v-model="forceShowAllPlanets"/>
             </div>
         </template>
     </Modal>
@@ -70,7 +72,7 @@ const themes = Object.keys(rawThemes).map(theme => ({
 
 const SettingFields = () => settingFields.map(f => render(f));
 
-const { showTPS, theme, unthrottled, alignUnits, showHealthWarning } = toRefs(settings);
+const { showTPS, theme, unthrottled, alignUnits, showHealthWarning, showPlanetOrbitAnimation, forceShowAllPlanets } = toRefs(settings);
 const { autosave, offlineProd } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -113,6 +115,15 @@ const alignModifierUnitsTitle = <span class="option-title">
     Align modifier units
     <desc>Align numbers to the beginning of the unit in modifier view.</desc>
 </span>;
+const showPlanetOrbitAnimationTitle = <span class="option-title">
+    Planet Orbit Animation
+    <desc>Enable/disable the planet orbit animation</desc>
+</span>
+const forceShowAllPlanetsTitle = <span class="option-title">
+    Force Show All Planets
+    <desc>Show all planets in orbit, regardless of unlock status.</desc>
+</span>
+
 </script>
 
 <style>

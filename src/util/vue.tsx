@@ -98,34 +98,40 @@ export function renderRow(...objects: RenderableObjectsArray): JSX.Element {
 }
 
 export function renderStyledRow(style: string, klass: string, objects: RenderableObjectsArray) {
-    return <Row style={style} class={klass}>{objects.map(obj => render(obj))}</Row>;
+    return (
+        <Row style={style} class={klass}>
+            {objects.map(obj => render(obj))}
+        </Row>
+    );
 }
 
 export function renderCol(...objects: RenderableObjectsArray): JSX.Element {
     return <Col>{objects.map(obj => render(obj))}</Col>;
 }
 
-export function joinJSX(
-    objects: RenderableObjectsArray,
-    joiner: JSX.Element
-): JSX.Element {
-    return objects.reduce<JSX.Element>(
-        (acc, curr) => (
-            <>
-                {acc}
-                {joiner}
-                {render(curr)}
-            </>
-        ),
-        <></>
+export function joinJSX(objects: RenderableObjectsArray, joiner: JSX.Element): JSX.Element {
+    // return objects.reduce<JSX.Element>((acc, curr) => {
+    //     if (acc == null) {
+    //         console.log("??", {acc, curr})
+    //         return <>{render(curr)}</>;
+    //     }
+    //     <>
+    //         {acc}
+    //         {joiner}
+    //         {render(curr)}
+    //     </>;
+    // }, null);
+
+    return (
+        <>{objects.flatMap((el, index) => (index === objects.length - 1 ? [el] : [el, joiner]))}</>
     );
 }
 
 // | Array<{string: boolean}>
 export function classNames(classes: Record<string, boolean>): string[] {
     return Object.keys(classes)
-        .map(key => classes[key] ? key : null)
-        .filter(className => !!className) as string[];
+        .map(key => (classes[key] ? key : null))
+        .filter(className => className != null) as string[];
 }
 
 export function renderGroupedObjects(
@@ -136,31 +142,59 @@ export function renderGroupedObjects(
 ) {
     const mergeAdjacent = true;
 
-    const classes = [
-        ...classNames({ "row": true, "mergeAdjacent": mergeAdjacent }),
-        klass
-    ];
+    const classes = [...classNames({ row: true, mergeAdjacent: mergeAdjacent }), klass];
 
-    const normalizedObjects = objects instanceof Array ?
-        objects :
-        Object.values(objects);
+    const normalizedObjects = objects instanceof Array ? objects : Object.values(objects);
 
     const chunkedObjects = chunkArray(normalizedObjects, groupSize);
 
-    return render((<>
-        <div class="table">
-            {
-                chunkedObjects
-                .map(group => <>
-                    <div style={style} class={classes}>
-                        {group.map(object => render(object))}
-                    </div>
-                </>)
-            }
-        </div>
-    </>));
+    return render(
+        <>
+            <div class="table grouped-table">
+                {chunkedObjects.map(group => (
+                    <>
+                        <div style={style} class={classes}>
+                            {group.map(object => render(object))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </>
+    );
 }
 
+export function renderGroupedItemBuilder(
+    items: (index: number) => Renderable,
+    itemCount: number,
+    groupSize: number,
+    style?: string,
+    klass?: string
+) {
+    const mergeAdjacent = true;
+
+    const classes = [...classNames({ row: true, mergeAdjacent: mergeAdjacent }), klass];
+
+    const builtItems: Renderable[] = [];
+    for (let i = 0; i < itemCount; i++) {
+        builtItems.push(items(i));
+    }
+
+    const chunkedItems = chunkArray(builtItems, groupSize);
+
+    return render(
+        <>
+            <div class="table grouped-table">
+                {chunkedItems.map(group => (
+                    <>
+                        <div style={style} class={classes}>
+                            {group.map(object => render(object))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </>
+    );
+}
 
 export function isJSXElement(element: unknown): element is JSX.Element {
     return (

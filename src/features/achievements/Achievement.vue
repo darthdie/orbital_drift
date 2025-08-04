@@ -50,7 +50,7 @@ const Component = () => props.display == null ? <></> : render(props.display);
     background-color: var(--locked);
     border-width: 4px;
     border-radius: 5px;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--feature-foreground);
     font-size: unset;
     text-shadow: unset;
 }

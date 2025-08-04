@@ -1,14 +1,131 @@
+/* @import 'tailwindcss'; */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+    /* --color-venus-50: #fef8ec;
+    --color-venus-100: #f8e2b0;
+    --color-venus-200: #f5d792;
+    --color-venus-300: #f0bd59;
+    --color-venus-400: #eda532;
+    --color-venus-500: #e6841a;
+    --color-venus-600: #cb6314;
+    --color-venus-700: #a94514;
+    --color-venus-800: #893617;
+    --color-venus-900: #712d16;
+    --color-venus-950: #411507; */
+      --color-venus-50: oklch(95.77% 0.033 85.46);
+  --color-venus-100: oklch(91.86% 0.069 87.01);
+  --color-venus-200: oklch(82.86% 0.114 90.59);
+  --color-venus-300: oklch(74.22% 0.103 90.69);
+  --color-venus-400: oklch(65.43% 0.09 89.82);
+  --color-venus-500: oklch(56.89% 0.078 89.84);
+  --color-venus-600: oklch(48.35% 0.066 90.24);
+  --color-venus-700: oklch(39.77% 0.055 91.33);
+  --color-venus-800: oklch(30.95% 0.043 88.75);
+  --color-venus-900: oklch(22.44% 0.03 90.41);
+  --color-venus-950: oklch(17.57% 0.023 87.38);
+}
+
 :root {
     color-scheme: dark;
 }
 
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-SemiBoldItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-ThinItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-ThinItalic.woff') format('woff');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-LightItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-LightItalic.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-BoldItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Black.woff2') format('woff2'),
+        url('assets/fonts/Neris-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Thin.woff2') format('woff2'),
+        url('assets/fonts/Neris-Thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-BlackItalic.woff2') format('woff2'),
+        url('assets/fonts/Neris-BlackItalic.woff') format('woff');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-SemiBold.woff2') format('woff2'),
+        url('assets/fonts/Neris-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neris';
+    src: url('assets/fonts/Neris-Light.woff2') format('woff2'),
+        url('assets/fonts/Neris-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@layer base {
 * {
 	transition-duration: 0.5s;
-	font-family: "Roboto Mono", monospace;
+	font-family: "Neris", monospace;
+	font-variant-numeric: tabular-nums;
 	font-weight: bold;
 	margin: auto;
 	text-size-adjust: none;
 }
+}
+
 
 *:focus {
 	outline: none;

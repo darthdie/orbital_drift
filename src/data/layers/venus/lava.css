@@ -1,0 +1,73 @@
+#lava-layer {
+    .sd-upgrade .clickable, .normal-repeatable .clickable {
+        &.can {
+            color: var(--color-venus-700);
+
+            .upgrade-content {
+                color: var(--color-venus-800);
+            }
+        }
+
+        &.locked {
+            .upgrade-content {
+                color: var(--color-venus-100);
+            }
+        }
+    }
+
+    .increase-lava-cap .clickable {
+        border: none;
+        margin: 0;
+
+        &.can {
+            color: var(--color-venus-700);
+        }
+
+        .can&:hover {
+            box-shadow: 0 0 20px var(--outline-lighter);
+        }
+    }
+
+    .lava-reset-button .clickable {
+        border: 0;
+        min-height: 0;
+        height: 160px;
+        /* width: 260px; */
+        width: 100%;
+        color: var(--color-black);
+        margin: 0;
+
+        .can&:hover {
+            box-shadow: 0 0 20px var(--outline-lighter);
+        }
+    }
+
+    .cappable-resource-container {
+        /* border-radius: 0 0 8px 8px; */
+        border: 2px solid var(--raised-background);
+        margin: 0;
+        flex: 1;
+
+        .title {
+            padding-bottom: 2px;
+        }
+
+        .feature .bar .border {
+            border-top: 2px solid var(--raised-background);
+            border-bottom: none;
+        }
+
+        .resource-display {
+            background: var(--raised-background);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+        }
+
+        .increase-cap-action .clickable {
+            border-radius: 0 0 8px 8px;
+        }
+    }
+}

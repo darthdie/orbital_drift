@@ -8,7 +8,7 @@ import { createLayer } from "game/layers";
 import type { DecimalSource } from "util/bignum";
 import { render } from "util/vue";
 import { createLayerTreeNode } from "../common";
-import { computed, unref } from "vue";
+import { computed } from "vue";
 import Decimal, { format } from "util/bignum";
 import { noPersist } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -16,13 +16,15 @@ import solarLayer from "./solar";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import dustTab from './mercury/dust';
-import chunksTab from './mercury/chunks';
-import { Conversion } from "features/conversion";
+import dustTab from "./mercury/dust";
+import chunksTab from "./mercury/chunks";
 import { createBar } from "features/bars/bar";
 import { Direction } from "util/common";
-import milestones from './mercury/milestones';
-import accelerators from './mercury/accelerators';
+import milestones from "./mercury/milestones";
+import accelerators from "./mercury/accelerators";
+import { createClickable } from "features/clickables/clickable";
+import CelestialBodyIcon from "components/CelestialBodyIcon.vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 
 /* TODO:
   upgrade/repeatable: seconds increases itself (acceleration)
@@ -40,127 +42,261 @@ import accelerators from './mercury/accelerators';
 
 const id = "M";
 const layer = createLayer(id, baseLayer => {
-  const name = "Mercury";
-  const color = "#8c8c94";
+    const name = "Mercury";
+    const color = "#8c8c94";
 
-  const unlocked = noPersist(solarLayer.mercuryUpgrade.bought);
+    const unlocked = noPersist(solarLayer.solarSystemUpgrades.mercury.bought);
 
-  const maxCollisionTime = Decimal.times(1e88, 84600)
-  const collisionTime = createResource<DecimalSource>(maxCollisionTime);
+    const maxCollisionTime = Decimal.times(1e88, 84600);
+    const collisionTime = createResource<DecimalSource>(maxCollisionTime);
+    const totalResets = createResource<DecimalSource>(0);
 
+    const collisionTimeProgressBar = createBar(() => ({
+        progress: () => {
+            return Decimal.sub(
+                1,
+                Decimal.div(
+                    Decimal.ln(collisionTimeGainComputed.value),
+                    Decimal.ln(maxCollisionTime)
+                )
+            );
+        },
+        width: "100%",
+        height: 10,
+        direction: Direction.Right,
+        containerStyle: {
+            "text-align": "center"
+        },
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline-lighter)"
+        }
+    }));
 
-  const collisionTimeProgressBar = createBar(() => ({
-    progress: () => Decimal.div(collisionTime.value, maxCollisionTime),
-    width: 512,
-    height: 10,
-    direction: Direction.Right,
-    containerStyle: {
-      'text-align': 'center'
-    }
-  }))
-
-  const baseTimeRateModifier = createSequentialModifier(() => [
-    createMultiplicativeModifier(() => ({
-      multiplier: 1.5,
-      enabled: dustTab.basicUpgrades.messengerGodUpgrade.bought,
-      description: "Messenger God"
-    })),
-  ]);
-
-  const collisionTimeGainComputed = computed(
-    () => new Decimal(1)
-      // .add(chunksTab.chuckingChunksModifier.apply(0))
-      .times(baseTimeRateModifier.apply(1))
-      .times(dustTab.accelerationModifier.apply(1))
-      .times(milestones.firstMilestoneModifier.apply(1))
-      // .times(accelerators.timeAccelerator.bringItHomeEffect.value)
-      .pow(dustTab.collisionCourseEffect.value)
-      .pow(milestones.fourthMilestoneModifier.value)
-      .pow(chunksTab.collidingChunksEffect.value)
-      // collidingChunksModifier
-  );
-
-  baseLayer.on("update", diff => {
-    if (!unlocked.value) {
-      return;
-    }
-
-    collisionTime.value = Decimal.sub(
-      collisionTime.value,
-      Decimal.times(
-        collisionTimeGainComputed.value,
-        diff
-      )
-    ).clampMin(0);
-  });
-
-  const reset = createReset(() => ({
-    thingsToReset: (): Record<string, unknown>[] => [layer],
-    onReset: () => {
-      console.log('resetting mercury')
-    }
-  }));
-
-  const treeNode = createLayerTreeNode(() => ({
-    visibility: unlocked,
-    layerID: id,
-    color,
-    reset
-  }));
-
-  const tabs = createTabFamily({
-    dust: () => ({
-      display: "Dust",
-      tab: createTab(() => ({
-        display: dustTab.display
-      }))
-    }),
-    chunks: () => ({
-      visibility: dustTab.unlocks.chunks.bought,
-      display: () => (<>Chunks {Decimal.gte(unref((chunksTab.conversion as Conversion).actualGain), 1) ? "!" : null}</>),
-      tab: createTab(() => ({
-        display: chunksTab.display
-      }))
-    }),
-    accelerators: () => ({
-      visibility: dustTab.unlocks.accelerators.bought,
-      display: "Accelerators",
-      tab: createTab(() => ({ display: accelerators.display }))
-    }),
-    milestones: () => {
-      return {
-        visibility: dustTab.unlocks.chunks.bought,
-        display: "Milestones",
-        tab: createTab(() => ({
-          display: milestones.display
+    const baseTimeRateModifier = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.5,
+            enabled: dustTab.basicUpgrades.messengerGodUpgrade.bought,
+            description: "Messenger God"
         }))
-      };
-    }
-  })
+    ]);
 
-  return {
-    name,
-    color,
-    collisionTime,
-    maxCollisionTime,
-    tabs,
-    collisionTimeGainComputed,
-    display: () => (
-      <>
-        {Decimal.lt(collisionTime.value, 86400) ? (
-          <h2>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h2>
-        ) : (
-          <h2>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h2>
-        )}
+    const collisionTimeGainComputed = computed(() =>
+        new Decimal(1)
+            .add(milestones.eightyMilestoneEffect.value)
+            .times(baseTimeRateModifier.apply(1))
+            .times(milestones.firstMilestoneModifier.apply(1))
+            .times(solarLayer.mercuryTreeEffects.solarSpeed.value)
+            .times(dustTab.messengerGodModifier.apply(1))
+            .pow(dustTab.collisionCourseEffect.value)
+            .pow(milestones.fourthMilestoneModifier.value)
+            .pow(chunksTab.collidingChunksEffect.value)
+    );
 
-        <h4>-{format(collisionTimeGainComputed.value)}/s</h4>
-        {render(collisionTimeProgressBar)}
-        <Spacer/>
-        {render(tabs)}
-      </>
-    ),
-    treeNode,
-  };
+    const hasCollidedComputed = computed(() => Decimal.lte(collisionTime.value, 0));
+    // const hasCollidedComputed = computed(() => false);
+
+    baseLayer.on("update", diff => {
+        if (!unlocked.value || hasCollidedComputed.value) {
+            return;
+        }
+
+        collisionTime.value = Decimal.sub(
+            collisionTime.value,
+            Decimal.times(collisionTimeGainComputed.value, diff)
+        ).clampMin(0);
+    });
+
+    const reset = createReset(() => ({
+        thingsToReset: (): Record<string, unknown>[] => [layer]
+    }));
+
+    const showNotification = computed(() => {
+        return (
+            dustTab.showNotification.value ||
+            chunksTab.showNotification.value ||
+            accelerators.showNotification.value
+        );
+    });
+
+    const treeNode = createLayerTreeNode(() => ({
+        visibility: unlocked,
+        layerID: id,
+        display: () => <CelestialBodyIcon body={"Mercury"} />,
+        wrapper: <Tooltip display="Mercury" direction={Direction.Down}></Tooltip>,
+        glowColor: () => (showNotification.value ? color : null),
+        color,
+        reset
+    }));
+
+    const tabs = createTabFamily({
+        dust: () => ({
+            display: () => <>Dust {dustTab.showNotification.value ? "!" : null}</>,
+            tab: createTab(() => ({
+                display: dustTab.display
+            }))
+        }),
+        chunks: () => ({
+            visibility: () => dustTab.unlocks.chunks.bought.value,
+            display: () => <>Chunks {chunksTab.showNotification.value ? "!" : null}</>,
+            tab: createTab(() => ({
+                display: chunksTab.display
+            }))
+        }),
+        accelerators: () => ({
+            visibility: dustTab.unlocks.accelerators.bought,
+            display: () => <>Accelerators {accelerators.showNotification.value ? "!" : null}</>,
+            tab: createTab(() => ({ display: accelerators.display }))
+        }),
+        milestones: () => {
+            return {
+                visibility: dustTab.unlocks.chunks.bought,
+                display: "Milestones",
+                tab: createTab(() => ({
+                    display: milestones.display
+                }))
+            };
+        }
+    });
+
+    const secondsInOneDay = 86400;
+
+    const collisionTimeRemainingDisplay = computed(() => {
+        if (Decimal.lt(collisionTime.value, secondsInOneDay)) {
+            return <h3>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h3>;
+        }
+
+        return <h3>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h3>;
+    });
+
+    const collisionTimeGainDisplay = computed(() => {
+        let collisionTimeUnitDisplay;
+        if (Decimal.lt(collisionTime.value, secondsInOneDay)) {
+            collisionTimeUnitDisplay = (
+                <span>(-{format(Decimal.div(collisionTimeGainComputed.value, 3600))} hours)</span>
+            );
+        } else {
+            collisionTimeUnitDisplay = (
+                <span>(-{format(Decimal.div(collisionTimeGainComputed.value, 86400))} days)</span>
+            );
+        }
+
+        return (
+            <h4>
+                -{format(collisionTimeGainComputed.value)}/s {collisionTimeUnitDisplay}
+            </h4>
+        );
+    });
+
+    const regularDisplay = computed(() => (
+        <>
+            <h2>Mercury</h2>
+            <br />
+            {collisionTimeRemainingDisplay.value}
+
+            {collisionTimeGainDisplay.value}
+
+            <div
+                data-augmented-ui="border tl-clip"
+                style="border-color: var(--outline); width: 512px"
+            >
+                {render(collisionTimeProgressBar)}
+            </div>
+
+            <Spacer />
+            {render(tabs)}
+        </>
+    ));
+
+    const solarResetButton = createClickable(() => ({
+        classes: { "solar-reset-button": true },
+        display: {
+            title: "Mercury has collided with the Sun.",
+            description: "Reset for 1 Solar Energy & 1 Mercury Core."
+        },
+        // display: (
+        //     <>
+        //         <div class="celestial-body-icon">B</div>
+        //     </>
+        // ),
+        // display: (
+        //     <>
+        //         <div style="height: 100%">
+        //             <div class="flex">
+        //                 <CelestialBodyIcon
+        //                     body="Sun"
+        //                     style={{
+        //                         color: "#FFCC33",
+        //                         margin: "auto",
+        //                         fontSize: "24px"
+        //                     }}
+        //                 />
+        //             </div>
+        //             <div class="flex" style="flex-direction: column;">
+        //                 <h3>Mercury has collided with the Sun</h3>
+        //                 <div>"Reset for 1 Solar Energy & 1 Mercury Core.</div>
+        //             </div>
+        //         </div>
+        //     </>
+        // ),
+        onClick: () => {
+            solarLayer.energy.value = Decimal.add(solarLayer.energy.value, 1);
+            solarLayer.mercuryCores.value = Decimal.add(solarLayer.mercuryCores.value, 1);
+            totalResets.value = Decimal.add(totalResets.value, 1);
+            accelerators.fullReset();
+            milestones.fullReset();
+            chunksTab.fullReset();
+            dustTab.fullReset();
+            reset.reset();
+            collisionTime.value = maxCollisionTime;
+        }
+    }));
+    // const solarResetButton = (
+    //     <>
+    //         <div class="solar-reset-button">
+    //             <svg
+    //                 xmlns="http://www.w3.org/2000/svg"
+    //                 id="svg1"
+    //                 version="1.1"
+    //                 viewBox="0 0 2180 2184"
+    //             >
+    //                 <path
+    //                     id="path1"
+    //                     fill="currentColor"
+    //                     d="M1078 0q537 0 888 448 204 302 204 584v128q0 281-224 604-194 218-308 268-264 152-492 152h-128q-254 0-568-192-292-192-420-584-40-158-40-240v-132q0-266 204-592Q539 0 1078 0ZM234 1076v52q17 230 120 404 142 248 480 372 137 36 248 36 437 0 716-396 128-215 128-460 0-394-332-664-229-172-524-172-431 0-704 388-132 238-132 440Zm852-164q124 0 172 140 4 28 4 48 0 118-144 168-21 4-40 4-155 0-176-180 0-144 160-180z"
+    //                 />
+    //             </svg>
+    //         </div>
+    //     </>
+    // );
+
+    const collidedDisplay = computed(() => (
+        <>
+            <div style="height: 100%; display: flex;">{render(solarResetButton)}</div>
+        </>
+    ));
+
+    const renderDisplay = () => {
+        return hasCollidedComputed.value ? collidedDisplay.value : regularDisplay.value;
+    };
+
+    return {
+        name,
+        color,
+        collisionTime,
+        maxCollisionTime,
+        tabs,
+        collisionTimeGainComputed,
+        display: () => renderDisplay(),
+        treeNode,
+        totalResets,
+        unlocked,
+        solarResetButton,
+        hasCollidedComputed
+    };
 });
 
 export default layer;

@@ -56,6 +56,7 @@ export interface TabFamilyOptions extends VueFeatureOptions {
     buttonContainerStyle?: MaybeRefOrGetter<CSSProperties>;
 
     buttonStyle?: MaybeRefOrGetter<CSSProperties>;
+    buttonActiveStyle?: MaybeRefOrGetter<CSSProperties>;
 
     floating?: MaybeRefOrGetter<boolean>;
 }
@@ -94,7 +95,14 @@ export function createTabFamily<T extends TabFamilyOptions>(
     const selected = persistent(Object.keys(tabs)[0], false);
     return createLazyProxy(() => {
         const options = optionsFunc?.() ?? ({} as T);
-        const { buttonContainerClasses, buttonContainerStyle, buttonStyle, floating, ...props } = options;
+        const {
+            buttonContainerClasses,
+            buttonContainerStyle,
+            buttonStyle,
+            buttonActiveStyle,
+            floating,
+            ...props
+        } = options;
 
         const tabFamily = {
             type: TabFamilyType,
@@ -119,6 +127,7 @@ export function createTabFamily<T extends TabFamilyOptions>(
                         <TabButton
                             floating={tabFamily.floating}
                             style={tabFamily.buttonStyle}
+                            activeStyle={tabFamily.buttonActiveStyle}
                             display={tabButton.display}
                             glowColor={tabButton.glowColor}
                             active={unref(tabButton.tab) === unref(tabFamily.activeTab)}
@@ -136,6 +145,7 @@ export function createTabFamily<T extends TabFamilyOptions>(
             buttonContainerClasses: processGetter(buttonContainerClasses),
             buttonContainerStyle: processGetter(buttonContainerStyle),
             buttonStyle: processGetter(buttonStyle),
+            buttonActiveStyle: processGetter(buttonActiveStyle),
             floating: processGetter(floating),
             selected,
             activeTab: computed((): Tab | MaybeGetter<Renderable> | null => {

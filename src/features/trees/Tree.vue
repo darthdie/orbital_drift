@@ -10,19 +10,22 @@ import "components/common/table.css";
 import Links from "features/links/Links.vue";
 import type { Tree, TreeBranch, TreeNode } from "features/trees/tree";
 import { render } from "util/vue";
-import { MaybeRef, unref } from "vue";
+import { CSSProperties, MaybeRef, StyleValue, unref } from "vue";
 
 const props = defineProps<{
     nodes: MaybeRef<TreeNode[][]>;
     leftSideNodes?: MaybeRef<TreeNode[]>;
     rightSideNodes?: MaybeRef<TreeNode[]>;
     branches?: MaybeRef<TreeBranch[]>;
+    treeRowStyle?: MaybeRef<CSSProperties>;
 }>();
 
-const Nodes = () => unref(props.nodes).map(nodes => 
-    <span class="row tree-row" style="margin: 50px auto;">
+const Nodes = () => unref(props.nodes).map(nodes => {
+    const styles = props.treeRowStyle ? unref(props.treeRowStyle) : "margin: 50px auto;";
+    return <span class="row tree-row" style={styles}>
         {nodes.map(node => render(node))}
-    </span>);
+    </span>;
+});
     
 const LeftNodes = () => props.leftSideNodes == null ? <></> : 
     <span class="left-side-nodes small">

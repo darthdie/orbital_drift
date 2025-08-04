@@ -29,9 +29,10 @@ export interface ResetButtonOptions extends ClickableOptions {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: Conversion;
     /** The tree this reset button is apart of */
-    tree: Tree;
+    tree?: Tree;
     /** The specific tree node associated with this reset button */
     treeNode: TreeNode;
+    resetTree?: boolean;
     /**
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
@@ -66,9 +67,10 @@ export interface ResetButton extends Clickable {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: Conversion;
     /** The tree this reset button is apart of */
-    tree: Tree;
+    tree?: Tree;
     /** The specific tree node associated with this reset button */
     treeNode: TreeNode;
+    resetTree?: boolean;
     /**
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
@@ -104,6 +106,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
             display,
             canClick,
             onClick,
+            resetTree,
             ...props
         } = options;
 
@@ -112,6 +115,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
             conversion,
             tree,
             treeNode,
+            resetTree: resetTree ?? true,
             resetTime,
             resetDescription:
                 processGetter(resetDescription) ??
@@ -140,7 +144,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                             )}
                         </b>{" "}
                         {conversion.gainResource.displayName}
-                        {unref(resetButton.showNextAt) != false ? (
+                        {unref(resetButton.showNextAt) !== false ? (
                             <div>
                                 <br />
                                 {unref(conversion.buyMax) ? "Next:" : "Req:"}{" "}
@@ -161,7 +165,9 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                     return;
                 }
                 conversion.convert();
-                tree.reset(treeNode);
+                if (unref(resetButton.resetTree) === true && tree) {
+                    tree.reset(treeNode);
+                }
                 if (resetTime) {
                     resetTime.value = resetTime[DefaultValue];
                 }
@@ -520,7 +526,7 @@ export function setupSelectable<T>() {
 }
 
 export function chunkArray<T>(arr: T[], size: number) {
-  return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-    arr.slice(i * size, i * size + size)
-  );
+    return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+        arr.slice(i * size, i * size + size)
+    );
 }
