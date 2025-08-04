@@ -1,6 +1,8 @@
 import { createBar } from "features/bars/bar";
 import { createClickable } from "features/clickables/clickable";
 import { createResource, Resource } from "features/resources/resource";
+import Formula from "game/formulas/formulas";
+import { InvertibleFormula } from "game/formulas/types";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/bignum";
 import { Direction } from "util/common";
@@ -13,7 +15,7 @@ export interface LavaSubtype extends VueFeature {
     resource: Resource;
     capIncreases: Resource;
     cap: ComputedRef<DecimalSource>;
-    maxEffect: ComputedRef<DecimalSource>;
+    // maxEffect: ComputedRef<DecimalSource>;
     effect: ComputedRef<DecimalSource>;
     effectDisplay: ComputedRef<DecimalSource>;
     showNotification: ComputedRef<boolean>;
@@ -30,6 +32,7 @@ export interface LavaSubtypeOptions extends VueFeatureOptions {
     effectDisplayAugmentedUi: MaybeRefOrGetter<string>;
     effectDisplayTitle: MaybeRefOrGetter<string>;
     minimumEffect?: MaybeRefOrGetter<DecimalSource>;
+    effectModifier?: InvertibleFormula;
 }
 
 export function createLavaSubtype<T extends LavaSubtypeOptions>(
@@ -49,19 +52,32 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             augmentedUi,
             effectDisplayAugmentedUi,
             minimumEffect: _minimumEffect,
+            effectModifier: _effectModifier,
             ...props
         } = options;
+
+        const effectModifier = (_effectModifier ?? Formula.variable(0)) as InvertibleFormula;
 
         const cap = computed(() =>
             Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
         );
-        const maxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
+        const trueMaxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
+        const effectiveMaxEffect = computed(() =>
+            effectModifier.evaluate(Decimal.div(cap.value, maxEffectDivisor))
+        );
         const minimumEffect = processGetter(_minimumEffect) ?? Decimal.dZero;
         const effect = computed(() =>
-            calculateLavaEffect(resource.value, cap.value, unref(minimumEffect), maxEffect.value)
+            effectModifier.evaluate(
+                calculateLavaEffect(
+                    resource.value,
+                    cap.value,
+                    unref(minimumEffect),
+                    trueMaxEffect.value
+                )
+            )
         );
 
-        const effectDisplay = computed(() => effectDisplayBuilder(effect, maxEffect));
+        const effectDisplay = computed(() => effectDisplayBuilder(effect, effectiveMaxEffect));
 
         const bar = createBar(() => ({
             direction: Direction.Up,
@@ -120,7 +136,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             resource,
             capIncreases,
             cap,
-            maxEffect,
+            // maxEffect,
             effect,
             effectDisplay,
             showNotification,

@@ -12,6 +12,16 @@ import { createClickable } from "features/clickables/clickable";
 import { persistent } from "game/persistence";
 import { createReset } from "features/reset";
 import Section from "data/components/Section.vue";
+import Formula from "game/formulas/formulas";
+import tephraLayer from "./tephra";
+
+enum SilicateLavaConversion {
+    none,
+    felsic,
+    intermediate,
+    mafic,
+    ultramafic
+}
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
@@ -22,7 +32,8 @@ const silicateLayer = createLayer(id, baseLayer => {
             `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
         effectDisplayTitle: "Pressure Build Chance:",
         effectDisplayAugmentedUi: "border br-clip",
-        augmentedUi: "border tl-2-round-inset tr-clip"
+        augmentedUi: "border tl-2-round-inset tr-clip",
+        effectModifier: Formula.variable(0).times(ultramafic.effect)
     }));
 
     const intermediate = createLavaSubtype("Intermediate", () => ({
@@ -33,7 +44,8 @@ const silicateLayer = createLayer(id, baseLayer => {
         effectDisplayTitle: "Pressure Build Mult",
         effectDisplayAugmentedUi: "border br-clip bl-clip",
         augmentedUi: "border tl-clip tr-scoop-x",
-        minimumEffect: 1
+        minimumEffect: 1,
+        effectModifier: Formula.variable(0).times(ultramafic.effect)
     }));
 
     const mafic = createLavaSubtype("Mafic", () => ({
@@ -44,6 +56,18 @@ const silicateLayer = createLayer(id, baseLayer => {
         effectDisplayTitle: "Pressure Interval",
         effectDisplayAugmentedUi: "border bl-clip",
         augmentedUi: "border tl-scoop-x tr-2-clip-y",
+        minimumEffect: 1,
+        effectModifier: Formula.variable(0).times(ultramafic.effect)
+    }));
+
+    const ultramafic = createLavaSubtype("Ultramafic", () => ({
+        startingCap: 500,
+        maxEffectDivisor: 454.545,
+        effectDisplayBuilder: (effect, maxEffect) =>
+            `x${format(effect.value)}/x${format(maxEffect.value)}`,
+        effectDisplayTitle: "Increase to other Silicate Effects", // ??
+        effectDisplayAugmentedUi: "border",
+        augmentedUi: "border tr-clip tl-clip",
         minimumEffect: 1
     }));
 
@@ -178,59 +202,72 @@ const silicateLayer = createLayer(id, baseLayer => {
     });
 
     const selectedConversionLava = computed(() => {
-        switch (selectedConversionLavaIndex.value) {
-            case 0:
+        switch (selectedConversionLavaType.value) {
+            case SilicateLavaConversion.felsic:
                 return felsic;
-            case 1:
+            case SilicateLavaConversion.intermediate:
                 return intermediate;
-            case 2:
+            case SilicateLavaConversion.mafic:
                 return mafic;
+            case SilicateLavaConversion.ultramafic:
+                return ultramafic;
             default:
                 return null;
         }
     });
 
-    const conversionButtonClasses = (index: number) => {
+    const conversionButtonClasses = (type: SilicateLavaConversion) => {
         return {
-            toggled: selectedConversionLavaIndex.value === index,
+            toggled: selectedConversionLavaType.value === type,
             "fit-content": true,
             "conversion-toggle-button": true
         };
     };
 
-    const selectedConversionLavaIndex = persistent<number>(-1);
+    const selectedConversionLavaType = persistent<SilicateLavaConversion>(
+        SilicateLavaConversion.none
+    );
     const felsicConversionButton = createClickable(() => ({
-        canClick: () => selectedConversionLavaIndex.value !== 0,
-        classes: () => conversionButtonClasses(0),
+        canClick: () => selectedConversionLavaType.value !== SilicateLavaConversion.felsic,
+        classes: () => conversionButtonClasses(SilicateLavaConversion.felsic),
         display: "Convert to Felsic",
         onClick: () => {
-            selectedConversionLavaIndex.value = 0;
+            selectedConversionLavaType.value = SilicateLavaConversion.felsic;
         }
     }));
 
     const intermediateConversionButton = createClickable(() => ({
-        canClick: () => selectedConversionLavaIndex.value !== 1,
-        classes: () => conversionButtonClasses(1),
+        canClick: () => selectedConversionLavaType.value !== SilicateLavaConversion.intermediate,
+        classes: () => conversionButtonClasses(SilicateLavaConversion.intermediate),
         display: "Convert to Intermediate",
         onClick: () => {
-            selectedConversionLavaIndex.value = 1;
+            selectedConversionLavaType.value = SilicateLavaConversion.intermediate;
         }
     }));
 
     const maficConversionButton = createClickable(() => ({
-        canClick: () => selectedConversionLavaIndex.value !== 2,
-        classes: () => conversionButtonClasses(2),
+        canClick: () => selectedConversionLavaType.value !== SilicateLavaConversion.mafic,
+        classes: () => conversionButtonClasses(SilicateLavaConversion.mafic),
         display: "Convert to Mafic",
         onClick: () => {
-            selectedConversionLavaIndex.value = 2;
+            selectedConversionLavaType.value = SilicateLavaConversion.mafic;
+        }
+    }));
+
+    const ultramaficConversionButton = createClickable(() => ({
+        canClick: () => selectedConversionLavaType.value !== SilicateLavaConversion.ultramafic,
+        classes: () => conversionButtonClasses(SilicateLavaConversion.ultramafic),
+        display: "Convert to Ultramafic",
+        onClick: () => {
+            selectedConversionLavaType.value = SilicateLavaConversion.ultramafic;
         }
     }));
 
     const disableConversionButton = createClickable(() => ({
-        canClick: () => selectedConversionLavaIndex.value !== -1,
-        classes: () => conversionButtonClasses(-1),
+        canClick: () => selectedConversionLavaType.value !== SilicateLavaConversion.none,
+        classes: () => conversionButtonClasses(SilicateLavaConversion.none),
         display: "Disable Conversion",
-        onClick: () => (selectedConversionLavaIndex.value = -1)
+        onClick: () => (selectedConversionLavaType.value = SilicateLavaConversion.none)
     }));
 
     const showNotification = computed(() => {
@@ -257,6 +294,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         felsic,
         intermediate,
         mafic,
+        ultramafic,
         silicateBuyables,
         unlocked,
         felsicConversionButton,
@@ -264,7 +302,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         maficConversionButton,
         selectedConversionLava,
         disableConversionButton,
-        selectedConversionLavaIndex,
+        selectedConversionLavaType,
         showNotification,
         explosiveEruptionReset,
         display: () => (
@@ -301,6 +339,13 @@ const silicateLayer = createLayer(id, baseLayer => {
                                 {render(mafic)}
                             </div>
                         </div>
+
+                        {tephraLayer.upgrades.ultraMafic.bought.value ? (
+                            <div class="w-3/5">
+                                {render(ultramaficConversionButton)}
+                                {render(ultramafic)}
+                            </div>
+                        ) : null}
                     </Section>
 
                     <Section header="Buyables">{renderGroupedObjects(silicateBuyables, 4)}</Section>
