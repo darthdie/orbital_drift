@@ -18,6 +18,7 @@ import silicateLayer from "./venus/silicate";
 import { LavaSubtype } from "./venus/createLavaSubtype";
 import tephraLayer from "./venus/tephra";
 import milestonesLayer from "./venus/milestones";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import solarLayer from "./solar";
 
 const id = "V";
@@ -25,8 +26,8 @@ const layer = createLayer(id, () => {
     const name = "Venus";
     const color = "#f8e2b0";
 
-    const unlocked = computed(() => solarLayer.solarSystemUpgrades.venus.bought.value);
-    // const unlocked = computed(() => true);
+    // const unlocked = computed(() => solarLayer.solarSystemUpgrades.venus.bought.value);
+    const unlocked = computed(() => true);
 
     const planetMass = createResource<DecimalSource>(Decimal.fromNumber(2e256), "Planet Mass");
 

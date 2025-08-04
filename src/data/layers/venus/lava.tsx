@@ -38,7 +38,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const lavaMaxEffect = computed(() => Decimal.div(lavaCap.value, 25));
     const lavaEffect = computed(() =>
-        calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value)
+        calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value, 0.9)
     );
 
     const lavaEffectBuildAmount = computed(() => Decimal.add(5, allSevensEffect.value));
@@ -271,7 +271,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const passiveLavaGain = computed((): DecimalSource => {
         if (pressureLayer.upgrades.effusiveEruption.bought.value) {
-            return Decimal.times(1, 0.001)
+            return Decimal.fromNumber(0.005)
                 .add(milestonesLayer.oneMilestoneEffect.value)
                 .times(itsGettingHotInHereEffect.value)
                 .times(pressureLayer.lavaFlowffect.value)
