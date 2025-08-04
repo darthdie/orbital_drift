@@ -31,6 +31,7 @@ import acceleratorsLayer from "./accelerators";
 import { JSX } from "vue/jsx-runtime";
 import { createClickable } from "features/clickables/clickable";
 import "./dust.css";
+import Section from "data/components/Section.vue";
 
 // TODO:
 // Increase base chunk cost
@@ -935,19 +936,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     <Column>{renderGroupedObjects(repeatables, 4, tableStyles)}</Column>
                     <Spacer />
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
-                    <Column>{renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}</Column>
-                    <Spacer />
+                    <Section header="Upgrades">
+                        <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
+                        {acceleratorsLayer.dustAccelerator.upgrades.first.bought.value ? (
+                            <Column>
+                                {renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}
+                            </Column>
+                        ) : null}
+                    </Section>
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Unlocks</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
+                    <Section header="Unlocks">
+                        <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
+                    </Section>
                 </div>
             </>
         ),

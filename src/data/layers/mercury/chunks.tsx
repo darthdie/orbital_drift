@@ -22,6 +22,8 @@ import { createLazyProxy } from "util/proxies";
 import acceleratorsLayer from "./accelerators";
 import solarLayer from "../solar";
 import "./chunks.css";
+import Section from "data/components/Section.vue";
+import milestonesLayer from "./milestones";
 
 const id = "Mc";
 const layer = createLayer(id, () => {
@@ -539,12 +541,9 @@ const layer = createLayer(id, () => {
                     {render(resetButton)}
                     <Spacer />
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Spacer />
-                    {renderGroupedObjects(upgrades, 4)}
+                    {milestonesLayer.milestones.three.earned.value ? (
+                        <Section header="Upgrades">{renderGroupedObjects(upgrades, 4)}</Section>
+                    ) : null}
                 </div>
             </>
         )
