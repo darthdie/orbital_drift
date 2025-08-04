@@ -162,17 +162,42 @@ const layer = createLayer(id, baseLayer => {
         }
     });
 
+    const secondsInOneDay = 86400;
+
+    const collisionTimeRemainingDisplay = computed(() => {
+        if (Decimal.lt(collisionTime.value, secondsInOneDay)) {
+            return <h3>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h3>;
+        }
+
+        return <h3>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h3>;
+    });
+
+    const collisionTimeGainDisplay = computed(() => {
+        let collisionTimeUnitDisplay;
+        if (Decimal.lt(collisionTime.value, secondsInOneDay)) {
+            collisionTimeUnitDisplay = (
+                <span>(-{format(Decimal.div(collisionTimeGainComputed.value, 3600))} hours)</span>
+            );
+        } else {
+            collisionTimeUnitDisplay = (
+                <span>(-{format(Decimal.div(collisionTimeGainComputed.value, 86400))} days)</span>
+            );
+        }
+
+        return (
+            <h4>
+                -{format(collisionTimeGainComputed.value)}/s {collisionTimeUnitDisplay}
+            </h4>
+        );
+    });
+
     const regularDisplay = computed(() => (
         <>
             <h2>Mercury</h2>
             <br />
-            {Decimal.lt(collisionTime.value, 86400) ? (
-                <h3>{format(Decimal.div(collisionTime.value, 3600))} hours until collision</h3>
-            ) : (
-                <h3>{format(Decimal.div(collisionTime.value, 86400))} days until collision</h3>
-            )}
+            {collisionTimeRemainingDisplay.value}
 
-            <h4>-{format(Decimal.div(collisionTimeGainComputed.value, 86400))}/s</h4>
+            {collisionTimeGainDisplay.value}
 
             <div
                 data-augmented-ui="border tl-clip"
