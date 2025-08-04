@@ -849,7 +849,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.dZero;
         }
 
-        const base = Decimal.fromNumber(0.05);
+        const base = Decimal.fromNumber(
+            solarLayer.mercuryTreeUpgrades.snortingDust.bought.value ? 0.05 : 0
+        );
         if (chunksLayer.upgrades.grindingChunks.bought.value) {
             return Decimal.mul(chunksLayer.bestChunks.value, 0.01).add(base).clampMin(0.01);
         }
