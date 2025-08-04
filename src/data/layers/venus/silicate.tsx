@@ -55,6 +55,14 @@ const silicateLayer = createLayer(id, baseLayer => {
         return Decimal.dZero;
     });
 
+    const bringTheHeatEffect = computed(() => {
+        if (Decimal.gt(silicateBuyables.bringTheHeat.amount.value, 0)) {
+            return Decimal.times(0.1, silicateBuyables.bringTheHeat.amount.value).add(1);
+        }
+
+        return Decimal.dOne;
+    });
+
     const silicateBuyables = {
         feelTheHeat: createRepeatable(() => ({
             requirements: [
@@ -88,11 +96,39 @@ const silicateLayer = createLayer(id, baseLayer => {
             }
         })),
         bringTheHeat: createRepeatable(() => ({
-            requirements: [],
+            requirements: [
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: felsic.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                ),
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: intermediate.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                ),
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: mafic.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                )
+            ],
             display: {
                 title: "Bring The Heat",
-                description: "Decrease amount of Lava needed for conversion by ? per level",
-                effectDisplay: () => ``
+                description: "Decrease amount of Lava needed for conversion by 1.1 per level",
+                effectDisplay: (): string => `÷${format(bringTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
@@ -101,7 +137,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionFromRate = computed(() => 1);
+    const lavaConversionFromRate = computed(() => Decimal.div(1, bringTheHeatEffect.value));
     const lavaConversionToRate = computed(() =>
         Decimal.fromNumber(0.1).add(feelTheHeatEffect.value)
     );
@@ -239,10 +275,14 @@ const silicateLayer = createLayer(id, baseLayer => {
                             data-augmented-ui="border tl-2-clip-y br-round-x"
                             class="flex-1 w-[300px] px-8 py-4 mb-4"
                         >
+                            <h5>Turn Molten Lava into Silicate Lava for buffs</h5>
                             <h5 class="font-semibold">
-                                {format(lavaConversionFromRate.value)} Lava is converted to{" "}
-                                {format(lavaConversionToRate.value)} Silicate over{" "}
-                                {format(lavaConversionTimeRate.value)} seconds.
+                                Conversion rate is {format(lavaConversionFromRate.value)} Lava to{" "}
+                                {format(lavaConversionToRate.value)} Silicate
+                            </h5>
+                            <h5 class="font-semibold">
+                                Conversion takes place over {format(lavaConversionTimeRate.value)}{" "}
+                                seconds
                             </h5>
                         </div>
 
