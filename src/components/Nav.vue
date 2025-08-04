@@ -99,7 +99,7 @@ import Changelog from "data/Changelog.vue";
 import projInfo from "data/projInfo.json";
 import settings from "game/settings";
 import { Direction } from "util/common";
-// import { galaxy, syncedSaves } from "util/galaxy";
+import { galaxy, syncedSaves } from "util/galaxy";
 import { computed, ref } from "vue";
 import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import Info from "./modals/Info.vue";
@@ -118,8 +118,7 @@ function openDiscord() {
 }
 
 const needsSync = computed(
-    // () => galaxy.value?.loggedIn === true && !syncedSaves.value.includes(settings.active)
-    () => false
+    () => galaxy.value?.loggedIn === true && !syncedSaves.value.includes(settings.active)
 );
 </script>
 

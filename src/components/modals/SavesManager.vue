@@ -65,7 +65,7 @@ import type { Player } from "game/player";
 import player, { stringifySave } from "game/player";
 import settings from "game/settings";
 import LZString from "lz-string";
-// import { galaxy, syncedSaves } from "util/galaxy";
+import { galaxy, syncedSaves } from "util/galaxy";
 import {
     clearCachedSave,
     clearCachedSaves,
@@ -156,8 +156,7 @@ const saves = computed(() =>
 );
 
 const showNotSyncedWarning = computed(
-    // () => galaxy.value?.loggedIn === true && settings.saves.length < syncedSaves.value.length
-    () => false
+    () => galaxy.value?.loggedIn === true && settings.saves.length < syncedSaves.value.length
 );
 
 function exportSave(id: string) {

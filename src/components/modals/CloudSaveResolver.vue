@@ -1,5 +1,4 @@
-<template></template>
-<!-- <template>
+<template>
     <Modal v-model="isOpen" width="960px" ref="modal" :prevent-closing="true">
         <template v-slot:header>
             <div class="cloud-saves-modal-header">
@@ -226,4 +225,4 @@ function close() {
 .conflict-container .selected .save {
     border-color: var(--bought);
 }
-</style> -->
+</style>
