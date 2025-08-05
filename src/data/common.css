@@ -31,21 +31,20 @@
 
 @font-face {
     font-family:"AstronomicSigns";
-    src: url("../assets/fonts/AstronomicSignsSt.ttf");
-    ascent-override: 65%;
+    src: url("../assets/fonts/AstronomicSignsSt.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
 .celestial-body-icon {
     font-family:"AstronomicSigns";
     display: flex;
-    margin: 0;
 }
 
 .feature.squashed-clickable .clickable {
     min-height: 0;
     width: 100%;
     margin: 0;
-    /* border-bottom-left-radius: 8px; */
 }
 
 .grouped-table {

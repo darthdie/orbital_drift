@@ -30,6 +30,10 @@
   --color-venus-950: oklch(17.57% 0.023 87.38);
 }
 
+* {
+    touch-action: manipulation;
+}
+
 :root {
     color-scheme: dark;
 }
