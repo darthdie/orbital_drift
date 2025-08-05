@@ -86,11 +86,11 @@ const layer = createLayer(id, () => {
                     description: "Unlock Venus"
                 },
                 requirements: [
-                    createCostRequirement(() => ({
-                        resource: mercuryCores,
-                        cost: 3,
-                        requiresPay: false
-                    })),
+                    // createCostRequirement(() => ({
+                    //     resource: mercuryCores,
+                    //     cost: 3,
+                    //     requiresPay: false
+                    // })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
                 ],
                 classes: { "solar-tree-node": true }
@@ -125,13 +125,13 @@ const layer = createLayer(id, () => {
     }));
 
     const displayGlow = computed(() => {
-        const solarSystemPurchaseable = Object.values(solarSystemUpgrades).some(
-            u => u.canPurchase.value
-        );
+        // const solarSystemPurchaseable = Object.values(solarSystemUpgrades).some(
+        //     u => u.canPurchase.value
+        // );
         const mercuryTreePurchasable = Object.values(mercuryTreeUpgrades).some(
             u => u.canPurchase.value
         );
-        return solarSystemPurchaseable || mercuryTreePurchasable;
+        return /*solarSystemPurchaseable ||*/ mercuryTreePurchasable;
     });
 
     const treeNode = createLayerTreeNode(() => ({
