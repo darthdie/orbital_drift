@@ -15,11 +15,6 @@
         accent-color: var(--color-venus-400);
     }
 
-    .normal-repeatable .clickable {
-        height: 200px;
-        width: 150px;
-    }
-
     .conversion-toggle-button {
         .clickable {
             width: 142px;
@@ -31,22 +26,6 @@
             color: var(--color-venus-100);
             background-color: var(--bought);
             cursor: default;
-        }
-    }
-
-    .sd-upgrade .clickable, .normal-repeatable .clickable {
-        &.can {
-            color: var(--color-venus-700);
-
-            .upgrade-content {
-                color: var(--color-venus-800);
-            }
-        }
-
-        &.locked {
-            .upgrade-content {
-                color: var(--color-venus-100);
-            }
         }
     }
 }

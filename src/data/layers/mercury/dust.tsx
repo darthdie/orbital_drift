@@ -40,7 +40,7 @@ import Section from "data/components/Section.vue";
 const id = "Md";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const name = "Mercury";
-    const color = "#b1adad";
+    const color = "#8c8c94";
 
     const mercurialDust = createResource(0, "Mercurial Dust", 2);
     const totalMercurialDust = trackTotal(mercurialDust);

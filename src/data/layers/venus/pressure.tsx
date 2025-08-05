@@ -333,6 +333,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         )
     };
 
+    // Probably softcap?
     const tephraUpgrades = {
         placeholder1: createUpgrade(() => ({
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,

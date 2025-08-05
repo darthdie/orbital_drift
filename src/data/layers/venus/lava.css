@@ -1,20 +1,4 @@
 #lava-layer {
-    .sd-upgrade .clickable, .normal-repeatable .clickable {
-        &.can {
-            color: var(--color-venus-700);
-
-            .upgrade-content {
-                color: var(--color-venus-800);
-            }
-        }
-
-        &.locked {
-            .upgrade-content {
-                color: var(--color-venus-100);
-            }
-        }
-    }
-
     .increase-lava-cap .clickable {
         border: none;
         margin: 0;

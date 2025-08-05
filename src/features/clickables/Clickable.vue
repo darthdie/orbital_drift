@@ -66,4 +66,34 @@ const { start, stop } = setupHoldToClick(() => emits("hold"));
 .clickable > * {
     pointer-events: none;
 }
+
+.repeatable .clickable {
+    border: 0;
+    height: 200px;
+    width: 150px;
+    box-sizing: border-box;
+    .repeatable-content {
+        padding-bottom: 22px;
+    }
+}
+
+.sd-upgrade .clickable {
+    height: 150px;
+    width: 130px;
+    border: 0;
+    box-sizing: border-box;
+}
+
+.reset-button, .sd-upgrade, .repeatable {
+    .clickable {
+        &.locked {
+            color: oklch(from var(--layer-color) calc(l + 0.3) c h);
+        }
+
+        &.can {
+            color: oklch(from var(--layer-color) calc(l - 0.5) c h);
+        }
+    }
+}
+
 </style>

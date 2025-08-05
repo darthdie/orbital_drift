@@ -94,23 +94,6 @@ code {
     font-family: monospace;
 }
 
-.normal-repeatable .clickable {
-    border: 0;
-    height: 180px;
-    width: 130px;
-    box-sizing: border-box;
-    .repeatable-content {
-        padding-bottom: 22px;
-    }
-}
-
-.sd-upgrade .clickable {
-    height: 150px;
-    width: 130px;
-    border: 0;
-    box-sizing: border-box;
-}
-
 .sd-upgrade.unlock .clickable {
     .upgrade-content .requirements {
         padding-bottom: 24px;

@@ -1,20 +1,4 @@
 #pressure-tab {
-    .sd-upgrade .clickable {
-        &.can {
-            color: var(--color-venus-700);
-
-            .upgrade-content {
-                color: var(--color-venus-800);
-            }
-        }
-
-        &.locked {
-            .upgrade-content {
-                color: var(--color-venus-100);
-            }
-        }
-    }
-
     /* .volcano-wrapper {
         width: 312px;
         height: 125px;
