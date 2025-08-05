@@ -107,11 +107,25 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
             canClick,
             onClick,
             resetTree,
+            classes: _classes,
             ...props
         } = options;
 
+        let classes;
+        if (_classes == null) {
+            classes = computed(() => ({
+                "reset-button": true
+            }));
+        } else {
+            classes = computed(() => ({
+                ...unref(processGetter(_classes)),
+                "reset-button": true
+            }));
+        }
+
         return {
             ...(props as Omit<typeof props, keyof ResetButtonOptions>),
+            classes,
             conversion,
             tree,
             treeNode,
@@ -165,7 +179,7 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                     return;
                 }
                 conversion.convert();
-                if (resetTree && tree) {
+                if (unref(resetButton.resetTree) === true && tree) {
                     tree.reset(treeNode);
                 }
                 if (resetTime) {

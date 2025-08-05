@@ -17,10 +17,6 @@
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }
 
-.gap-4 {
-    gap: 1rem;
-}
-
 .feature.small .treeNode {
     height: 64px;
     width: 64px;
@@ -33,69 +29,22 @@
     padding: 8px;
 }
 
-.flex {
-    display: flex;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.mx-0 {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.m-0 {
-    margin: 0;
-}
-
 @font-face {
     font-family:"AstronomicSigns";
-    src: url("../assets/fonts/AstronomicSignsSt.ttf");
-    ascent-override: 65%;
+    src: url("../assets/fonts/AstronomicSignsSt.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
 .celestial-body-icon {
     font-family:"AstronomicSigns";
     display: flex;
-    margin: 0;
 }
 
 .feature.squashed-clickable .clickable {
     min-height: 0;
     width: 100%;
     margin: 0;
-    /* border-bottom-left-radius: 8px; */
-}
-
-.cappable-resource-container {
-    border-radius: 0 0 8px 8px;
-    border: 2px solid var(--raised-background);
-    margin: 0;
-    flex: 1;
-
-    .title {
-        padding-bottom: 2px;
-    }
-
-    .feature .bar .border {
-        border-top: 2px solid var(--raised-background);
-        border-bottom: none;
-    }
-
-    .resource-display {
-        background: var(--raised-background);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 6px;
-    }
-
-    .increase-cap-action .clickable {
-        border-radius: 0 0 8px 8px;
-    }
 }
 
 .grouped-table {
@@ -143,23 +92,6 @@
 
 code {
     font-family: monospace;
-}
-
-.normal-repeatable .clickable {
-    border: 0;
-    height: 180px;
-    width: 130px;
-    box-sizing: border-box;
-    .repeatable-content {
-        padding-bottom: 22px;
-    }
-}
-
-.sd-upgrade .clickable {
-    height: 150px;
-    width: 130px;
-    border: 0;
-    box-sizing: border-box;
 }
 
 .sd-upgrade.unlock .clickable {

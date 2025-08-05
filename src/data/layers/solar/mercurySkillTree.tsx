@@ -3,7 +3,7 @@ import {
     blankSkillTreeNode,
     createSkillTreeNodeRequirement
 } from "data/features/skill_tree/skillTree";
-import { createUpgrade, UpgradeOptions } from "features/clickables/upgrade";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/clickables/upgrade";
 import { noPersist } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
 import { Resource } from "features/resources/resource";
@@ -33,7 +33,7 @@ export function createMercurySkillTree(mercuryCores: Resource<DecimalSource>) {
         return upgrades.likeThatBlueGuy.bought.value ? 1.5 : 1;
     });
 
-    const upgrades = {
+    const upgrades: Record<string, Upgrade> = {
         solarFriedDust: createUpgrade(
             (): UpgradeOptions => ({
                 requirements: createCostRequirement(() => ({

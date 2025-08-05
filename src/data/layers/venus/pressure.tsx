@@ -1,0 +1,470 @@
+import { format } from "util/break_eternity";
+import { createResource, trackBest } from "features/resources/resource";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { computed } from "vue";
+import { createBar } from "features/bars/bar";
+import { Direction } from "util/common";
+import { render, renderGroupedObjects } from "util/vue";
+import { createLayer } from "game/layers";
+import "./pressure.css";
+import lavaLayer from "./lava";
+import { createUpgrade } from "features/clickables/upgrade";
+import { CostRequirementOptions, createCostRequirement } from "game/requirements";
+import Formula from "game/formulas/formulas";
+import silicateLayer from "./silicate";
+import { createReset } from "features/reset";
+import tephraLayer from "./tephra";
+import Section from "data/components/Section.vue";
+import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
+
+const random = () => Math.random() * 100;
+
+const id = "VP";
+const pressureLayer = createLayer(id, baseLayer => {
+    const pressure = createResource<DecimalSource>(1, "Pressure");
+    const bestPressure = trackBest(pressure);
+
+    const pressureTimer = createResource<DecimalSource>(0);
+    const pressureTimerMax = computed(
+        (): DecimalSource =>
+            Formula.variable(15)
+                .times(pressureSoftcapDivisor)
+                .div(silicateLayer.mafic.effect.value)
+                .div(tephraLayer.greenIsNotACreativeColorEffect.value)
+                .div(anxietyInducingEffect.value)
+                .evaluate()
+    );
+
+    const pressureChance = computed(
+        (): Decimal =>
+            Decimal.add(10, silicateLayer.felsic.effect.value)
+                .add(whatreTheOddsEffect.value)
+                .times(tephraLayer.gamblingManEffect.value)
+                .clampMax(100)
+    );
+    const pressureChanceMaxed = computed(() => Decimal.gte(pressureChance.value, 100));
+    const pressureGainMultiplier = computed(
+        (): Decimal =>
+            Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+                .add(imFineEffect.value)
+                .times(tephraLayer.blobTheBuilderEffect.value)
+    );
+
+    const pressureSoftcapDivisor = Formula.if(
+        Formula.variable(pressure),
+        () => Decimal.lt(pressure.value, 1e25),
+        f => f.min(1),
+        // Increase interval for every OOM past 1e25
+        f => f.sub(1e25).add(10).log10().cbrt().clampMin(1)
+    );
+
+    const pressureMax = computed((): DecimalSource => {
+        const pow = Decimal.pow(2, lavaLayer.eruptions.value);
+        return Decimal.fromNumber(1e25).pow(pow).pow(tephraLayer.youreGonnaMakeMeBlowEffect.value);
+    });
+    const pressureCapped = computed(() => Decimal.gte(pressure.value, pressureMax.value));
+
+    const unlocked = computed(() => true);
+
+    const pressureBar = createBar(() => ({
+        direction: Direction.Right,
+        height: 24,
+        width: "100%",
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline)"
+        },
+        display: () => (
+            <span class="text-shadow-lg text-venus-500">
+                {format(pressure.value)}/{format(pressureMax.value)}
+            </span>
+        ),
+        progress: () => Decimal.div(Decimal.ln(pressure.value), Decimal.ln(pressureMax.value))
+    }));
+
+    const pressureTimerBar = createBar(() => ({
+        direction: Direction.Right,
+        height: 24,
+        width: "100%",
+        progress: () => Decimal.div(pressureTimer.value, pressureTimerMax.value),
+        display: () => (
+            <span class="text-shadow-lg text-venus-500">
+                {format(Decimal.sub(pressureTimerMax.value, pressureTimer.value))}
+            </span>
+        ),
+        style: {
+            overflow: "hidden"
+        },
+        borderStyle: {
+            borderRadius: "0",
+            borderColor: "var(--outline)"
+        }
+    }));
+
+    baseLayer.on("preUpdate", diff => {
+        if (!unlocked.value) {
+            return;
+        }
+
+        tickPressure(diff);
+    });
+
+    function tickPressure(diff: number) {
+        if (pressureCapped.value) {
+            pressureTimer.value = Decimal.dZero;
+            return;
+        }
+
+        pressureTimer.value = Decimal.add(pressureTimer.value, Decimal.times(1, diff));
+
+        if (pressureTimer.value.lt(pressureTimerMax.value)) {
+            return;
+        }
+
+        pressureTimer.value = 0;
+
+        const rng = random();
+        if (Decimal.gte(pressureChance.value, rng)) {
+            let buildAmount = pressureGainMultiplier.value;
+
+            if (Decimal.gt(lavaLayer.lavaEffect.value, 0)) {
+                if (Decimal.gte(lavaLayer.lavaEffect.value, random())) {
+                    buildAmount = buildAmount.times(lavaLayer.lavaEffectBuildAmount.value);
+                    console.log("KICK");
+                }
+            }
+
+            pressure.value = Decimal.multiply(
+                Decimal.clampMin(pressure.value, 1),
+                buildAmount
+            ).clampMax(pressureMax.value);
+        }
+    }
+
+    const lavaFlowffect = computed(() => {
+        if (upgrades.lavaFlow.bought.value) {
+            return Decimal.add(pressure.value, 1)
+                .log10()
+                .cbrt()
+                .times(underPressureEffect.value)
+                .times(redHotEffect.value)
+                .clampMin(1);
+            // return Decimal.fromNumber(2);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const underPressureEffect = computed(() => {
+        if (upgrades.underPressure.bought.value) {
+            return Decimal.fromNumber(2);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const redHotEffect = computed(() => {
+        if (upgrades.redHot.bought.value) {
+            return Decimal.log(pressure.value, 1e15).sqrt().clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    // Eventually, upgrades to reduce softcap.
+    const upgrades = {
+        effusiveEruption: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 5
+            })),
+            display: {
+                title: "Effusive Eruption",
+                description: "Unlock Lava & Passive Lava gain.",
+                effectDisplay: () => `${format(lavaLayer.passiveLavaGain.value)}/s`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        lavaFlow: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 100
+            })),
+            display: {
+                title: "Lava Flow",
+                description: "Increase Effusive Eruption based on Pressure.",
+                effectDisplay: () => `x${format(lavaFlowffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        underPressure: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e6
+            })),
+            display: {
+                title: "Under Pressure",
+                description: "Double the effect of 'Lava Flow'",
+                effectDisplay: () => `x${format(underPressureEffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        redHot: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e15
+            })),
+            display: {
+                title: "Red Hot",
+                description: "Increase the effect of 'Lava Flow' based Pressure.",
+                effectDisplay: () => `x${format(redHotEffect.value)}`
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        }))
+        // Uncap pressure chance, and each /100% has a chance to proc?
+    };
+
+    const whatreTheOddsEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.whatreTheOdds.amount.value, 0)) {
+            return Decimal.times(0.25, tephraBuyables.whatreTheOdds.amount.value);
+        }
+
+        return Decimal.dZero;
+    });
+
+    const imFineEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.imFine.amount.value, 0)) {
+            return Decimal.times(0.25, tephraBuyables.imFine.amount.value);
+        }
+
+        return Decimal.dZero;
+    });
+
+    const anxietyInducingEffect = computed(() => {
+        if (Decimal.gt(tephraBuyables.anxietyInducing.amount.value, 0)) {
+            return Decimal.times(0.01, tephraBuyables.anxietyInducing.amount.value).add(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const tephraBuyables = {
+        whatreTheOdds: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        // 100 is the starting cost, increase by an OOM every level
+                        cost: Formula.variable(100).times(
+                            Formula.pow(10, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "What're The Odds?",
+                    description: "Increase base Pressure Build Chance by +0.25% per level.",
+                    effectDisplay: (): string => `+${format(whatreTheOddsEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        ),
+        imFine: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        cost: Formula.variable(1e4).times(
+                            Formula.pow(100, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "I'M FINE",
+                    description: "Increase base Pressure Build Mult by +0.25 per level.",
+                    effectDisplay: (): string => `+${format(imFineEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        ),
+        anxietyInducing: createRepeatable(
+            (): RepeatableOptions => ({
+                visibility: tephraLayer.upgrades.shinyRocks.bought,
+                requirements: createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: pressure,
+                        cost: Formula.variable(1e7).times(
+                            Formula.pow(10000, tephraBuyables.whatreTheOdds.amount)
+                        )
+                    })
+                ),
+                display: {
+                    title: "anxiety inducING",
+                    description: "Decrease Pressure Interval by ÷1.01 per level.",
+                    effectDisplay: (): string => `+${format(anxietyInducingEffect.value)}`
+                },
+                classes: { "normal-repeatable": true },
+                clickableDataAttributes: {
+                    "augmented-ui": "border bl-scoop-x"
+                }
+            })
+        )
+    };
+
+    // Probably softcap?
+    const tephraUpgrades = {
+        placeholder1: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e30
+            })),
+            display: "Placeholder 1",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder2: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e50
+            })),
+            display: "Placeholder 2",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder3: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e100
+            })),
+            display: "Placeholder 3",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder4: createUpgrade(() => ({
+            visibility: tephraLayer.upgrades.secretsLongBuried.bought,
+            requirements: createCostRequirement(() => ({
+                resource: pressure,
+                cost: 1e250
+            })),
+            display: "Placeholder 4",
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        }))
+    };
+
+    const eruptionPressureDivisor = 0.6;
+    const eruptionPenalityDisplay = computed(() => Decimal.add(eruptionPressureDivisor, 1));
+
+    const showNotification = computed(() => {
+        return unlocked.value && Object.values(upgrades).some(u => u.canPurchase.value);
+    });
+
+    const explosiveEruptionReset = createReset(() => ({
+        thingsToReset: (): Record<string, unknown>[] => [pressureLayer]
+    }));
+
+    return {
+        pressure,
+        bestPressure,
+        pressureTimer,
+        eruptionPenalityDisplay,
+        pressureBar,
+        pressureTimerMax,
+        pressureChance,
+        pressureGainMultiplier,
+        pressureTimerBar,
+        pressureSoftcapDivisor,
+        pressureMax,
+        lavaFlowffect,
+        pressureCapped,
+        upgrades,
+        showNotification,
+        explosiveEruptionReset,
+        tephraUpgrades,
+        tephraBuyables,
+        display: () => (
+            <>
+                <div id="pressure-tab">
+                    <Section header="Volcano">
+                        <div class="w-[312px] mb-2">
+                            <div
+                                data-augmented-ui="border tl-clip-y tr-round-inset"
+                                class="border-(--outline)"
+                            >
+                                <div class="p-4">
+                                    <h3>{pressure.displayName}</h3>
+                                    <h6 class="font-semibold">
+                                        {format(pressureChance.value)}%
+                                        {pressureChanceMaxed.value ? " (capped)" : null} chance for
+                                        pressure to build by x{format(pressureGainMultiplier.value)}{" "}
+                                        every {format(pressureTimerMax.value)} seconds.
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div
+                                data-augmented-ui="border bl-clip"
+                                class="border-(--outline)"
+                                id="pressure-timer-bar"
+                            >
+                                {render(pressureTimerBar)}
+                            </div>
+
+                            <div data-augmented-ui="border br-clip" class="border-(--outline)">
+                                {render(pressureBar)}
+                            </div>
+                        </div>
+
+                        <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
+                    </Section>
+
+                    {tephraLayer.upgrades.shinyRocks.bought.value ? (
+                        <Section header="Buyables">
+                            {renderGroupedObjects(tephraBuyables, 4)}
+                        </Section>
+                    ) : null}
+
+                    <Section header="Upgrades">
+                        {renderGroupedObjects(upgrades, 4)}
+                        {renderGroupedObjects(tephraUpgrades, 4)}
+                    </Section>
+                </div>
+            </>
+        )
+    };
+});
+
+export default pressureLayer;

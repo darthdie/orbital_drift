@@ -22,6 +22,8 @@ import { createLazyProxy } from "util/proxies";
 import acceleratorsLayer from "./accelerators";
 import solarLayer from "../solar";
 import "./chunks.css";
+import Section from "data/components/Section.vue";
+import milestonesLayer from "./milestones";
 
 const id = "Mc";
 const layer = createLayer(id, () => {
@@ -435,7 +437,7 @@ const layer = createLayer(id, () => {
     }));
 
     const reset = createReset(() => ({
-        thingsToReset: (): Record<string, unknown>[] => [dustLayer, mercuryLayer]
+        thingsToReset: (): Record<string, unknown>[] => [] // dustLayer, mercuryLayer
     }));
 
     const resetButton = createResetButton(() => ({
@@ -474,6 +476,9 @@ const layer = createLayer(id, () => {
         ),
         dataAttributes: {
             "augmented-ui": "border br-round-inset tl-clip"
+        },
+        onClick: () => {
+            dustLayer.reset.reset();
         }
     }));
 
@@ -536,12 +541,9 @@ const layer = createLayer(id, () => {
                     {render(resetButton)}
                     <Spacer />
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Spacer />
-                    {renderGroupedObjects(upgrades, 4)}
+                    {milestonesLayer.milestones.three.earned.value ? (
+                        <Section header="Upgrades">{renderGroupedObjects(upgrades, 4)}</Section>
+                    ) : null}
                 </div>
             </>
         )

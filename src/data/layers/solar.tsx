@@ -7,7 +7,7 @@ import { createResource, trackBest, trackTotal } from "features/resources/resour
 import { createLayer } from "game/layers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, createCountRequirement } from "game/requirements";
-import Decimal, { DecimalSource } from "lib/break_eternity";
+import { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -22,6 +22,7 @@ import {
 import { createMercurySkillTree } from "./solar/mercurySkillTree";
 import mercuryLayer from "./mercury";
 import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
+import { fibonacciCostFormula } from "data/formulas";
 
 const id = "S";
 const layer = createLayer(id, () => {
@@ -87,7 +88,8 @@ const layer = createLayer(id, () => {
                 requirements: [
                     createCostRequirement(() => ({
                         resource: mercuryCores,
-                        cost: 5
+                        cost: 3,
+                        requiresPay: false
                     })),
                     createSkillTreeNodeRequirement(solarSystemUpgrades.mercury)
                 ],
@@ -140,25 +142,12 @@ const layer = createLayer(id, () => {
         reset
     }));
 
-    const fibFormula = (amount: DecimalSource): DecimalSource => {
-        if (Decimal.lte(amount, 1)) {
-            return 1;
-        }
-
-        let a = 1,
-            b = 1;
-        for (let i = 2; Decimal.lte(i, amount); i++) {
-            [a, b] = [b, a + b];
-        }
-        return b;
-    };
-
     const converters = {
         solarEnergy: createRepeatable(
             (): RepeatableOptions => ({
                 requirements: createCostRequirement(() => ({
                     resource: energy,
-                    cost: () => fibFormula(converters.solarEnergy.amount.value)
+                    cost: () => fibonacciCostFormula(converters.solarEnergy.amount.value)
                 })),
                 display: {
                     showAmount: false,

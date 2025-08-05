@@ -110,15 +110,20 @@ export function renderCol(...objects: RenderableObjectsArray): JSX.Element {
 }
 
 export function joinJSX(objects: RenderableObjectsArray, joiner: JSX.Element): JSX.Element {
-    return objects.reduce<JSX.Element>(
-        (acc, curr) => (
-            <>
-                {acc}
-                {joiner}
-                {render(curr)}
-            </>
-        ),
-        <></>
+    // return objects.reduce<JSX.Element>((acc, curr) => {
+    //     if (acc == null) {
+    //         console.log("??", {acc, curr})
+    //         return <>{render(curr)}</>;
+    //     }
+    //     <>
+    //         {acc}
+    //         {joiner}
+    //         {render(curr)}
+    //     </>;
+    // }, null);
+
+    return (
+        <>{objects.flatMap((el, index) => (index === objects.length - 1 ? [el] : [el, joiner]))}</>
     );
 }
 
@@ -147,6 +152,39 @@ export function renderGroupedObjects(
         <>
             <div class="table grouped-table">
                 {chunkedObjects.map(group => (
+                    <>
+                        <div style={style} class={classes}>
+                            {group.map(object => render(object))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </>
+    );
+}
+
+export function renderGroupedItemBuilder(
+    items: (index: number) => Renderable,
+    itemCount: number,
+    groupSize: number,
+    style?: string,
+    klass?: string
+) {
+    const mergeAdjacent = true;
+
+    const classes = [...classNames({ row: true, mergeAdjacent: mergeAdjacent }), klass];
+
+    const builtItems: Renderable[] = [];
+    for (let i = 0; i < itemCount; i++) {
+        builtItems.push(items(i));
+    }
+
+    const chunkedItems = chunkArray(builtItems, groupSize);
+
+    return render(
+        <>
+            <div class="table grouped-table">
+                {chunkedItems.map(group => (
                     <>
                         <div style={style} class={classes}>
                             {group.map(object => render(object))}

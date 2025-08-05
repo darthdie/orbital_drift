@@ -1,4 +1,4 @@
-import { createAchievement } from "features/achievements/achievement";
+import { Achievement, createAchievement } from "features/achievements/achievement";
 import { createLayer } from "game/layers";
 import { computed } from "vue";
 import chunksTab from "./chunks";
@@ -34,8 +34,8 @@ const layer = createLayer(id, () => {
     ]);
 
     const fourthMilestoneModifier = computed((): DecimalSource => {
-        if (milestones.four.earned.value === true) {
-            const pow = milestones.six.earned.value === true ? 0.65 : 0.5;
+        if (milestones.four.earned.value) {
+            const pow = milestones.six.earned.value ? 0.65 : 0.5;
             return Decimal.add(chunksTab.bestChunks.value, 1).slog().pow(pow).clampMin(1);
         }
 
@@ -43,7 +43,7 @@ const layer = createLayer(id, () => {
     });
 
     const fiftyMilestoneEffect = computed((): DecimalSource => {
-        if (milestones.fifty.earned.value === true) {
+        if (milestones.fifty.earned.value) {
             return Decimal.add(chunksTab.bestChunks.value, 1).log10().clampMin(1);
         }
 
@@ -51,7 +51,7 @@ const layer = createLayer(id, () => {
     });
 
     const eightyMilestoneEffect = computed((): DecimalSource => {
-        if (milestones.eighty.earned.value === true) {
+        if (milestones.eighty.earned.value) {
             return Decimal.pow(chunksTab.bestChunks.value, 1.1);
         }
 
@@ -63,14 +63,14 @@ const layer = createLayer(id, () => {
     );
 
     const hundredFiftyEffect = computed(() => {
-        if (milestones.hundredFifty.earned.value === true) {
+        if (milestones.hundredFifty.earned.value) {
             return Decimal.sqrt(chunksTab.bestChunks.value);
         }
 
         return Decimal.dOne;
     });
 
-    const milestones = {
+    const milestones: Record<string, Achievement> = {
         first: createAchievement(() => ({
             requirements: createCountRequirement(chunksTab.bestChunks, 1),
             display: {
@@ -78,7 +78,7 @@ const layer = createLayer(id, () => {
                 effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
                 optionsDisplay: () => (
                     <>
-                        Unlock the `Dust Piles` buyable
+                        Unlock the 'Dust Piles' buyable
                         <br />
                         Boost time by x1.5 per best Chunk
                     </>

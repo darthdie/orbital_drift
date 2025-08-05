@@ -31,6 +31,7 @@ import acceleratorsLayer from "./accelerators";
 import { JSX } from "vue/jsx-runtime";
 import { createClickable } from "features/clickables/clickable";
 import "./dust.css";
+import Section from "data/components/Section.vue";
 
 // TODO:
 // Increase base chunk cost
@@ -39,7 +40,7 @@ import "./dust.css";
 const id = "Md";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const name = "Mercury";
-    const color = "#b1adad";
+    const color = "#8c8c94";
 
     const mercurialDust = createResource(0, "Mercurial Dust", 2);
     const totalMercurialDust = trackTotal(mercurialDust);
@@ -453,15 +454,15 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     "augmented-ui": "border bl-scoop-x"
                 },
                 visibility: () =>
-                    milestonesLayer.milestones.first.earned.value === true ||
-                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value === true
+                    milestonesLayer.milestones.first.earned.value ||
+                    solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value
             })
         )
     };
 
     const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
-            if (milestonesLayer.milestones.five.earned.value === true) {
+            if (milestonesLayer.milestones.five.earned.value) {
                 return Decimal.min(chunksLayer.bestChunks.value, bestAmount.value);
             }
 
@@ -761,11 +762,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const fullReset = () => {
         createReset(() => ({ thingsToReset: (): Record<string, unknown>[] => [layer] })).reset();
 
-        // mercurialDust.value = 0;
-        // totalMercurialDust.value = 0;
-        // timeSinceReset.value = 0;
-        // totalTimeSinceReset.value = 0;
-
         Object.values(repeatableBestAmounts).forEach(r => (r.value = 0));
 
         applyDustyTome();
@@ -805,6 +801,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         }
     }
 
+    // Why is this here?
     function applyAutoAutoChunks() {
         if (solarLayer.mercuryTreeUpgrades.autoAutoChunks.bought.value) {
             chunksLayer.upgrades.autoChunks.bought.value = true;
@@ -853,7 +850,9 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             return Decimal.dZero;
         }
 
-        const base = Decimal.fromNumber(0.05);
+        const base = Decimal.fromNumber(
+            solarLayer.mercuryTreeUpgrades.snortingDust.bought.value ? 0.05 : 0
+        );
         if (chunksLayer.upgrades.grindingChunks.bought.value) {
             return Decimal.mul(chunksLayer.bestChunks.value, 0.01).add(base).clampMin(0.01);
         }
@@ -937,19 +936,18 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     <Column>{renderGroupedObjects(repeatables, 4, tableStyles)}</Column>
                     <Spacer />
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Upgrades</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
-                    <Column>{renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}</Column>
-                    <Spacer />
+                    <Section header="Upgrades">
+                        <Column>{renderGroupedObjects(basicUpgrades, 4, tableStyles)}</Column>
+                        {acceleratorsLayer.dustAccelerator.upgrades.first.bought.value ? (
+                            <Column>
+                                {renderGroupedObjects(acceleratorUpgrades, 4, tableStyles)}
+                            </Column>
+                        ) : null}
+                    </Section>
 
-                    <div style="margin-bottom: 4px;">
-                        <h3>Unlocks</h3>
-                    </div>
-                    <hr class="section-divider" />
-                    <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
+                    <Section header="Unlocks">
+                        <Column>{renderGroupedObjects(unlocks, 4, tableStyles)}</Column>
+                    </Section>
                 </div>
             </>
         ),
