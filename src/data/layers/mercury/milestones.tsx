@@ -75,7 +75,7 @@ const layer = createLayer(id, () => {
             requirements: createCountRequirement(chunksTab.bestChunks, 1),
             display: {
                 requirement: "1 Best Mercurial Chunk",
-                effectDisplay: () => `x${format(firstMilestoneModifier.apply(1))}`,
+                effectDisplay: () => `Currently: x${format(firstMilestoneModifier.apply(1))}`,
                 optionsDisplay: () => (
                     <>
                         Unlock the 'Dust Piles' buyable

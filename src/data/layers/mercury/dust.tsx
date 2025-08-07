@@ -400,7 +400,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Salted Dust",
-                    description: "Increase base Dust gain by 1",
+                    description: "Increase base Dust gain by +1",
                     effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
                 },
                 classes: { "normal-repeatable": true },
