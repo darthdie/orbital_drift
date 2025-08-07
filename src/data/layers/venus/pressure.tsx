@@ -369,7 +369,8 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Volcanoes 4 Dummies",
-                description: "Add +5% to base Chance, +0.5 to base Build Mult, and -0.5 to base Interval."
+                description:
+                    "Add +5% to base Chance, +0.5 to base Build Mult, and -0.5 to base Interval."
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
