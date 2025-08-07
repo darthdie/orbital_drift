@@ -30,22 +30,24 @@ const silicateLayer = createLayer(id, baseLayer => {
         maxEffectDivisor: 10,
         effectDisplayBuilder: (effect, maxEffect) =>
             `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
-        effectDisplayTitle: "Pressure Build Chance:",
+        effectDisplayTitle: "Pressure Build Chance",
         effectDisplayAugmentedUi: "border br-clip",
         augmentedUi: "border tl-2-round-inset tr-clip",
-        effectModifier: Formula.variable(0).times(ultramafic.effect)
+        effectModifier: Formula.variable(0).times(ultramafic.effect),
+        effectBuildExponent: 0.9
     }));
 
     const intermediate = createLavaSubtype("Intermediate", () => ({
         startingCap: 75,
-        maxEffectDivisor: 10,
+        maxEffectDivisor: 37.5,
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Build Mult",
         effectDisplayAugmentedUi: "border br-clip bl-clip",
         augmentedUi: "border tl-clip tr-scoop-x",
         minimumEffect: 1,
-        effectModifier: Formula.variable(0).times(ultramafic.effect)
+        effectModifier: Formula.variable(0).times(ultramafic.effect),
+        effectBuildExponent: 0.9
     }));
 
     const mafic = createLavaSubtype("Mafic", () => ({
@@ -57,7 +59,8 @@ const silicateLayer = createLayer(id, baseLayer => {
         effectDisplayAugmentedUi: "border bl-clip",
         augmentedUi: "border tl-scoop-x tr-2-clip-y",
         minimumEffect: 1,
-        effectModifier: Formula.variable(0).times(ultramafic.effect)
+        effectModifier: Formula.variable(0).times(ultramafic.effect),
+        effectBuildExponent: 0.9
     }));
 
     const ultramafic = createLavaSubtype("Ultramafic", () => ({
@@ -111,7 +114,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "Feel The Heat",
-                description: "Increase conversion rate of Silicate Lavas by +0.1 per level",
+                description: "Increase conversion rate of Silicate Lavas by +0.1",
                 effectDisplay: () => `+${format(feelTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -151,7 +154,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "Bring The Heat",
-                description: "Decrease amount of Lava needed for conversion by 1.1 per level",
+                description: "Decrease amount of Lava needed for conversion by ÷1.1",
                 effectDisplay: (): string => `÷${format(bringTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -313,7 +316,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                             data-augmented-ui="border tl-2-clip-y br-round-x"
                             class="flex-1 w-[300px] px-8 py-4 mb-4"
                         >
-                            <h5>Turn Molten Lava into Silicate Lava for buffs</h5>
+                            <h5>Convert Molten Lava into Silicate Lava for buffs</h5>
                             <h5 class="font-semibold">
                                 Conversion rate is {format(lavaConversionFromRate.value)} Lava to{" "}
                                 {format(lavaConversionToRate.value)} Silicate

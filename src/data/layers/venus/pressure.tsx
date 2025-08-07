@@ -16,6 +16,7 @@ import { createReset } from "features/reset";
 import tephraLayer from "./tephra";
 import Section from "data/components/Section.vue";
 import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
+import venusLayer from "../venus";
 
 const random = () => Math.random() * 100;
 
@@ -28,7 +29,8 @@ const pressureLayer = createLayer(id, baseLayer => {
     const pressureTimerMax = computed(
         (): DecimalSource =>
             Formula.variable(15)
-                .times(pressureSoftcapDivisor)
+                .add(volcanoesForDummiesIntervalEffect)
+                .times(pressureDampeningFormula)
                 .div(silicateLayer.mafic.effect.value)
                 .div(tephraLayer.greenIsNotACreativeColorEffect.value)
                 .div(anxietyInducingEffect.value)
@@ -39,24 +41,36 @@ const pressureLayer = createLayer(id, baseLayer => {
         (): Decimal =>
             Decimal.add(10, silicateLayer.felsic.effect.value)
                 .add(whatreTheOddsEffect.value)
+                .add(volcanoesForDummiesChanceEffect.value)
                 .times(tephraLayer.gamblingManEffect.value)
                 .clampMax(100)
     );
     const pressureChanceMaxed = computed(() => Decimal.gte(pressureChance.value, 100));
     const pressureGainMultiplier = computed(
         (): Decimal =>
-            Decimal.times(1.3, silicateLayer.intermediate.effect.value)
+            Decimal.add(1.3, volcanoesForDummiesMultEffect.value)
                 .add(imFineEffect.value)
+                .times(silicateLayer.intermediate.effect.value)
                 .times(tephraLayer.blobTheBuilderEffect.value)
     );
 
-    const pressureSoftcapDivisor = Formula.if(
+    const iveGotToBreakFreeEffect = computed(() => {
+        if (tephraUpgrades.iveGotToBreakFree.bought.value) {
+            return Decimal.times(0.003, Decimal.log10(pressure.value)).add(1).clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const pressureDampeningFormula = Formula.if(
         Formula.variable(pressure),
         () => Decimal.lt(pressure.value, 1e25),
         f => f.min(1),
         // Increase interval for every OOM past 1e25
-        f => f.sub(1e25).add(10).log10().cbrt().clampMin(1)
+        f => f.sub(1e25).add(10).log10().cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
     );
+
+    const isPressureDampened = computed(() => Decimal.gte(pressure.value, 1e25));
 
     const pressureMax = computed((): DecimalSource => {
         const pow = Decimal.pow(2, lavaLayer.eruptions.value);
@@ -64,7 +78,7 @@ const pressureLayer = createLayer(id, baseLayer => {
     });
     const pressureCapped = computed(() => Decimal.gte(pressure.value, pressureMax.value));
 
-    const unlocked = computed(() => true);
+    const unlocked = computed((): boolean => venusLayer.unlocked.value);
 
     const pressureBar = createBar(() => ({
         direction: Direction.Right,
@@ -174,7 +188,6 @@ const pressureLayer = createLayer(id, baseLayer => {
         return Decimal.dOne;
     });
 
-    // Eventually, upgrades to reduce softcap.
     const upgrades = {
         effusiveEruption: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -236,7 +249,6 @@ const pressureLayer = createLayer(id, baseLayer => {
                 "augmented-ui": "border tr-clip"
             }
         }))
-        // Uncap pressure chance, and each /100% has a chance to proc?
     };
 
     const whatreTheOddsEffect = computed(() => {
@@ -333,15 +345,32 @@ const pressureLayer = createLayer(id, baseLayer => {
         )
     };
 
+    const volcanoesForDummiesChanceEffect = computed(() =>
+        Decimal.fromNumber(tephraUpgrades.volcanoesForDummies.bought.value ? 5 : 0)
+    );
+
+    const volcanoesForDummiesMultEffect = computed(() =>
+        Decimal.fromNumber(tephraUpgrades.volcanoesForDummies.bought.value ? 0.5 : 0)
+    );
+
+    const volcanoesForDummiesIntervalEffect = computed(() =>
+        Decimal.fromNumber(tephraUpgrades.volcanoesForDummies.bought.value ? 0.5 : 0)
+    );
+
     // Probably softcap?
+    // Uncap pressure chance, and each /100% has a chance to proc?
+    // Chance past 100 boosts...interval or mult?
     const tephraUpgrades = {
-        placeholder1: createUpgrade(() => ({
+        volcanoesForDummies: createUpgrade(() => ({
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
-                cost: 1e30
+                cost: 15
             })),
-            display: "Placeholder 1",
+            display: {
+                title: "Volcanoes 4 Dummies",
+                description: "Add +5% to base Chance, +0.5 to base Build Mult, and -0.5 to base Interval."
+            },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
@@ -351,7 +380,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
-                cost: 1e50
+                cost: 1e30 // Reachable after first eruption
             })),
             display: "Placeholder 2",
             classes: { "sd-upgrade": true },
@@ -359,13 +388,16 @@ const pressureLayer = createLayer(id, baseLayer => {
                 "augmented-ui": "border tr-clip"
             }
         })),
-        placeholder3: createUpgrade(() => ({
+        iveGotToBreakFree: createUpgrade(() => ({
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
-                cost: 1e100
+                cost: 1e75 // Reachable after 2nd eruption
             })),
-            display: "Placeholder 3",
+            display: {
+                title: "I'VE GOT TO BREAK FREE",
+                description: "Divide Pressure Dampening based on Pressure."
+            },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
@@ -375,7 +407,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
-                cost: 1e250
+                cost: 1e150 // reachable 3rd eruption
             })),
             display: "Placeholder 4",
             classes: { "sd-upgrade": true },
@@ -406,7 +438,6 @@ const pressureLayer = createLayer(id, baseLayer => {
         pressureChance,
         pressureGainMultiplier,
         pressureTimerBar,
-        pressureSoftcapDivisor,
         pressureMax,
         lavaFlowffect,
         pressureCapped,
@@ -448,7 +479,12 @@ const pressureLayer = createLayer(id, baseLayer => {
                             </div>
                         </div>
 
-                        <h5>Softcap Divisor: {format(pressureSoftcapDivisor.evaluate())}</h5>
+                        {isPressureDampened.value ? (
+                            <h5 class="text-red-400 font-semibold">
+                                Due to pressure dampening, Interval is being divided by ÷
+                                {format(pressureDampeningFormula.evaluate())}
+                            </h5>
+                        ) : null}
                     </Section>
 
                     {tephraLayer.upgrades.shinyRocks.bought.value ? (
@@ -459,7 +495,9 @@ const pressureLayer = createLayer(id, baseLayer => {
 
                     <Section header="Upgrades">
                         {renderGroupedObjects(upgrades, 4)}
-                        {renderGroupedObjects(tephraUpgrades, 4)}
+                        {tephraLayer.upgrades.secretsLongBuried.bought.value
+                            ? renderGroupedObjects(tephraUpgrades, 4)
+                            : null}
                     </Section>
                 </div>
             </>
