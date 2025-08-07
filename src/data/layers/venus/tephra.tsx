@@ -207,13 +207,7 @@ const tephraLayer = createLayer(id, () => {
         }))
     };
 
-    //       const divisor = Math.pow(x, 1 -  0.92);
-
-    //   // Return the scaled result
-    //   return x / divisor;
-
     const unlocked = computed(() => Decimal.gt(lavaLayer.eruptions.value, 0));
-    // const unlocked = computed(() => true);
 
     const showNotification = computed(() => {
         return (
