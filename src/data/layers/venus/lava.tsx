@@ -214,10 +214,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                     <span>
                         <h3>Explosive Eruption</h3>
                         <br />
-                        Reset Pressure Tab & Molten/Silicate Lava resources for:
-                        <br />
                         {pressureLayer.pressureCapped.value ? (
                             <>
+                                Reset Pressure Tab & Molten/Silicate Lava resources for:
+                                <br />
                                 <span class="font-semibold">
                                     {eruptionGainDisplay(tephraLayer.tephraConversion)}
                                 </span>
@@ -241,7 +241,7 @@ const lavaLayer = createLayer(id, baseLayer => {
             );
         },
         onClick: () => {
-            if (explosiveEruptionButton.canClick === false) {
+            if (unref(explosiveEruptionButton.canClick) === false) {
                 return;
             }
 
@@ -271,7 +271,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const passiveLavaGain = computed((): DecimalSource => {
         if (pressureLayer.upgrades.effusiveEruption.bought.value) {
-            return Decimal.fromNumber(0.005)
+            return Decimal.fromNumber(0.01)
                 .add(milestonesLayer.oneMilestoneEffect.value)
                 .times(itsGettingHotInHereEffect.value)
                 .times(pressureLayer.lavaFlowffect.value)

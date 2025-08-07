@@ -33,6 +33,7 @@ export interface LavaSubtypeOptions extends VueFeatureOptions {
     effectDisplayTitle: MaybeRefOrGetter<string>;
     minimumEffect?: MaybeRefOrGetter<DecimalSource>;
     effectModifier?: InvertibleFormula;
+    effectBuildExponent?: MaybeRefOrGetter<DecimalSource>;
 }
 
 export function createLavaSubtype<T extends LavaSubtypeOptions>(
@@ -53,10 +54,12 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             effectDisplayAugmentedUi,
             minimumEffect: _minimumEffect,
             effectModifier: _effectModifier,
+            effectBuildExponent: _effectBuildExponent,
             ...props
         } = options;
 
         const effectModifier = (_effectModifier ?? Formula.variable(0)) as InvertibleFormula;
+        const effectBuildExponent = processGetter(_effectBuildExponent) ?? 1;
 
         const cap = computed(() =>
             Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
@@ -72,7 +75,8 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
                     resource.value,
                     cap.value,
                     unref(minimumEffect),
-                    trueMaxEffect.value
+                    trueMaxEffect.value,
+                    unref(effectBuildExponent)
                 )
             )
         );
@@ -173,7 +177,7 @@ export function calculateLavaEffect(
     cap: DecimalSource,
     minEffect: DecimalSource,
     maxEffect: DecimalSource,
-    exponent: number = 1
+    exponent: DecimalSource = 1
 ) {
     const percent = Decimal.max(0, Decimal.div(resource, cap));
     const curved = Decimal.pow(percent, exponent);
