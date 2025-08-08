@@ -503,6 +503,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         lavaUpgrades,
         showNotification,
         tephraBuyables,
+        tephraUpgrades,
         lavaEffectBuildAmount,
         display: () => (
             <>

@@ -23,7 +23,7 @@ export interface LavaSubtype extends VueFeature {
 
 export interface LavaSubtypeOptions extends VueFeatureOptions {
     startingCap: number;
-    maxEffectDivisor: number;
+    maxEffectFormula: MaybeRefOrGetter<InvertibleFormula>;
     effectDisplayBuilder: (
         effect: ComputedRef<DecimalSource>,
         maxEffect: ComputedRef<DecimalSource>
@@ -47,7 +47,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
         const options = optionsFunc();
         const {
             startingCap,
-            maxEffectDivisor,
+            maxEffectFormula: _maxEffectFormula,
             effectDisplayBuilder,
             effectDisplayTitle,
             augmentedUi,
@@ -60,14 +60,20 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
 
         const effectModifier = (_effectModifier ?? Formula.variable(0)) as InvertibleFormula;
         const effectBuildExponent = processGetter(_effectBuildExponent) ?? 1;
+        const maxEffectFormula = processGetter(_maxEffectFormula);
 
         const cap = computed(() =>
             Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
         );
-        const trueMaxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
-        const effectiveMaxEffect = computed(() =>
-            effectModifier.evaluate(Decimal.div(cap.value, maxEffectDivisor))
-        );
+
+        // const trueMaxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
+        // const effectiveMaxEffect = computed(() =>
+        //     effectModifier.evaluate(Decimal.div(cap.value, maxEffectDivisor))
+        // );
+
+        const trueMaxEffect = computed(() => unref(maxEffectFormula).evaluate());
+        const effectiveMaxEffect = computed(() => effectModifier.evaluate(trueMaxEffect.value));
+
         const minimumEffect = processGetter(_minimumEffect) ?? Decimal.dZero;
         const effect = computed(() =>
             effectModifier.evaluate(

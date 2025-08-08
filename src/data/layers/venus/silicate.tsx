@@ -1,5 +1,5 @@
 import { createLayer } from "game/layers";
-import { createLavaSubtype } from "./createLavaSubtype";
+import { createLavaSubtype, LavaSubtype } from "./createLavaSubtype";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { render, renderGroupedObjects } from "util/vue";
 import { computed } from "vue";
@@ -25,9 +25,20 @@ enum SilicateLavaConversion {
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
-    const felsic = createLavaSubtype("Felsic", () => ({
+    const ultramafic: LavaSubtype = createLavaSubtype("Ultramafic", () => ({
+        startingCap: 500,
+        maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
+        effectDisplayBuilder: (effect, maxEffect) =>
+            `x${format(effect.value)}/x${format(maxEffect.value)}`,
+        effectDisplayTitle: "Increase to other Silicate Effects", // ??
+        effectDisplayAugmentedUi: "border",
+        augmentedUi: "border tr-clip tl-clip",
+        minimumEffect: 1
+    }));
+
+    const felsic: LavaSubtype = createLavaSubtype("Felsic", () => ({
         startingCap: 50,
-        maxEffectDivisor: 10,
+        maxEffectFormula: () => Formula.variable(felsic.capIncreases).pow_base(2).times(5),
         effectDisplayBuilder: (effect, maxEffect) =>
             `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
         effectDisplayTitle: "Pressure Build Chance",
@@ -37,9 +48,9 @@ const silicateLayer = createLayer(id, baseLayer => {
         effectBuildExponent: 0.9
     }));
 
-    const intermediate = createLavaSubtype("Intermediate", () => ({
+    const intermediate: LavaSubtype = createLavaSubtype("Intermediate", () => ({
         startingCap: 75,
-        maxEffectDivisor: 37.5,
+        maxEffectFormula: () => Formula.variable(intermediate.capIncreases).pow_base(2).times(2),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Build Mult",
@@ -50,9 +61,9 @@ const silicateLayer = createLayer(id, baseLayer => {
         effectBuildExponent: 0.9
     }));
 
-    const mafic = createLavaSubtype("Mafic", () => ({
+    const mafic: LavaSubtype = createLavaSubtype("Mafic", () => ({
         startingCap: 100,
-        maxEffectDivisor: 66.66,
+        maxEffectFormula: () => Formula.variable(mafic.capIncreases).pow_base(2).times(1.5),
         effectDisplayBuilder: (effect, maxEffect) =>
             `÷${format(effect.value)}/÷${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Interval",
@@ -61,17 +72,6 @@ const silicateLayer = createLayer(id, baseLayer => {
         minimumEffect: 1,
         effectModifier: Formula.variable(0).times(ultramafic.effect),
         effectBuildExponent: 0.9
-    }));
-
-    const ultramafic = createLavaSubtype("Ultramafic", () => ({
-        startingCap: 500,
-        maxEffectDivisor: 454.545,
-        effectDisplayBuilder: (effect, maxEffect) =>
-            `x${format(effect.value)}/x${format(maxEffect.value)}`,
-        effectDisplayTitle: "Increase to other Silicate Effects", // ??
-        effectDisplayAugmentedUi: "border",
-        augmentedUi: "border tr-clip tl-clip",
-        minimumEffect: 1
     }));
 
     const feelTheHeatEffect = computed((): DecimalSource => {
