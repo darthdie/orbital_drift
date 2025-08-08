@@ -36,8 +36,13 @@ const silicateLayer = createLayer(id, baseLayer => {
         augmentedUi: "border tr-clip tl-clip"
     }));
 
+    // 50 -> 100 -> 200 -> (400)800
     const felsic: LavaSubtype = createLavaSubtype("Felsic", () => ({
-        capCostFormula: () => Formula.variable(felsic.capIncreases).pow_base(2).times(50),
+        capCostFormula: () =>
+            Formula.variable(felsic.capIncreases)
+                .pow_base(2)
+                .times(50)
+                .step(350, f => f.times(9)),
         maxEffectFormula: () =>
             Formula.variable(felsic.capIncreases).pow_base(2).times(5).times(ultramafic.effect),
         effectFormula: () => createLavaEffectFormula(felsic, 0, 0.9).times(ultramafic.effect),
@@ -89,6 +94,14 @@ const silicateLayer = createLayer(id, baseLayer => {
         }
 
         return Decimal.dOne;
+    });
+
+    const beTheHeatEffect = computed(() => {
+        if (Decimal.gt(silicateBuyables.beTheHeat.amount.value, 0)) {
+            return Decimal.times(0.1, silicateBuyables.beTheHeat.amount.value);
+        }
+
+        return Decimal.dZero;
     });
 
     const silicateBuyables = {
@@ -157,6 +170,46 @@ const silicateLayer = createLayer(id, baseLayer => {
                 title: "Bring The Heat",
                 description: "Decrease amount of Lava needed for conversion by ÷1.1",
                 effectDisplay: (): string => `÷${format(bringTheHeatEffect.value)}`
+            },
+            classes: { "normal-repeatable": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border bl-scoop-x"
+            }
+        })),
+        beTheHeat: createRepeatable(() => ({
+            requirements: [
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: felsic.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                ),
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: intermediate.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                ),
+                createCostRequirement(
+                    (): CostRequirementOptions => ({
+                        resource: mafic.resource,
+                        cost: () =>
+                            fibonacciCostFormula(
+                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
+                            )
+                    })
+                )
+            ],
+            display: {
+                title: "BE The Heat",
+                description: "Increase maximum conversion speed by -1 second",
+                effectDisplay: (): string => `÷${format(beTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
@@ -293,6 +346,21 @@ const silicateLayer = createLayer(id, baseLayer => {
         }
     }));
 
+    // y / (x * z)
+    const silicateGainPerSecond = computed(() =>
+        Decimal.div(
+            lavaConversionToRate.value,
+            Decimal.times(lavaConversionFromRate.value, lavaConversionTimeRate.value)
+        )
+    );
+
+    const lavaLossPerSecond = computed(() =>
+        Decimal.div(
+            lavaConversionFromRate.value,
+            Decimal.times(lavaConversionToRate.value, lavaConversionTimeRate.value)
+        )
+    );
+
     return {
         id,
         felsic,
@@ -318,14 +386,16 @@ const silicateLayer = createLayer(id, baseLayer => {
                             class="flex-1 w-[300px] px-8 py-4 mb-4"
                         >
                             <h5>Convert Molten Lava into Silicate Lava for buffs</h5>
+                            <h5>Current Conversion Rate</h5>
                             <h5 class="font-semibold">
-                                Conversion rate is {format(lavaConversionFromRate.value)} Lava to{" "}
-                                {format(lavaConversionToRate.value)} Silicate
+                                {format(lavaConversionFromRate.value)} Lava to{" "}
+                                {format(lavaConversionToRate.value)} Silicate over{" "}
+                                {format(lavaConversionTimeRate.value)}/s
                             </h5>
-                            <h5 class="font-semibold">
-                                Conversion takes place over {format(lavaConversionTimeRate.value)}{" "}
-                                seconds
-                            </h5>
+                            <h6 class="font-semibold">
+                                +{format(silicateGainPerSecond.value)} Silicate/s | -
+                                {format(lavaLossPerSecond.value)} Lava/s
+                            </h6>
                         </div>
 
                         {render(disableConversionButton)}
