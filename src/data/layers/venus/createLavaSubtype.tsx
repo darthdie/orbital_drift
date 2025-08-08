@@ -15,7 +15,7 @@ export interface LavaSubtype extends VueFeature {
     resource: Resource;
     capIncreases: Resource;
     cap: ComputedRef<DecimalSource>;
-    // maxEffect: ComputedRef<DecimalSource>;
+    maxEffect: ComputedRef<DecimalSource>;
     effect: ComputedRef<DecimalSource>;
     effectDisplay: ComputedRef<DecimalSource>;
     showNotification: ComputedRef<boolean>;
@@ -23,6 +23,7 @@ export interface LavaSubtype extends VueFeature {
 
 export interface LavaSubtypeOptions extends VueFeatureOptions {
     startingCap: number;
+    effectFormula: MaybeRefOrGetter<InvertibleFormula>;
     maxEffectFormula: MaybeRefOrGetter<InvertibleFormula>;
     effectDisplayBuilder: (
         effect: ComputedRef<DecimalSource>,
@@ -31,9 +32,6 @@ export interface LavaSubtypeOptions extends VueFeatureOptions {
     augmentedUi: MaybeRefOrGetter<string>;
     effectDisplayAugmentedUi: MaybeRefOrGetter<string>;
     effectDisplayTitle: MaybeRefOrGetter<string>;
-    minimumEffect?: MaybeRefOrGetter<DecimalSource>;
-    effectModifier?: InvertibleFormula;
-    effectBuildExponent?: MaybeRefOrGetter<DecimalSource>;
 }
 
 export function createLavaSubtype<T extends LavaSubtypeOptions>(
@@ -47,47 +45,26 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
         const options = optionsFunc();
         const {
             startingCap,
+            effectFormula: _effectFormula,
             maxEffectFormula: _maxEffectFormula,
             effectDisplayBuilder,
             effectDisplayTitle,
             augmentedUi,
             effectDisplayAugmentedUi,
-            minimumEffect: _minimumEffect,
-            effectModifier: _effectModifier,
-            effectBuildExponent: _effectBuildExponent,
             ...props
         } = options;
 
-        const effectModifier = (_effectModifier ?? Formula.variable(0)) as InvertibleFormula;
-        const effectBuildExponent = processGetter(_effectBuildExponent) ?? 1;
         const maxEffectFormula = processGetter(_maxEffectFormula);
+        const effectFormula = processGetter(_effectFormula);
 
         const cap = computed(() =>
             Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
         );
 
-        // const trueMaxEffect = computed(() => Decimal.div(cap.value, maxEffectDivisor));
-        // const effectiveMaxEffect = computed(() =>
-        //     effectModifier.evaluate(Decimal.div(cap.value, maxEffectDivisor))
-        // );
+        const maxEffect = computed(() => unref(maxEffectFormula).evaluate());
+        const effect = computed(() => unref(effectFormula).evaluate());
 
-        const trueMaxEffect = computed(() => unref(maxEffectFormula).evaluate());
-        const effectiveMaxEffect = computed(() => effectModifier.evaluate(trueMaxEffect.value));
-
-        const minimumEffect = processGetter(_minimumEffect) ?? Decimal.dZero;
-        const effect = computed(() =>
-            effectModifier.evaluate(
-                calculateLavaEffect(
-                    resource.value,
-                    cap.value,
-                    unref(minimumEffect),
-                    trueMaxEffect.value,
-                    unref(effectBuildExponent)
-                )
-            )
-        );
-
-        const effectDisplay = computed(() => effectDisplayBuilder(effect, effectiveMaxEffect));
+        const effectDisplay = computed(() => effectDisplayBuilder(effect, maxEffect));
 
         const bar = createBar(() => ({
             direction: Direction.Up,
@@ -146,7 +123,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             resource,
             capIncreases,
             cap,
-            // maxEffect,
+            maxEffect,
             effect,
             effectDisplay,
             showNotification,
@@ -189,4 +166,18 @@ export function calculateLavaEffect(
     const curved = Decimal.pow(percent, exponent);
     const cal = Decimal.sub(maxEffect, minEffect).times(curved);
     return Decimal.add(minEffect, cal);
+}
+
+export function createLavaEffectFormula(
+    _silicateLava: LavaSubtype,
+    _minEffect: MaybeRefOrGetter<DecimalSource>,
+    exponent: DecimalSource = 1
+) {
+    const silicateLava = processGetter(_silicateLava);
+    const minEffect = processGetter(_minEffect);
+    const percent = Formula.max(0, Formula.div(silicateLava.resource, silicateLava.cap));
+    const curved = Formula.pow(percent, exponent);
+    const cal = Formula.sub(silicateLava.maxEffect, minEffect).times(curved);
+
+    return cal.add(minEffect);
 }

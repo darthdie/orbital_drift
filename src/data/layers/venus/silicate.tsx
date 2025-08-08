@@ -1,5 +1,5 @@
 import { createLayer } from "game/layers";
-import { createLavaSubtype, LavaSubtype } from "./createLavaSubtype";
+import { createLavaEffectFormula, createLavaSubtype, LavaSubtype } from "./createLavaSubtype";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { render, renderGroupedObjects } from "util/vue";
 import { computed } from "vue";
@@ -25,53 +25,61 @@ enum SilicateLavaConversion {
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
+    // resource.value,
+    // cap.value,
+    // unref(minimumEffect),
+    // trueMaxEffect.value,
+    // unref(effectBuildExponent)
+
     const ultramafic: LavaSubtype = createLavaSubtype("Ultramafic", () => ({
         startingCap: 500,
         maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
+        effectFormula: () => createLavaEffectFormula(ultramafic, 1, 0.9),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Increase to other Silicate Effects", // ??
         effectDisplayAugmentedUi: "border",
-        augmentedUi: "border tr-clip tl-clip",
-        minimumEffect: 1
+        augmentedUi: "border tr-clip tl-clip"
+        // minimumEffect: 1
     }));
 
     const felsic: LavaSubtype = createLavaSubtype("Felsic", () => ({
         startingCap: 50,
-        maxEffectFormula: () => Formula.variable(felsic.capIncreases).pow_base(2).times(5),
+        maxEffectFormula: () =>
+            Formula.variable(felsic.capIncreases).pow_base(2).times(5).times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(felsic, 0, 0.9).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
         effectDisplayTitle: "Pressure Build Chance",
         effectDisplayAugmentedUi: "border br-clip",
-        augmentedUi: "border tl-2-round-inset tr-clip",
-        effectModifier: Formula.variable(0).times(ultramafic.effect),
-        effectBuildExponent: 0.9
+        augmentedUi: "border tl-2-round-inset tr-clip"
     }));
 
     const intermediate: LavaSubtype = createLavaSubtype("Intermediate", () => ({
         startingCap: 75,
-        maxEffectFormula: () => Formula.variable(intermediate.capIncreases).pow_base(2).times(2),
+        maxEffectFormula: () =>
+            Formula.variable(intermediate.capIncreases)
+                .pow_base(2)
+                .times(2)
+                .times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(intermediate, 1, 0.9).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Build Mult",
         effectDisplayAugmentedUi: "border br-clip bl-clip",
-        augmentedUi: "border tl-clip tr-scoop-x",
-        minimumEffect: 1,
-        effectModifier: Formula.variable(0).times(ultramafic.effect),
-        effectBuildExponent: 0.9
+        augmentedUi: "border tl-clip tr-scoop-x"
     }));
 
     const mafic: LavaSubtype = createLavaSubtype("Mafic", () => ({
         startingCap: 100,
-        maxEffectFormula: () => Formula.variable(mafic.capIncreases).pow_base(2).times(1.5),
+        maxEffectFormula: () =>
+            Formula.variable(mafic.capIncreases).pow_base(2).times(1.5).times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(mafic, 1, 0.9).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `÷${format(effect.value)}/÷${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Interval",
         effectDisplayAugmentedUi: "border bl-clip",
-        augmentedUi: "border tl-scoop-x tr-2-clip-y",
-        minimumEffect: 1,
-        effectModifier: Formula.variable(0).times(ultramafic.effect),
-        effectBuildExponent: 0.9
+        augmentedUi: "border tl-scoop-x tr-2-clip-y"
     }));
 
     const feelTheHeatEffect = computed((): DecimalSource => {
