@@ -22,9 +22,9 @@ export interface LavaSubtype extends VueFeature {
 }
 
 export interface LavaSubtypeOptions extends VueFeatureOptions {
-    startingCap: number;
     effectFormula: MaybeRefOrGetter<InvertibleFormula>;
     maxEffectFormula: MaybeRefOrGetter<InvertibleFormula>;
+    capCostFormula: MaybeRefOrGetter<InvertibleFormula>;
     effectDisplayBuilder: (
         effect: ComputedRef<DecimalSource>,
         maxEffect: ComputedRef<DecimalSource>
@@ -44,7 +44,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
     return createLazyProxy(() => {
         const options = optionsFunc();
         const {
-            startingCap,
+            capCostFormula: _capCostFormula,
             effectFormula: _effectFormula,
             maxEffectFormula: _maxEffectFormula,
             effectDisplayBuilder,
@@ -56,11 +56,9 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
 
         const maxEffectFormula = processGetter(_maxEffectFormula);
         const effectFormula = processGetter(_effectFormula);
+        const capCostFormula = processGetter(_capCostFormula);
 
-        const cap = computed(() =>
-            Decimal.fromNumber(startingCap).times(Decimal.times(capIncreases.value, 2).clampMin(1))
-        );
-
+        const cap = computed(() => unref(capCostFormula).evaluate());
         const maxEffect = computed(() => unref(maxEffectFormula).evaluate());
         const effect = computed(() => unref(effectFormula).evaluate());
 
@@ -136,6 +134,7 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
                     <div data-augmented-ui={lavaSubtype.augmentedUi} class="border-0" id={id}>
                         <div class="py-2">
                             <h3>{resource.displayName}</h3>
+                            <h5>Level {Decimal.add(capIncreases.value, 1)}</h5>
                         </div>
                         <div
                             data-augmented-ui={lavaSubtype.effectDisplayAugmentedUi}

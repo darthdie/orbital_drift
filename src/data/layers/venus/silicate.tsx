@@ -25,26 +25,19 @@ enum SilicateLavaConversion {
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
-    // resource.value,
-    // cap.value,
-    // unref(minimumEffect),
-    // trueMaxEffect.value,
-    // unref(effectBuildExponent)
-
     const ultramafic: LavaSubtype = createLavaSubtype("Ultramafic", () => ({
-        startingCap: 500,
+        capCostFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(500),
         maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
         effectFormula: () => createLavaEffectFormula(ultramafic, 1, 0.9),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
-        effectDisplayTitle: "Increase to other Silicate Effects", // ??
+        effectDisplayTitle: "Increase to other Silicate Effects",
         effectDisplayAugmentedUi: "border",
         augmentedUi: "border tr-clip tl-clip"
-        // minimumEffect: 1
     }));
 
     const felsic: LavaSubtype = createLavaSubtype("Felsic", () => ({
-        startingCap: 50,
+        capCostFormula: () => Formula.variable(felsic.capIncreases).pow_base(2).times(50),
         maxEffectFormula: () =>
             Formula.variable(felsic.capIncreases).pow_base(2).times(5).times(ultramafic.effect),
         effectFormula: () => createLavaEffectFormula(felsic, 0, 0.9).times(ultramafic.effect),
@@ -56,7 +49,7 @@ const silicateLayer = createLayer(id, baseLayer => {
     }));
 
     const intermediate: LavaSubtype = createLavaSubtype("Intermediate", () => ({
-        startingCap: 75,
+        capCostFormula: () => Formula.variable(intermediate.capIncreases).pow_base(2).times(75),
         maxEffectFormula: () =>
             Formula.variable(intermediate.capIncreases)
                 .pow_base(2)
@@ -71,7 +64,7 @@ const silicateLayer = createLayer(id, baseLayer => {
     }));
 
     const mafic: LavaSubtype = createLavaSubtype("Mafic", () => ({
-        startingCap: 100,
+        capCostFormula: () => Formula.variable(mafic.capIncreases).pow_base(2).times(100),
         maxEffectFormula: () =>
             Formula.variable(mafic.capIncreases).pow_base(2).times(1.5).times(ultramafic.effect),
         effectFormula: () => createLavaEffectFormula(mafic, 1, 0.9).times(ultramafic.effect),
