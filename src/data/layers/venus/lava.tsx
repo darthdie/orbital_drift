@@ -24,8 +24,6 @@ import Section from "data/components/Section.vue";
 import { createRepeatable, RepeatableOptions } from "features/clickables/repeatable";
 import Formula from "game/formulas/formulas";
 
-// Magma? Convert Felsic, Intermediate, and Mafic to boost their effect by x0.01?
-
 const id = "VL";
 const lavaLayer = createLayer(id, baseLayer => {
     const lavaCapIncreases = createResource<DecimalSource>(0);
@@ -36,7 +34,13 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const eruptions = createResource<DecimalSource>(0);
 
-    const lavaMaxEffect = computed(() => Decimal.div(lavaCap.value, 25));
+    const lavaMaxHardCap = computed(() => 50);
+    const lavaMaxEffect = computed(() =>
+        Decimal.div(lavaCap.value, 25).clampMax(lavaMaxHardCap.value)
+    );
+    const lavaEffectHardcapped = computed(() =>
+        Decimal.gte(lavaEffect.value, lavaMaxHardCap.value)
+    );
     const lavaEffect = computed(() =>
         calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value, 0.9)
     );
@@ -110,7 +114,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                             </h5>
                             <br />
                             <h5 class="font-semibold">
-                                {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%
+                                {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%{" "}
+                                {lavaEffectHardcapped.value ? (
+                                    <h5 class="font-semibold text-red-400">(hardcapped)</h5>
+                                ) : null}
                             </h5>
                         </div>
                     </div>
@@ -377,51 +384,52 @@ const lavaLayer = createLayer(id, baseLayer => {
         );
     });
 
+    // Increase chance cap?
     const tephraUpgrades = {
         // Need 3
         // Improve streams are alive effect
-        // placeholder1: createUpgrade(() => ({
-        //     requirements: createCostRequirement(() => ({
-        //         resource: lava,
-        //         cost: 1000
-        //     })),
-        //     display: {
-        //         title: "Placeholder 1",
-        //         description: "Placeholdre 1"
-        //     },
-        //     classes: { "sd-upgrade": true },
-        //     clickableDataAttributes: {
-        //         "augmented-ui": "border tr-clip"
-        //     }
-        // })),
-        // placeholder2: createUpgrade(() => ({
-        //     requirements: createCostRequirement(() => ({
-        //         resource: lava,
-        //         cost: 1500
-        //     })),
-        //     display: {
-        //         title: "Placeholder 2",
-        //         description: "Placeholder 2"
-        //     },
-        //     classes: { "sd-upgrade": true },
-        //     clickableDataAttributes: {
-        //         "augmented-ui": "border tr-clip"
-        //     }
-        // })),
-        // placeholder3: createUpgrade(() => ({
-        //     requirements: createCostRequirement(() => ({
-        //         resource: lava,
-        //         cost: 2000
-        //     })),
-        //     display: {
-        //         title: "Placeholder 3",
-        //         description: "Placeholdre 3"
-        //     },
-        //     classes: { "sd-upgrade": true },
-        //     clickableDataAttributes: {
-        //         "augmented-ui": "border tr-clip"
-        //     }
-        // }))
+        placeholder1: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: lava,
+                cost: 1000
+            })),
+            display: {
+                title: "Placeholder 1",
+                description: "Placeholder 1"
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder2: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: lava,
+                cost: 1500
+            })),
+            display: {
+                title: "Placeholder 2",
+                description: "Placeholder 2"
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        placeholder3: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: lava,
+                cost: 2000
+            })),
+            display: {
+                title: "Placeholder 3",
+                description: "Placeholdre 3"
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        }))
     };
 
     const itsGettingHotInHereEffect = computed(() => {

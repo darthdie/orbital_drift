@@ -29,7 +29,7 @@ const pressureLayer = createLayer(id, baseLayer => {
     const pressureTimerMax = computed(
         (): DecimalSource =>
             Formula.variable(15)
-                .add(volcanoesForDummiesIntervalEffect)
+                .sub(volcanoesForDummiesIntervalEffect)
                 .times(pressureDampeningFormula)
                 .div(silicateLayer.mafic.effect.value)
                 .div(tephraLayer.greenIsNotACreativeColorEffect.value)
@@ -37,14 +37,15 @@ const pressureLayer = createLayer(id, baseLayer => {
                 .evaluate()
     );
 
-    const pressureChance = computed(
+    const truePressureChance = computed(
         (): Decimal =>
             Decimal.add(10, silicateLayer.felsic.effect.value)
                 .add(whatreTheOddsEffect.value)
                 .add(volcanoesForDummiesChanceEffect.value)
                 .times(tephraLayer.gamblingManEffect.value)
-                .clampMax(100)
     );
+
+    const pressureChance = computed((): Decimal => truePressureChance.value.clampMax(100));
     const pressureChanceMaxed = computed(() => Decimal.gte(pressureChance.value, 100));
     const pressureGainMultiplier = computed(
         (): Decimal =>
@@ -67,10 +68,13 @@ const pressureLayer = createLayer(id, baseLayer => {
         () => Decimal.lt(pressure.value, 1e25),
         f => f.min(1),
         // Increase interval for every OOM past 1e25
-        f => f.sub(1e25).add(10).log10().cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
+        f => f.log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
+        // f => f.log10().sub(24).times(0.05).add(1)
+        // f => f.div(1e25).times(0.008).add(1).clampMin(1)
+        // f => f.sub(1e25).add(10).log10().cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
     );
 
-    const isPressureDampened = computed(() => Decimal.gte(pressure.value, 1e25));
+    const isPressureDampened = computed(() => Decimal.gt(pressure.value, 1e25));
 
     const pressureMax = computed((): DecimalSource => {
         const pow = Decimal.pow(2, lavaLayer.eruptions.value);
@@ -383,7 +387,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                 resource: pressure,
                 cost: 1e30 // Reachable after first eruption
             })),
-            display: "Placeholder 2",
+            display: "Lava boost?",
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
@@ -410,7 +414,10 @@ const pressureLayer = createLayer(id, baseLayer => {
                 resource: pressure,
                 cost: 1e150 // reachable 3rd eruption
             })),
-            display: "Placeholder 4",
+            display: {
+                title: "Pop The Top",
+                description: "Divide Pressure Dampening based on"
+            },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"

@@ -19,7 +19,7 @@ const milestonesLayer = createLayer(id, () => {
                 effectDisplay: () => (
                     <>
                         <h4>Increase Effusive Eruption based on Eruptions.</h4>
-                        <h4>Currently: +{format(oneMilestoneEffect.value, 3)}</h4>
+                        <h4>Currently: +{format(oneMilestoneEffect.value)}</h4>
                     </>
                 )
             }
@@ -53,7 +53,7 @@ const milestonesLayer = createLayer(id, () => {
 
     const oneMilestoneEffect = computed(() => {
         if (milestones.one.earned.value) {
-            return Decimal.times(eruptions.value, 0.001);
+            return Decimal.times(eruptions.value, 0.01);
         }
 
         return Decimal.dZero;

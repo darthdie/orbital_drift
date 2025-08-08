@@ -59,20 +59,6 @@ const tephraLayer = createLayer(id, () => {
         //         description: "Unlock a second volcano."
         //     }
         // }))
-        ultraMafic: createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: tephra,
-                cost: 1
-            })),
-            display: {
-                title: "Ultramafic",
-                description: "Unlock a new Silicate Lava, which boosts the other Silicate effects."
-            },
-            classes: { "sd-upgrade": true },
-            clickableDataAttributes: {
-                "augmented-ui": "border tr-clip"
-            }
-        })),
         secretsLongBuried: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
                 resource: tephra,
@@ -95,6 +81,20 @@ const tephraLayer = createLayer(id, () => {
             display: {
                 title: "Shiny Rocks",
                 description: "Unlock Volcano & Molten Lava Buyables."
+            },
+            classes: { "sd-upgrade": true },
+            clickableDataAttributes: {
+                "augmented-ui": "border tr-clip"
+            }
+        })),
+        ultraMafic: createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: tephra,
+                cost: 1
+            })),
+            display: {
+                title: "Ultramafic",
+                description: "Unlock a new Silicate Lava, which boosts the other Silicate effects."
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {

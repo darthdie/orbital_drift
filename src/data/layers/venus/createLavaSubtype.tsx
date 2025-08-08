@@ -102,11 +102,11 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
         }));
 
         const increaseCap = createClickable(() => ({
-            canClick: () => Decimal.eq(resource.value, cap.value),
+            canClick: () => Decimal.gte(resource.value, cap.value),
             classes: { "squashed-clickable": true, flex: true },
             display: {
                 title: "Increase Cap",
-                description: <>Reset {resource.displayName} to double cap & max effect.</>
+                description: <>Reset {resource.displayName} to increase cap & double max effect.</>
             },
             onClick: () => {
                 if (unref(increaseCap.canClick) === false) {
