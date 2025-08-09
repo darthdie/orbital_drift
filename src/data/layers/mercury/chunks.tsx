@@ -139,7 +139,8 @@ const layer = createLayer(id, () => {
                     Decimal.add(dustLayer.mercurialDust.value, 1)
                         .log10()
                         .pow(0.4)
-                        .times(marryingChunksEffect.value),
+                        .times(marryingChunksEffect.value)
+                        .clampMin(1),
                 description: "Lovin' Chunks"
             })
         )
@@ -166,8 +167,7 @@ const layer = createLayer(id, () => {
 
     const cheapingChunksEffect = computed((): Decimal => {
         if (upgrades.cheapingChunks.bought.value) {
-            return Decimal.fromValue(bestChunks.value); //.pow(dollarsToChunksEffect.value);
-            // return Decimal.pow(bestChunks.value, 0.9).clampMin(1);
+            return Decimal.fromValue(bestChunks.value);
         }
 
         return Decimal.dOne;
@@ -204,14 +204,6 @@ const layer = createLayer(id, () => {
 
         return Decimal.dOne;
     });
-
-    // const dollarsToChunksEffect = computed(() => {
-    //     if (upgrades.dollarsToChunks.bought.value) {
-    //         return Decimal.fromNumber(2);
-    //     }
-
-    //     return Decimal.dOne;
-    // });
 
     const upgrades = {
         chuckingChunks: createUpgrade(() => ({
@@ -255,7 +247,7 @@ const layer = createLayer(id, () => {
             display: {
                 title: "Lovin' Chunks",
                 description: "Reduce Chunk cost based on Dust.",
-                effectDisplay: () => `+${format(lovingChunksModifier.apply(0))}`
+                effectDisplay: () => `÷${format(lovingChunksModifier.apply(0))}`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
