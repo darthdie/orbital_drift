@@ -29,21 +29,30 @@ const lavaLayer = createLayer(id, baseLayer => {
     const lavaCapIncreases = createResource<DecimalSource>(0);
     const lava = createResource<DecimalSource>(0, "Lava");
     const lavaCap = computed(() =>
-        Decimal.fromNumber(250).times(Decimal.times(lavaCapIncreases.value, 2).clampMin(1))
+        Formula.variable(lavaCapIncreases)
+            .pow_base(2)
+            .times(250)
+            .step(1500, f => f.times(9))
+            .evaluate()
     );
 
     const eruptions = createResource<DecimalSource>(0);
 
     const lavaMaxHardCap = computed(() => 50);
     const lavaMaxEffect = computed(() =>
-        Decimal.div(lavaCap.value, 25).clampMax(lavaMaxHardCap.value)
+        Formula.variable(lavaCapIncreases.value)
+            .pow_base(2)
+            .times(10)
+            .clampMax(lavaMaxHardCap.value)
+            .evaluate()
     );
     const lavaEffectHardcapped = computed(() =>
         Decimal.gte(lavaEffect.value, lavaMaxHardCap.value)
     );
-    const lavaEffect = computed(() =>
-        calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value, 0.9)
-    );
+    const lavaEffect = computed(() => {
+        const exponent = Decimal.sub(0.8, Decimal.times(lavaCapIncreases.value, 0.01));
+        return calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value, exponent);
+    });
 
     const lavaEffectBuildAmount = computed(() => Decimal.add(5, allSevensEffect.value));
 
