@@ -228,7 +228,9 @@ const silicateLayer = createLayer(id, baseLayer => {
         }))
     };
 
-    const lavaConversionFromRate = computed(() => Decimal.div(1, bringTheHeatEffect.value));
+    const lavaConversionFromRate = computed(() =>
+        Decimal.div(1, bringTheHeatEffect.value).times(currentLavaCostMultiplier.value)
+    );
     const lavaConversionToRate = computed(() =>
         Decimal.fromNumber(0.1).add(feelTheHeatEffect.value)
     );
@@ -379,6 +381,13 @@ const silicateLayer = createLayer(id, baseLayer => {
     );
 
     const currentSpeedDivisor = computed(() => beTheHeatEffectForTier(currentSpeedTier.value));
+    const currentLavaCostMultiplier = computed(() => {
+        if (Decimal.lte(currentSpeedTier.value, 1)) {
+            return Decimal.dOne;
+        }
+
+        return Decimal.sub(currentSpeedTier.value, 1).times(1.5);
+    });
 
     const decreaseSpeedClickable = createClickable(() => ({
         canClick: () => Decimal.gt(currentSpeedTier.value, 1),
@@ -452,22 +461,24 @@ const silicateLayer = createLayer(id, baseLayer => {
                             class="flex-1 w-[300px] px-8 py-4 mb-4"
                         >
                             <h5>Convert Molten Lava into Silicate Lava for buffs</h5>
-                            <h5>Current Conversion Rate</h5>
-                            <h5 class="font-semibold">
-                                {format(lavaConversionFromRate.value)} Lava to{" "}
-                                {format(lavaConversionToRate.value)} Silicate
-                            </h5>
 
                             <Spacer />
 
                             <div class="flex">
                                 {render(decreaseSpeedClickable)}
                                 <div class="flex flex-col">
-                                    <h4>Conversion Speed</h4>
+                                    <h4>Current Conversion Rate</h4>
                                     <h5 class="font-semibold">
-                                        {format(lavaConversionTimeRate.value)}/s (÷{" "}
-                                        {format(currentSpeedDivisor.value)})
+                                        {format(lavaConversionFromRate.value)} Lava to{" "}
+                                        {format(lavaConversionToRate.value)} Silicate
                                     </h5>
+                                    <h5 class="font-semibold">
+                                        Every {format(lavaConversionTimeRate.value)}/s
+                                    </h5>
+                                    <h6>
+                                        ÷{format(currentSpeedDivisor.value)} | x
+                                        {format(currentLavaCostMultiplier.value)}
+                                    </h6>
                                     <h6 class="font-semibold">
                                         +{format(silicateGainPerSecond.value)} Silicate/s | -
                                         {format(lavaLossPerSecond.value)} Lava/s
