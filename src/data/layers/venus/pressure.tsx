@@ -53,11 +53,12 @@ const pressureLayer = createLayer(id, baseLayer => {
                 .add(imFineEffect.value)
                 .times(silicateLayer.intermediate.effect.value)
                 .times(tephraLayer.blobTheBuilderEffect.value)
+                .times(popGoesTheWeaselEffect.value)
     );
 
     const iveGotToBreakFreeEffect = computed(() => {
         if (tephraUpgrades.iveGotToBreakFree.bought.value) {
-            return Decimal.times(0.003, Decimal.log10(pressure.value)).add(1).clampMin(1);
+            return Decimal.times(pressureChance.value, 0.1).add(1);
         }
 
         return Decimal.dOne;
@@ -69,9 +70,6 @@ const pressureLayer = createLayer(id, baseLayer => {
         f => f.min(1),
         // Increase interval for every OOM past 1e25
         f => f.log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
-        // f => f.log10().sub(24).times(0.05).add(1)
-        // f => f.div(1e25).times(0.008).add(1).clampMin(1)
-        // f => f.sub(1e25).add(10).log10().cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
     );
 
     const isPressureDampened = computed(() => Decimal.gt(pressure.value, 1e25));
@@ -164,13 +162,21 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const lavaFlowffect = computed(() => {
         if (upgrades.lavaFlow.bought.value) {
-            return Decimal.add(pressure.value, 1)
-                .log10()
-                .cbrt()
-                .times(underPressureEffect.value)
-                .times(redHotEffect.value)
-                .clampMin(1);
-            // return Decimal.fromNumber(2);
+            const growthCurve = 0.3;
+
+            return (
+                Formula.variable(pressure.value)
+                    .add(1)
+                    //
+                    //
+                    .log10()
+                    .pow(growthCurve)
+                    .times(underPressureEffect.value)
+                    .times(redHotEffect.value)
+                    .step(3, f => f.pow(0.5))
+                    .clampMin(1)
+                    .evaluate()
+            );
         }
 
         return Decimal.dOne;
@@ -178,7 +184,7 @@ const pressureLayer = createLayer(id, baseLayer => {
 
     const underPressureEffect = computed(() => {
         if (upgrades.underPressure.bought.value) {
-            return Decimal.fromNumber(2);
+            return Decimal.times(pressureGainMultiplier.value, 0.1).add(1);
         }
 
         return Decimal.dOne;
@@ -230,7 +236,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Under Pressure",
-                description: "Double the effect of 'Lava Flow'",
+                description: "Increase the effect of 'Lava Flow' based on Build Mult",
                 effectDisplay: () => `x${format(underPressureEffect.value)}`
             },
             classes: { "sd-upgrade": true },
@@ -245,7 +251,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Red Hot",
-                description: "Increase the effect of 'Lava Flow' based Pressure.",
+                description: "Increase the effect of 'Lava Flow' based on Pressure.",
                 effectDisplay: () => `x${format(redHotEffect.value)}`
             },
             classes: { "sd-upgrade": true },
@@ -361,6 +367,25 @@ const pressureLayer = createLayer(id, baseLayer => {
         Decimal.fromNumber(tephraUpgrades.volcanoesForDummies.bought.value ? 0.5 : 0)
     );
 
+    const popGoesTheWeaselEffect = computed(() => {
+        if (
+            tephraUpgrades.popGoesTheWeasel.bought.value &&
+            Decimal.gt(pressureTimerMax.value, 15)
+        ) {
+            return Decimal.sub(pressureTimerMax.value, 15).times(0.02).add(1);
+        }
+
+        return Decimal.dOne;
+    });
+
+    const snowballsChanceInLavaEffect = computed(() => {
+        if (tephraUpgrades.snowballsChanceInLava.bought.value) {
+            return Decimal.sub(1, Decimal.log10(pressureChance.value).times(0.1));
+        }
+
+        return Decimal.dOne;
+    });
+
     // Probably softcap?
     // Uncap pressure chance, and each /100% has a chance to proc?
     // Chance past 100 boosts...interval or mult?
@@ -381,13 +406,17 @@ const pressureLayer = createLayer(id, baseLayer => {
                 "augmented-ui": "border tr-clip"
             }
         })),
-        placeholder2: createUpgrade(() => ({
+        popGoesTheWeasel: createUpgrade(() => ({
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
                 cost: 1e30 // Reachable after first eruption
             })),
-            display: "Lava boost?",
+            display: {
+                title: "POP Goes the Weasel",
+                description: "Increase Build Mult based on Interval when it's >15s.",
+                effectDisplay: () => `x${format(popGoesTheWeaselEffect.value)}`
+            },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
@@ -401,22 +430,24 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "I'VE GOT TO BREAK FREE",
-                description: "Divide Pressure Dampening based on Pressure."
+                description: "Decrease Pressure Dampening based on Build Mult.",
+                effectDisplay: () => `${format(iveGotToBreakFreeEffect.value)}`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
                 "augmented-ui": "border tr-clip"
             }
         })),
-        placeholder4: createUpgrade(() => ({
+        snowballsChanceInLava: createUpgrade(() => ({
             visibility: tephraLayer.upgrades.secretsLongBuried.bought,
             requirements: createCostRequirement(() => ({
                 resource: pressure,
                 cost: 1e150 // reachable 3rd eruption
             })),
             display: {
-                title: "Pop The Top",
-                description: "Divide Pressure Dampening based on"
+                title: "A Snowball's Chance In Lava",
+                description: "Decrease Pressure Dampening based on Build Chance.",
+                effectDisplay: () => `^${format(snowballsChanceInLavaEffect.value)}`
             },
             classes: { "sd-upgrade": true },
             clickableDataAttributes: {
@@ -467,8 +498,8 @@ const pressureLayer = createLayer(id, baseLayer => {
                                     <h3>{pressure.displayName}</h3>
                                     <h6 class="font-semibold">
                                         {format(pressureChance.value)}%
-                                        {pressureChanceMaxed.value ? " (capped)" : null} chance for
-                                        pressure to build by x{format(pressureGainMultiplier.value)}{" "}
+                                        {pressureChanceMaxed.value ? " (capped)" : null} Chance for
+                                        pressure to Build by x{format(pressureGainMultiplier.value)}{" "}
                                         every {format(pressureTimerMax.value)} seconds.
                                     </h6>
                                 </div>

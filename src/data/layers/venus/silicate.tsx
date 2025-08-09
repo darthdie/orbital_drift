@@ -2,7 +2,7 @@ import { createLayer } from "game/layers";
 import { createLavaEffectFormula, createLavaSubtype, LavaSubtype } from "./createLavaSubtype";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { render, renderGroupedObjects } from "util/vue";
-import { computed } from "vue";
+import { computed, unref } from "vue";
 import { createRepeatable } from "features/clickables/repeatable";
 import { CostRequirementOptions, createCostRequirement } from "game/requirements";
 import { fibonacciCostFormula } from "data/formulas";
@@ -14,6 +14,7 @@ import { createReset } from "features/reset";
 import Section from "data/components/Section.vue";
 import Formula from "game/formulas/formulas";
 import tephraLayer from "./tephra";
+import Spacer from "components/layout/Spacer.vue";
 
 enum SilicateLavaConversion {
     none,
@@ -26,7 +27,11 @@ enum SilicateLavaConversion {
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
     const ultramafic: LavaSubtype = createLavaSubtype("Ultramafic", () => ({
-        capCostFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(500),
+        capCostFormula: () =>
+            Formula.variable(ultramafic.capIncreases)
+                .pow_base(2)
+                .times(500)
+                .step(1500, f => f.times(9)),
         maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
         effectFormula: () => createLavaEffectFormula(ultramafic, 1, 0.9),
         effectDisplayBuilder: (effect, maxEffect) =>
@@ -53,8 +58,13 @@ const silicateLayer = createLayer(id, baseLayer => {
         augmentedUi: "border tl-2-round-inset tr-clip"
     }));
 
+    // 75 -> 150 -> 300 -> (600)
     const intermediate: LavaSubtype = createLavaSubtype("Intermediate", () => ({
-        capCostFormula: () => Formula.variable(intermediate.capIncreases).pow_base(2).times(75),
+        capCostFormula: () =>
+            Formula.variable(intermediate.capIncreases)
+                .pow_base(2)
+                .times(75)
+                .step(550, f => f.times(9)),
         maxEffectFormula: () =>
             Formula.variable(intermediate.capIncreases)
                 .pow_base(2)
@@ -68,8 +78,13 @@ const silicateLayer = createLayer(id, baseLayer => {
         augmentedUi: "border tl-clip tr-scoop-x"
     }));
 
+    // 100 -> 200 -> 400 -> (800)
     const mafic: LavaSubtype = createLavaSubtype("Mafic", () => ({
-        capCostFormula: () => Formula.variable(mafic.capIncreases).pow_base(2).times(100),
+        capCostFormula: () =>
+            Formula.variable(mafic.capIncreases)
+                .pow_base(2)
+                .times(100)
+                .step(750, f => f.times(9)),
         maxEffectFormula: () =>
             Formula.variable(mafic.capIncreases).pow_base(2).times(1.5).times(ultramafic.effect),
         effectFormula: () => createLavaEffectFormula(mafic, 1, 0.9).times(ultramafic.effect),
@@ -90,18 +105,22 @@ const silicateLayer = createLayer(id, baseLayer => {
 
     const bringTheHeatEffect = computed(() => {
         if (Decimal.gt(silicateBuyables.bringTheHeat.amount.value, 0)) {
-            return Decimal.times(0.1, silicateBuyables.bringTheHeat.amount.value).add(1);
+            return Decimal.times(0.05, silicateBuyables.bringTheHeat.amount.value).add(1);
         }
 
         return Decimal.dOne;
     });
 
-    const beTheHeatEffect = computed(() => {
-        if (Decimal.gt(silicateBuyables.beTheHeat.amount.value, 0)) {
-            return Decimal.times(0.1, silicateBuyables.beTheHeat.amount.value);
+    const beTheHeatEffectForTier = (tier: DecimalSource) => {
+        if (Decimal.lte(tier, 1)) {
+            return Decimal.dOne;
         }
 
-        return Decimal.dZero;
+        return Decimal.times(0.1, Decimal.sub(tier, 1)).add(1);
+    };
+
+    const beTheHeatEffect = computed(() => {
+        return beTheHeatEffectForTier(Decimal.add(silicateBuyables.beTheHeat.amount.value, 1));
     });
 
     const silicateBuyables = {
@@ -168,7 +187,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "Bring The Heat",
-                description: "Decrease amount of Lava needed for conversion by ÷1.1",
+                description: "Decrease amount of Lava needed for conversion by ÷1.05",
                 effectDisplay: (): string => `÷${format(bringTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -181,34 +200,25 @@ const silicateLayer = createLayer(id, baseLayer => {
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: felsic.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: intermediate.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: mafic.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
                     })
                 )
             ],
             display: {
                 title: "BE The Heat",
-                description: "Increase maximum conversion speed by -1 second",
+                description: "Increase maximum conversion speed by ÷1.1 second",
                 effectDisplay: (): string => `÷${format(beTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -222,7 +232,9 @@ const silicateLayer = createLayer(id, baseLayer => {
     const lavaConversionToRate = computed(() =>
         Decimal.fromNumber(0.1).add(feelTheHeatEffect.value)
     );
-    const lavaConversionTimeRate = computed(() => Decimal.fromNumber(10));
+    const lavaConversionTimeRate = computed(() =>
+        Decimal.fromNumber(10).div(currentSpeedDivisor.value)
+    );
 
     const unlocked = computed(() => {
         return lavaLayer.lavaUpgrades.silicateLava.bought.value;
@@ -361,6 +373,59 @@ const silicateLayer = createLayer(id, baseLayer => {
         )
     );
 
+    const currentSpeedTier = persistent<DecimalSource>(1);
+    const maximumSpeedDivisorTier = computed(() =>
+        Decimal.add(silicateBuyables.beTheHeat.amount.value, 1)
+    );
+
+    const currentSpeedDivisor = computed(() => beTheHeatEffectForTier(currentSpeedTier.value));
+
+    const decreaseSpeedClickable = createClickable(() => ({
+        canClick: () => Decimal.gt(currentSpeedTier.value, 1),
+        classes: {
+            "fit-content": true,
+            "clickable:can:text-venus-200!": true,
+            "clickable:locked:text-venus-500!": true,
+            "clickable:text-lg!": true,
+            "clickable:border-2": true,
+            "clickable:can:border-venus-200!": true,
+            "clickable:locked:border-venus-500!": true,
+            "clickable:bg-remove!": true,
+            "clickable:rounded-full!": true
+        },
+        display: "-",
+        onClick: () => {
+            if (unref(decreaseSpeedClickable.canClick) === false) {
+                return;
+            }
+
+            currentSpeedTier.value = Decimal.sub(currentSpeedTier.value, 1);
+        }
+    }));
+
+    const increaseSpeedClickable = createClickable(() => ({
+        canClick: () => Decimal.lt(currentSpeedTier.value, maximumSpeedDivisorTier.value),
+        classes: {
+            "fit-content": true,
+            "clickable:can:text-venus-200!": true,
+            "clickable:locked:text-venus-500!": true,
+            "clickable:text-lg!": true,
+            "clickable:border-2": true,
+            "clickable:can:border-venus-200!": true,
+            "clickable:locked:border-venus-500!": true,
+            "clickable:bg-remove!": true,
+            "clickable:rounded-full!": true
+        },
+        display: "+",
+        onClick: () => {
+            if (unref(increaseSpeedClickable.canClick) === false) {
+                return;
+            }
+
+            currentSpeedTier.value = Decimal.add(currentSpeedTier.value, 1);
+        }
+    }));
+
     return {
         id,
         felsic,
@@ -377,6 +442,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         selectedConversionLavaType,
         showNotification,
         explosiveEruptionReset,
+        currentSpeedTier,
         display: () => (
             <>
                 <div id="silicate-layer">
@@ -389,13 +455,26 @@ const silicateLayer = createLayer(id, baseLayer => {
                             <h5>Current Conversion Rate</h5>
                             <h5 class="font-semibold">
                                 {format(lavaConversionFromRate.value)} Lava to{" "}
-                                {format(lavaConversionToRate.value)} Silicate over{" "}
-                                {format(lavaConversionTimeRate.value)}/s
+                                {format(lavaConversionToRate.value)} Silicate
                             </h5>
-                            <h6 class="font-semibold">
-                                +{format(silicateGainPerSecond.value)} Silicate/s | -
-                                {format(lavaLossPerSecond.value)} Lava/s
-                            </h6>
+
+                            <Spacer />
+
+                            <div class="flex">
+                                {render(decreaseSpeedClickable)}
+                                <div class="flex flex-col">
+                                    <h4>Conversion Speed</h4>
+                                    <h5 class="font-semibold">
+                                        {format(lavaConversionTimeRate.value)}/s (÷{" "}
+                                        {format(currentSpeedDivisor.value)})
+                                    </h5>
+                                    <h6 class="font-semibold">
+                                        +{format(silicateGainPerSecond.value)} Silicate/s | -
+                                        {format(lavaLossPerSecond.value)} Lava/s
+                                    </h6>
+                                </div>
+                                {render(increaseSpeedClickable)}
+                            </div>
                         </div>
 
                         {render(disableConversionButton)}

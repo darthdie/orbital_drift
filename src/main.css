@@ -48,6 +48,28 @@
     }
 } */
 
+@utility bg-remove {
+    background: none !important;
+}
+
+@custom-variant clickable {
+    & .clickable {
+        @slot;
+    }
+}
+
+@custom-variant can {
+    &.can {
+        @slot;
+    }
+}
+
+@custom-variant locked {
+    &.locked {
+        @slot;
+    }
+}
+
 @custom-variant clickable-can {
     > .clickable.can {
         @slot;
