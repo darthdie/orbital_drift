@@ -115,7 +115,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const name = "Mercury";
     const color = "#8c8c94";
 
-    const unlocked = computed(() => dustLayer.unlocks.accelerators.bought.value);
+    const layerUnlocked = computed(() => dustLayer.unlocks.accelerators.bought.value);
 
     const sharedBarSettings = {
         direction: Direction.Right,
@@ -154,6 +154,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
 
         intervalBuyable: createRepeatable(() => ({
+            classes: { "clickable:h-fit!": true },
             requirements: createCostRequirement(
                 (): CostRequirementOptions => ({
                     resource: noPersist(dustLayer.mercurialDust),
@@ -180,10 +181,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         </div>
                         <hr color="var(--outline-lighter)" style="height: 2px;" />
                         <div style="padding-bottom: 12px;">
-                            <h4>
-                                You have {format(dustLayer.mercurialDust.value)}{" "}
-                                {dustLayer.mercurialDust.displayName}.
-                            </h4>
+                            <div class="py-1">
+                                <h4>
+                                    You have {format(dustLayer.mercurialDust.value)}{" "}
+                                    {dustLayer.mercurialDust.displayName}.
+                                </h4>
+                            </div>
                             <hr color="var(--outline-lighter)" style="height: 2px;" />
 
                             <div style="padding-left: 24px; display: flex;">
@@ -579,6 +582,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         })),
 
         intervalBuyable: createRepeatable(() => ({
+            classes: { "clickable:h-fit!": true },
             requirements: createCostRequirement(
                 (): CostRequirementOptions => ({
                     resource: noPersist(chunksLayer.chunks),
@@ -606,7 +610,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                         </div>
                         <hr color="var(--outline-lighter)" style="height: 2px;" />
                         <div style="padding-bottom: 12px;">
-                            <h4>You have {format(chunksLayer.chunks.value)} mercurial chunks.</h4>
+                            <div class="p-1">
+                                <h4>
+                                    You have {format(chunksLayer.chunks.value)} mercurial chunks.
+                                </h4>
+                            </div>
                             <hr color="var(--outline-lighter)" style="height: 2px;" />
 
                             <div style="padding-left: 24px; display: flex;">
@@ -963,7 +971,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         unlocked: computed(() => dustAccelerator.upgrades.chunksUnlock.bought.value),
 
         tick: (diff: number) => {
-            if (!unlocked.value) {
+            if (!chunkAccelerator.unlocked.value) {
                 return;
             }
 
@@ -1348,7 +1356,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         unlocked: computed(() => chunkAccelerator.upgrades.timeUnlock.bought.value),
 
         tick: (diff: number) => {
-            if (!unlocked.value) {
+            if (!timeAccelerator.unlocked.value) {
                 return;
             }
 
@@ -1368,7 +1376,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     };
 
     baseLayer.on("preUpdate", diff => {
-        if (!unlocked.value || mercuryLayer.hasCollidedComputed.value) {
+        if (!layerUnlocked.value || mercuryLayer.hasCollidedComputed.value) {
             return;
         }
 
