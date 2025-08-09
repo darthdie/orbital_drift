@@ -170,9 +170,14 @@ export function calculateLavaEffect(
 export function createLavaEffectFormula(
     _silicateLava: LavaSubtype,
     _minEffect: MaybeRefOrGetter<DecimalSource>,
-    exponent: DecimalSource = 1
+    startingExponent: DecimalSource = 1
 ) {
     const silicateLava = processGetter(_silicateLava);
+    // Make it scale a little faster each level, to not feel too punishing
+    const exponent = Decimal.sub(
+        startingExponent,
+        Decimal.times(silicateLava.capIncreases.value, 0.01)
+    );
     const minEffect = processGetter(_minEffect);
     const percent = Formula.max(0, Formula.div(silicateLava.resource, silicateLava.cap));
     const curved = Formula.pow(percent, exponent);

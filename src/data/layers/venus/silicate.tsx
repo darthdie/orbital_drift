@@ -26,6 +26,7 @@ enum SilicateLavaConversion {
 
 const id = "VS";
 const silicateLayer = createLayer(id, baseLayer => {
+    const scalingExponent = 0.8;
     const ultramafic: LavaSubtype = createLavaSubtype("Ultramafic", () => ({
         capCostFormula: () =>
             Formula.variable(ultramafic.capIncreases)
@@ -33,7 +34,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .times(500)
                 .step(1500, f => f.times(9)),
         maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
-        effectFormula: () => createLavaEffectFormula(ultramafic, 1, 0.9),
+        effectFormula: () => createLavaEffectFormula(ultramafic, 1, scalingExponent),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Increase to other Silicate Effects",
@@ -50,7 +51,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .step(350, f => f.times(9)),
         maxEffectFormula: () =>
             Formula.variable(felsic.capIncreases).pow_base(2).times(5).times(ultramafic.effect),
-        effectFormula: () => createLavaEffectFormula(felsic, 0, 0.9).times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(felsic, 0, scalingExponent).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
         effectDisplayTitle: "Pressure Build Chance",
@@ -70,7 +71,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .pow_base(2)
                 .times(2)
                 .times(ultramafic.effect),
-        effectFormula: () => createLavaEffectFormula(intermediate, 1, 0.9).times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(intermediate, 1, scalingExponent).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `x${format(effect.value)}/x${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Build Mult",
@@ -87,7 +88,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .step(750, f => f.times(9)),
         maxEffectFormula: () =>
             Formula.variable(mafic.capIncreases).pow_base(2).times(1.5).times(ultramafic.effect),
-        effectFormula: () => createLavaEffectFormula(mafic, 1, 0.9).times(ultramafic.effect),
+        effectFormula: () => createLavaEffectFormula(mafic, 1, scalingExponent).times(ultramafic.effect),
         effectDisplayBuilder: (effect, maxEffect) =>
             `÷${format(effect.value)}/÷${format(maxEffect.value)}`,
         effectDisplayTitle: "Pressure Interval",

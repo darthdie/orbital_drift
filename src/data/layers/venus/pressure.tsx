@@ -30,7 +30,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         (): DecimalSource =>
             Formula.variable(15)
                 .sub(volcanoesForDummiesIntervalEffect)
-                .times(pressureDampeningFormula)
+                .times(pressureDampeningIntervalFormula)
                 .div(silicateLayer.mafic.effect.value)
                 .div(tephraLayer.greenIsNotACreativeColorEffect.value)
                 .div(anxietyInducingEffect.value)
@@ -64,7 +64,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         return Decimal.dOne;
     });
 
-    const pressureDampeningFormula = Formula.if(
+    const pressureDampeningIntervalFormula = Formula.if(
         Formula.variable(pressure),
         () => Decimal.lt(pressure.value, 1e25),
         f => f.min(1),
@@ -72,7 +72,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         f => f.log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
     );
 
-    const isPressureDampened = computed(() => Decimal.gt(pressure.value, 1e25));
+    const isPressureIntervalDampened = computed(() => Decimal.gt(pressure.value, 1e25));
 
     const pressureMax = computed((): DecimalSource => {
         const pow = Decimal.pow(2, lavaLayer.eruptions.value);
@@ -518,10 +518,10 @@ const pressureLayer = createLayer(id, baseLayer => {
                             </div>
                         </div>
 
-                        {isPressureDampened.value ? (
+                        {isPressureIntervalDampened.value ? (
                             <h5 class="text-red-400 font-semibold">
-                                Due to pressure dampening, Interval is being divided by ÷
-                                {format(pressureDampeningFormula.evaluate())}
+                                Due to Dampening, Pressure Interval is being multiplied by x
+                                {format(pressureDampeningIntervalFormula.evaluate())}
                             </h5>
                         ) : null}
                     </Section>

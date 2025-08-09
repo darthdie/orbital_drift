@@ -385,6 +385,7 @@ const lavaLayer = createLayer(id, baseLayer => {
     });
 
     // Increase chance cap?
+    // Silicate lavas boost each other?
     const tephraUpgrades = {
         // Need 3
         // Improve streams are alive effect
