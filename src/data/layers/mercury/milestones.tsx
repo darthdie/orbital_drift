@@ -25,7 +25,6 @@ const layer = createLayer(id, () => {
                 multiplier: () =>
                     Decimal.times(1.5, chunksTab.bestChunks.value)
                         .times(hundredFiftyEffect.value)
-                        // .pow(sixthMilestoneEffect.value)
                         .clampMin(1),
                 enabled: milestones.first.earned,
                 description: "First Chunk Milestone"
@@ -80,7 +79,7 @@ const layer = createLayer(id, () => {
                     <>
                         Unlock the 'Dust Piles' buyable
                         <br />
-                        Boost time by x1.5 per best Chunk
+                        Boost Dust Time & Collision Time by x1.5 per best Chunk
                     </>
                 )
             }
@@ -104,7 +103,8 @@ const layer = createLayer(id, () => {
             requirements: createCountRequirement(chunksTab.bestChunks, 10),
             display: {
                 requirement: "10 Best Mercurial Chunks",
-                optionsDisplay: "Raise time rate by best Chunks at a heavily reduced rate.",
+                optionsDisplay:
+                    "Raise Dust Time & Collision Time by best Chunks at a heavily reduced rate.",
                 effectDisplay: () => `^${format(fourthMilestoneModifier.value)}`
             }
         })),
