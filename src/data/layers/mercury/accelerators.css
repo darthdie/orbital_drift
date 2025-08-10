@@ -36,25 +36,12 @@ div:has(> .level-repeatable) {
     margin: 0;
 }
 
-.level-repeatable .clickable {
-    margin-right: 0;
-    border: 0;
-    margin-top: 0;
-}
-
-.boost-repeatable .clickable {
-    margin-left: 0;
-    border: 0;
-    margin-top: 0;
-}
-
-.level-repeatable .clickable,
-.boost-repeatable .clickable {
+.repeatable.level-repeatable .clickable,
+.repeatable.boost-repeatable .clickable {
     height: 190px;
-    /* width: 210px; */
     width: 100%;
     margin: 0;
-    /* padding: 2px; */
+    border: 0;
 }
 
 .repeatable-content {

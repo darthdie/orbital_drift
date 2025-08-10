@@ -38,77 +38,7 @@ import solarLayer from "../solar";
 import milestonesLayer from "./milestones";
 import { JSX } from "vue/jsx-runtime";
 import "./accelerators.css";
-// import { MaybeGetter } from "util/computed";
-
-// function createUpgrade<T extends UpgradeOptions>(optionsFunc: () => T) {
-//     return createLazyProxy(() => {
-//         const { display: _display, ...props } = optionsFunc();
-
-//         let display;
-//         if (typeof _display === "object" && !isJSXElement(_display)) {
-//             const { title, description, effectDisplay } = _display;
-
-//             display = () => (
-//                 <span>
-//                     {title != null ? (
-//                         <div>
-//                             {render(title, el => (
-//                                 <h3>{el}</h3>
-//                             ))}
-//                         </div>
-//                     ) : null}
-//                     {render(description, el => (
-//                         <div>{el}</div>
-//                     ))}
-//                     {effectDisplay != null ? <div>Currently: {render(effectDisplay)}</div> : null}
-//                     {bought.value ? null : (
-//                         <>
-//                             <br />
-//                             {displayRequirements(requirements)}
-//                         </>
-//                     )}
-//                 </span>
-//             );
-//         } else if (_display != null) {
-//             display = _display;
-//         }
-
-//         // let display:
-//         //     | MaybeGetter<Renderable>
-//         //     | {
-//         //           /** A header to appear at the top of the display. */
-//         //           title?: MaybeGetter<Renderable>;
-//         //           /** The main text that appears in the display. */
-//         //           description: MaybeGetter<Renderable>;
-//         //           /** A description of the current effect of the achievement. Useful when the effect changes dynamically. */
-//         //           effectDisplay?: MaybeGetter<Renderable>;
-//         //       };
-//         // if (isRef(_display)) {
-//         //     display = _display;
-//         // } else if (_display !== undefined) {
-//         //     display = () => (
-//         //     <>
-//         //         <div class="upgrade-content">
-//         //             <h3 class="title">{_display.title}</h3>
-//         //             <hr class="title-divider" />
-//         //             <div class="description">
-//         //                 Decrease timer interval based on Dust Accelerons
-//         //             </div>
-//         //             <div class="effect">
-//         //                 Currently: ÷
-//         //                 {format(chunkAccelerator.dustAcceleratorIntervalEffect.value)}
-//         //             </div>
-//         //         </div>
-//         //     </>
-//         // );
-//         // }
-
-//         return createUpgradeReal(() => ({
-//             ...props,
-//             display
-//         }));
-//     });
-// }
+import { isVisible } from "features/feature";
 
 const id = "Ma";
 const layer = createLayer(id, (baseLayer: BaseLayer) => {
@@ -190,7 +120,10 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                             <hr color="var(--outline-lighter)" style="height: 2px;" />
 
                             <div style="padding-left: 24px; display: flex;">
-                                <span>Currently: ÷{format(dustAccelerator.timerMax.value)}</span>
+                                <span>
+                                    Currently: ÷
+                                    {format(dustAccelerator.dustAcceleratorTimerMaxEffect.value)}
+                                </span>
                                 <div style="border-left: 2px solid var(--outline-lighter); height: 12px"></div>
                                 <span>
                                     {displayRequirements(
@@ -1311,12 +1244,6 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     .step(2, f => f.sqrt())
                     .clampMin(1)
                     .evaluate();
-                // return Decimal.add(timeAccelerator.resource.value, 10)
-                //         .log10()
-                //         .pow(0.1)
-                //         .sqrt()
-                //         .add(timeAccelerator.bringItHomeEffect.value)
-                //         .clampMin(1);
             }
 
             return Decimal.dOne;
@@ -1473,18 +1400,16 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                                 Level {Decimal.add(accelerator.levelBuyable.amount.value, 1)}/4
                             </code>
                         </div>
-
-                        {/* <hr />
-
-                        <div style="padding: 0 12px 12px 12px;">
-                            {render(accelerator.levelEffectsDisplay)}
-                        </div> */}
                     </div>
                 </div>
                 <div class="flex justify-center">
                     <div class="flex" style="width: 100%; margin: 0;">
                         {render(accelerator.levelBuyable)}
-                        {render(accelerator.boostBuyable)}
+                        {isVisible(accelerator.boostBuyable.visibility!) ? (
+                            render(accelerator.boostBuyable)
+                        ) : (
+                            <div class="flex-1"></div>
+                        )}
                     </div>
                 </div>
             </div>
