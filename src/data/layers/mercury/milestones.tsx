@@ -79,7 +79,7 @@ const layer = createLayer(id, () => {
                     <>
                         Unlock the 'Dust Piles' buyable
                         <br />
-                        Boost Dust Time & Collision Time by x1.5 per best Chunk
+                        Boost Dust Time & Collision Time by +1.5x per best Chunk
                     </>
                 )
             }

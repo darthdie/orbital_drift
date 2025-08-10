@@ -424,7 +424,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Enriched Dust",
-                    description: "Multiply Dust gain by x1.1",
+                    description: "Multiply Dust gain by +0.1x",
                     effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
                 },
                 classes: { "normal-repeatable": true },
@@ -446,7 +446,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Dust Piles",
-                    description: "Raise Dust gain to ^1.1",
+                    description: "Increase Dust gain by ^+0.1",
                     effectDisplay: () => `^${format(dustPilesEffect.value, 1)}`
                 },
                 classes: { "normal-repeatable": true },

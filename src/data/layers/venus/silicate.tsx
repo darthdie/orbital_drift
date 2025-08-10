@@ -123,10 +123,6 @@ const silicateLayer = createLayer(id, baseLayer => {
         return Decimal.times(0.1, Decimal.sub(tier, 1)).add(1);
     };
 
-    const beTheHeatEffect = computed(() => {
-        return beTheHeatEffectForTier(Decimal.add(silicateBuyables.beTheHeat.amount.value, 1));
-    });
-
     const silicateBuyables = {
         feelTheHeat: createRepeatable(() => ({
             requirements: [
@@ -156,7 +152,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
-                "augmented-ui": "border bl-scoop-x"
+                "augmented-ui": "border bl-clip"
             }
         })),
         bringTheHeat: createRepeatable(() => ({
@@ -191,12 +187,12 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "Bring The Heat",
-                description: "Decrease amount of Lava needed for conversion by ÷1.05",
+                description: "Divides conversion rate of Lava by +0.05 per level.",
                 effectDisplay: (): string => `÷${format(bringTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
-                "augmented-ui": "border bl-scoop-x"
+                "augmented-ui": "border bl-clip"
             }
         })),
         beTheHeat: createRepeatable(() => ({
@@ -222,12 +218,14 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "BE The Heat",
-                description: "Increase maximum conversion speed by ÷1.1 second",
-                effectDisplay: (): string => `÷${format(beTheHeatEffect.value)}`
+                description:
+                    "Increase max Conversion Tier. Each tier increases speed divisor by +0.1s, but increases Lava Costs by +1.5x.",
+                effectDisplay: (): string =>
+                    `+${Decimal.sub(maximumSpeedDivisorTier.value, 1)} Max Tiers`
             },
             classes: { "normal-repeatable": true },
             clickableDataAttributes: {
-                "augmented-ui": "border bl-scoop-x"
+                "augmented-ui": "border bl-clip"
             }
         }))
     };
@@ -236,7 +234,7 @@ const silicateLayer = createLayer(id, baseLayer => {
         Decimal.div(1, bringTheHeatEffect.value).times(currentLavaCostMultiplier.value)
     );
     const lavaConversionToRate = computed(() =>
-        Decimal.fromNumber(0.1).add(feelTheHeatEffect.value)
+        Decimal.fromNumber(0.5).add(feelTheHeatEffect.value)
     );
     const lavaConversionTimeRate = computed(() =>
         Decimal.fromNumber(10).div(currentSpeedDivisor.value)
@@ -471,7 +469,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                             <div class="flex">
                                 {render(decreaseSpeedClickable)}
                                 <div class="flex flex-col">
-                                    <h4>Current Conversion Rate</h4>
+                                    <h4>Conversion Tier - {currentSpeedTier.value}</h4>
                                     <h5 class="font-semibold">
                                         {format(lavaConversionFromRate.value)} Lava to{" "}
                                         {format(lavaConversionToRate.value)} Silicate

@@ -355,7 +355,7 @@ const lavaLayer = createLayer(id, baseLayer => {
         theStreamsAreAlive: createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
                 resource: lava,
-                cost: 100
+                cost: 75
             })),
             display: {
                 title: "The Streams Are Alive",
