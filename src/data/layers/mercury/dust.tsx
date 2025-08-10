@@ -660,9 +660,11 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
     const killingTimeModifier = createSequentialModifier(() => [
         createAdditiveModifier(() => ({
             enabled: basicUpgrades.killingTime.bought,
-            // addend: (): Decimal => Decimal.divide(timeSinceReset.value, 1000).times(0.01).times(chunkingTimeModifier.apply(1))
-            addend: (): Decimal => Decimal.pow(Decimal.add(timeSinceReset.value, 1).e, 1.5)
-            // addend: 0
+            addend: (): Decimal =>
+                Decimal.log10(timeSinceReset.value)
+                    .floor()
+                    .pow(1.5)
+                    .times(chunkingTimeModifier.apply(1))
         }))
     ]);
 
