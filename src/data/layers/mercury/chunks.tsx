@@ -533,7 +533,7 @@ const layer = createLayer(id, () => {
                     {render(resetButton)}
                     <Spacer />
 
-                    {milestonesLayer.milestones.three.earned.value ? (
+                    {milestonesLayer.milestones.three.earned.value === true ? (
                         <Section header="Upgrades">{renderGroupedObjects(upgrades, 4)}</Section>
                     ) : null}
                 </div>

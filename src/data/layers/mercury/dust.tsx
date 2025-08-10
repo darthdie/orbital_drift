@@ -454,7 +454,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     "augmented-ui": "border bl-scoop-x"
                 },
                 visibility: () =>
-                    milestonesLayer.milestones.first.earned.value ||
+                    milestonesLayer.milestones.first.earned.value === true ||
                     solarLayer.mercuryTreeUpgrades.youGetAPile.bought.value
             })
         )
@@ -462,7 +462,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
 
     const initialAmountFor = (bestAmount: Ref<DecimalSource>) => {
         return () => {
-            if (milestonesLayer.milestones.five.earned.value) {
+            if (milestonesLayer.milestones.five.earned.value === true) {
                 return Decimal.min(chunksLayer.bestChunks.value, bestAmount.value);
             }
 
@@ -750,8 +750,12 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
         onReset: () => {
             mercurialDust.value = mercurialDust[DefaultValue];
             totalMercurialDust.value = Decimal.dZero;
-            timeSinceReset.value = timeSinceReset[DefaultValue];
-            totalTimeSinceReset.value = Decimal.dZero;
+            const dustTimeToKeep =
+                milestonesLayer.milestones.twenty.earned.value === true
+                    ? Decimal.times(timeSinceReset.value, 0.1)
+                    : Decimal.dZero;
+            timeSinceReset.value = dustTimeToKeep;
+            totalTimeSinceReset.value = dustTimeToKeep;
             mercury.collisionTime.value = new Decimal(mercury.collisionTime[DefaultValue]);
 
             applySecondMilestone();

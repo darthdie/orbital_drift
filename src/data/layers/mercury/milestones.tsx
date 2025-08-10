@@ -1,4 +1,4 @@
-import { Achievement, createAchievement } from "features/achievements/achievement";
+import { createAchievement } from "features/achievements/achievement";
 import { createLayer } from "game/layers";
 import { computed } from "vue";
 import chunksTab from "./chunks";
@@ -33,8 +33,8 @@ const layer = createLayer(id, () => {
     ]);
 
     const fourthMilestoneModifier = computed((): DecimalSource => {
-        if (milestones.four.earned.value) {
-            const pow = milestones.six.earned.value ? 0.65 : 0.5;
+        if (milestones.four.earned.value === true) {
+            const pow = milestones.six.earned.value === true ? 0.65 : 0.5;
             return Decimal.add(chunksTab.bestChunks.value, 1).slog().pow(pow).clampMin(1);
         }
 
@@ -42,7 +42,7 @@ const layer = createLayer(id, () => {
     });
 
     const fiftyMilestoneEffect = computed((): DecimalSource => {
-        if (milestones.fifty.earned.value) {
+        if (milestones.fifty.earned.value === true) {
             return Decimal.add(chunksTab.bestChunks.value, 1).log10().clampMin(1);
         }
 
@@ -50,7 +50,7 @@ const layer = createLayer(id, () => {
     });
 
     const eightyMilestoneEffect = computed((): DecimalSource => {
-        if (milestones.eighty.earned.value) {
+        if (milestones.eighty.earned.value === true) {
             return Decimal.pow(chunksTab.bestChunks.value, 1.1);
         }
 
@@ -62,14 +62,14 @@ const layer = createLayer(id, () => {
     );
 
     const hundredFiftyEffect = computed(() => {
-        if (milestones.hundredFifty.earned.value) {
+        if (milestones.hundredFifty.earned.value === true) {
             return Decimal.sqrt(chunksTab.bestChunks.value);
         }
 
         return Decimal.dOne;
     });
 
-    const milestones: Record<string, Achievement> = {
+    const milestones = {
         first: createAchievement(() => ({
             requirements: createCountRequirement(chunksTab.bestChunks, 1),
             display: {
@@ -109,11 +109,18 @@ const layer = createLayer(id, () => {
             }
         })),
         five: createAchievement(() => ({
-            requirements: createCountRequirement(chunksTab.bestChunks, 20),
+            requirements: createCountRequirement(chunksTab.bestChunks, 15),
             display: {
-                requirement: "20 Best Mercurial Chunks",
+                requirement: "15 Best Mercurial Chunks",
                 optionsDisplay: "Keep some buyable levels on reset equal to your best Chunks.",
                 effectDisplay: () => `Up to ${chunksTab.bestChunks.value} buyable levels are kept.`
+            }
+        })),
+        twenty: createAchievement(() => ({
+            requirements: createCountRequirement(chunksTab.bestChunks, 20),
+            display: {
+                requirement: "25 Best Mercurial Chunks",
+                optionsDisplay: "Keep 10% of Dust Time on reset."
             }
         })),
         fifty: createAchievement(() => ({
