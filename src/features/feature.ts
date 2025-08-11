@@ -1,3 +1,4 @@
+import Formula from "game/formulas/formulas";
 import Decimal from "util/bignum";
 import { Renderable, renderCol, VueFeature } from "util/vue";
 import { computed, isRef, MaybeRef, Ref, unref } from "vue";
@@ -73,7 +74,11 @@ export function findFeatures(obj: object, ...types: symbol[]): unknown[] {
             ) {
                 if (types.includes((value as Record<string, unknown>).type as symbol)) {
                     objects.push(value);
-                } else if (!(value instanceof Decimal) && !isRef(value)) {
+                } else if (
+                    !(value instanceof Decimal) &&
+                    !isRef(value) &&
+                    !(value instanceof Formula)
+                ) {
                     handleObject(value as Record<string, unknown>);
                 }
             }
@@ -126,7 +131,11 @@ export function excludeFeatures(obj: Record<string, unknown>, ...types: symbol[]
                 const type = (value as Record<string, unknown>).type;
                 if (typeof type === "symbol" && !types.includes(type)) {
                     objects.push(value);
-                } else if (!(value instanceof Decimal) && !isRef(value)) {
+                } else if (
+                    !(value instanceof Decimal) &&
+                    !isRef(value) &&
+                    !(value instanceof Formula)
+                ) {
                     handleObject(value as Record<string, unknown>);
                 }
             }
