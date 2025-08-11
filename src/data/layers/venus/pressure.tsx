@@ -251,7 +251,8 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Red Hot",
-                description: "Increase the effect of 'Lava Flow' based on Pressure.",
+                description:
+                    "Increase the effect of 'Lava Flow' based on Pressure (>1e15) at a reduced rate.",
                 effectDisplay: () => `x${format(redHotEffect.value)}`
             },
             classes: { "sd-upgrade": true },

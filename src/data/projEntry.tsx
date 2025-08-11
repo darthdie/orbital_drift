@@ -24,6 +24,7 @@ import SolarSystemLayer from "./components/SolarSystemLayer.vue";
 import SideNodes from "../features/trees/SideNodes.vue";
 import { createHotkey } from "features/hotkey";
 import "./augmented-ui.css";
+import "./main.css";
 
 /* planet mechanic themes
 mercury: acceleration
@@ -140,6 +141,7 @@ export const main = createLayer("main", () => {
         minWidth: "250",
         minimizable: true,
         pauseHotkey,
+        classes: { "orbit-layer-tab": true },
         display: () => (
             <>
                 {player.devSpeed === 0 ? (
