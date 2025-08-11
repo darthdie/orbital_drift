@@ -24,6 +24,10 @@
         .can&:hover {
             box-shadow: 0 0 20px var(--outline-lighter);
         }
+
+        &.locked {
+            color: white;
+        }
     }
 
     .cappable-resource-container {

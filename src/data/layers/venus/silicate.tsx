@@ -200,19 +200,25 @@ const silicateLayer = createLayer(id, baseLayer => {
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: felsic.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: intermediate.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: mafic.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount).pow_base(2)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 )
             ],
