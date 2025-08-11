@@ -147,7 +147,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             ],
             display: {
                 title: "Feel The Heat",
-                description: "Increase conversion rate of Silicate Lavas by +0.1",
+                description: "Increase conversion rate of Silicate Lavas by +0.1 per level.",
                 effectDisplay: () => `+${format(feelTheHeatEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -225,7 +225,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             display: {
                 title: "BE The Heat",
                 description:
-                    "Increase max Conversion Tier. Each tier increases speed divisor by +0.1s, but increases Lava Costs by +1.5x.",
+                    "Increase max Conversion Tier. Each Tier increases speed divisor by +0.1, but increases Lava Costs by +1.5x.",
                 effectDisplay: (): string =>
                     `+${Decimal.sub(maximumSpeedDivisorTier.value, 1)} Max Tiers`
             },

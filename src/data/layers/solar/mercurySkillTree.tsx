@@ -42,7 +42,7 @@ export function createMercurySkillTree(mercuryCores: Resource<DecimalSource>) {
                 })),
                 display: {
                     title: "Solar Fried Dust",
-                    description: "Multiply Dust Gain by x2",
+                    description: "Multiply Dust Gain by x2.",
                     effectDisplay: () => `x${format(solarFriedDustEffect.value)}`
                 }
             })
@@ -58,7 +58,7 @@ export function createMercurySkillTree(mercuryCores: Resource<DecimalSource>) {
                 ],
                 display: {
                     title: "𝘴𝘰𝘭𝘢𝘳 𝘴𝘱𝘦𝘦𝘥",
-                    description: "Multiply time speed by x2",
+                    description: "Multiply time speed by x2.",
                     effectDisplay: () => `x${format(solarSpeedEffect.value)}`
                 }
             })

@@ -236,7 +236,7 @@ const pressureLayer = createLayer(id, baseLayer => {
             })),
             display: {
                 title: "Under Pressure",
-                description: "Increase the effect of 'Lava Flow' based on Build Mult",
+                description: "Increase the effect of 'Lava Flow' based on Build Mult.",
                 effectDisplay: () => `x${format(underPressureEffect.value)}`
             },
             classes: { "sd-upgrade": true },
@@ -500,7 +500,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                                     <h6 class="font-semibold">
                                         {format(pressureChance.value)}%
                                         {pressureChanceMaxed.value ? " (capped)" : null} Chance for
-                                        pressure to Build by x{format(pressureGainMultiplier.value)}{" "}
+                                        Pressure to Build by x{format(pressureGainMultiplier.value)}{" "}
                                         every {format(pressureTimerMax.value)} seconds.
                                     </h6>
                                 </div>

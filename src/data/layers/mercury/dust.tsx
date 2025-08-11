@@ -126,7 +126,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 })),
                 display: {
                     title: "Seasoned Dust",
-                    description: "Increases base Dust Time based on Dust Time.",
+                    description: "Increases base Dust Time based on itself.",
                     effectDisplay: (): string => `+${format(seasonedDustModifier.apply(0))}`
                 },
                 classes: { "sd-upgrade": true },
@@ -376,7 +376,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Align the Stars",
-                    description: "Increase base Dust Time gain by +1",
+                    description: "Increase base Dust Time gain by +1 per level.",
                     effectDisplay: (): string => `+${format(baseDustAmountModifier.apply(0))}/s`
                 },
                 classes: { "normal-repeatable": true },
@@ -400,7 +400,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Salted Dust",
-                    description: "Increase base Dust gain by +1",
+                    description: "Increase base Dust gain by +1 per level.",
                     effectDisplay: (): string => `+${format(baseDustGainModifier.apply(0))}`
                 },
                 classes: { "normal-repeatable": true },
@@ -424,7 +424,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Enriched Dust",
-                    description: "Multiply Dust gain by +0.1x",
+                    description: "Multiply Dust gain by +0.1x per level.",
                     effectDisplay: (): string => `x${format(dustMultiplierModifier.apply(1), 1)}`
                 },
                 classes: { "normal-repeatable": true },
@@ -446,7 +446,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Dust Piles",
-                    description: "Increase Dust gain by ^+0.1",
+                    description: "Increase Dust gain by ^+0.1 per level.",
                     effectDisplay: () => `^${format(dustPilesEffect.value, 1)}`
                 },
                 classes: { "normal-repeatable": true },

@@ -370,13 +370,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             second: createUpgrade(() => ({
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
-                        resource: noPersist(dustAccelerator.resource),
-                        cost: Decimal.fromNumber(25)
+                        resource: dustAccelerator.resource,
+                        cost: 25
                     })
                 ),
                 display: {
                     title: "Accelerating the Accelerator",
-                    description: "Decrease timer interval based on accelerons",
+                    description: "Decrease timer interval based on accelerons.",
                     effectDisplay: (): string =>
                         `÷${format(dustAccelerator.acceleratingTheAcceleratorEffect.value)}`
                 },
@@ -389,13 +389,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             chunksUnlock: createUpgrade(() => ({
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
-                        resource: noPersist(dustAccelerator.resource),
-                        cost: Decimal.fromNumber(125)
+                        resource: dustAccelerator.resource,
+                        cost: 125
                     })
                 ),
                 display: {
                     title: "je ne sais chunks",
-                    description: "Unlock Chunk Accelerons"
+                    description: "Unlock Chunk Accelerons."
                 },
                 classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
@@ -406,13 +406,13 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
             first: createUpgrade(() => ({
                 requirements: createCostRequirement(
                     (): CostRequirementOptions => ({
-                        resource: noPersist(dustAccelerator.resource),
-                        cost: Decimal.fromNumber(150)
+                        resource: dustAccelerator.resource,
+                        cost: 150
                     })
                 ),
                 display: {
                     title: "Speed Dust",
-                    description: "Unlock more Dust upgrades"
+                    description: "Unlock more Dust upgrades."
                 },
                 classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
@@ -747,7 +747,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                 ),
                 display: {
                     title: "Time go brrr",
-                    description: "Unlock Time Accelerons"
+                    description: "Unlock Time Accelerons."
                 },
                 classes: { "sd-upgrade": true },
                 clickableDataAttributes: {
@@ -764,7 +764,7 @@ const layer = createLayer(id, (baseLayer: BaseLayer) => {
                     })),
                     display: {
                         title: "Pebble Smasher",
-                        description: "Divide chunk cost based on Chunk Acceleron gain",
+                        description: "Divide chunk cost based on Chunk Acceleron gain.",
                         effectDisplay: (): string =>
                             `÷${format(chunkAccelerator.pebbleSmasherEffect.value)}`
                     },
