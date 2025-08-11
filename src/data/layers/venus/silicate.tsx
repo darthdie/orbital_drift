@@ -200,25 +200,23 @@ const silicateLayer = createLayer(id, baseLayer => {
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: felsic.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
-                            .pow_base(1.2)
-                            .times(20)
+                        // why the fuck isn't a formula.variable working here??
+                        cost: () =>
+                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: intermediate.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
-                            .pow_base(1.2)
-                            .times(20)
+                        cost: () =>
+                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: mafic.resource,
-                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
-                            .pow_base(1.2)
-                            .times(20)
+                        cost: () =>
+                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
                     })
                 )
             ],
