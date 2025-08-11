@@ -30,7 +30,7 @@ const pressureLayer = createLayer(id, baseLayer => {
         (): DecimalSource =>
             Formula.variable(15)
                 .sub(volcanoesForDummiesIntervalEffect)
-                .times(pressureDampeningIntervalFormula)
+                .times(pressureDampeningIntervalEffect.value)
                 .div(silicateLayer.mafic.effect.value)
                 .div(tephraLayer.greenIsNotACreativeColorEffect.value)
                 .div(anxietyInducingEffect.value)
@@ -64,13 +64,36 @@ const pressureLayer = createLayer(id, baseLayer => {
         return Decimal.dOne;
     });
 
-    const pressureDampeningIntervalFormula = Formula.if(
-        Formula.variable(pressure),
-        () => Decimal.lt(pressure.value, 1e25),
-        f => f.min(1),
-        // Increase interval for every OOM past 1e25
-        f => f.log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1)
-    );
+    // const pressureDampeningIntervalFormula = Formula.if(
+    //     () => pressure.value,
+    //     () => Decimal.lt(pressure.value, 1e25),
+    //     f => f.min(1),
+    //     // Increase interval for every OOM past 1e25
+    //     f => {
+    //         console.log(f.evaluate())
+    //         return f.log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1);
+    //     }
+    // );
+
+    // const pressureDampeningIntervalFormula = Formula.variable(pressure)
+    //     .if(
+    //         () => Decimal.lt(pressure.value, 1e25),
+    //         f => f.min(1),
+    //     )
+    //     // Increase interval for every OOM past 1e25
+    //     .log10().sub(24).cbrt().div(iveGotToBreakFreeEffect).clampMin(1);
+
+    const pressureDampeningIntervalEffect = computed(() => {
+        if (Decimal.gte(pressure.value, 1e25)) {
+            return Decimal.log10(pressure.value)
+                .sub(24)
+                .cbrt()
+                .div(iveGotToBreakFreeEffect.value)
+                .clampMin(1);
+        }
+
+        return Decimal.dOne;
+    });
 
     const isPressureIntervalDampened = computed(() => Decimal.gt(pressure.value, 1e25));
 
@@ -522,7 +545,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                         {isPressureIntervalDampened.value ? (
                             <h5 class="text-red-400 font-semibold">
                                 Due to Dampening, Pressure Interval is being multiplied by x
-                                {format(pressureDampeningIntervalFormula.evaluate())}
+                                {format(pressureDampeningIntervalEffect.value)}
                             </h5>
                         ) : null}
                     </Section>
