@@ -137,20 +137,18 @@ const containerClasses = reactive({
 }
 
 .minimize {
-    position: sticky;
+    position: absolute;
     top: 6px;
     right: 28px;
     z-index: 7;
     line-height: 30px;
     border: none;
-    background: var(--background);
-    box-shadow: var(--background) 0 2px 3px 5px;
+    background: transparent;
+    /* box-shadow: var(--background) 0 2px 3px 5px; */
     border-radius: 50%;
     color: var(--foreground);
     font-size: 40px;
     cursor: pointer;
-    margin-top: -44px;
-    margin-right: -30px;
 }
 
 .minimized .minimize {
