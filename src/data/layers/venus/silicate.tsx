@@ -159,29 +159,10 @@ const silicateLayer = createLayer(id, baseLayer => {
             requirements: [
                 createCostRequirement(
                     (): CostRequirementOptions => ({
-                        resource: felsic.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
-                    })
-                ),
-                createCostRequirement(
-                    (): CostRequirementOptions => ({
-                        resource: intermediate.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
-                    })
-                ),
-                createCostRequirement(
-                    (): CostRequirementOptions => ({
-                        resource: mafic.resource,
-                        cost: () =>
-                            fibonacciCostFormula(
-                                Decimal.add(silicateBuyables.bringTheHeat.amount.value, 4)
-                            )
+                        resource: lavaLayer.lava,
+                        cost: Formula.variable(silicateBuyables.bringTheHeat.amount)
+                            .pow_base(5)
+                            .times(25)
                     })
                 )
             ],
@@ -200,23 +181,25 @@ const silicateLayer = createLayer(id, baseLayer => {
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: felsic.resource,
-                        // why the fuck isn't a formula.variable working here??
-                        cost: () =>
-                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: intermediate.resource,
-                        cost: () =>
-                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 ),
                 createCostRequirement(
                     (): CostRequirementOptions => ({
                         resource: mafic.resource,
-                        cost: () =>
-                            Decimal.pow_base(silicateBuyables.beTheHeat.amount.value, 1.2).times(20)
+                        cost: Formula.variable(silicateBuyables.beTheHeat.amount)
+                            .pow_base(1.2)
+                            .times(20)
                     })
                 )
             ],
