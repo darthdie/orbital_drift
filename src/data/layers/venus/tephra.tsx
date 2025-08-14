@@ -165,7 +165,7 @@ const tephraLayer = createLayer(id, () => {
             })),
             display: {
                 title: "Blob The Builder",
-                description: "Increase Pressure Build Mult by x1.2 per level.",
+                description: "Increase Pressure Build Mult by +0.2x per level.",
                 effectDisplay: () => `x${format(blobTheBuilderEffect.value)}`
             },
             classes: { "normal-repeatable": true },
@@ -181,7 +181,7 @@ const tephraLayer = createLayer(id, () => {
             })),
             display: {
                 title: "Green is Not a Creative Color",
-                description: "Divide Pressure Interval by ÷1.2 per level.",
+                description: "Divide Pressure Interval by +0.2 per level.",
                 effectDisplay: () => `÷${format(greenIsNotACreativeColorEffect.value)}`
             },
             classes: { "normal-repeatable": true },

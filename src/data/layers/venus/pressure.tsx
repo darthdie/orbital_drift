@@ -318,7 +318,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                         resource: pressure,
                         // 100 is the starting cost, increase by an OOM every level
                         cost: Formula.variable(100).times(
-                            Formula.pow(10, tephraBuyables.whatreTheOdds.amount)
+                            Formula.pow(100, tephraBuyables.whatreTheOdds.amount)
                         )
                     })
                 ),
@@ -340,7 +340,7 @@ const pressureLayer = createLayer(id, baseLayer => {
                     (): CostRequirementOptions => ({
                         resource: pressure,
                         cost: Formula.variable(1e4).times(
-                            Formula.pow(100, tephraBuyables.whatreTheOdds.amount)
+                            Formula.pow(1000, tephraBuyables.whatreTheOdds.amount)
                         )
                     })
                 ),
@@ -368,8 +368,8 @@ const pressureLayer = createLayer(id, baseLayer => {
                 ),
                 display: {
                     title: "anxiety inducING",
-                    description: "Decrease Pressure Interval by ÷1.01 per level.",
-                    effectDisplay: (): string => `+${format(anxietyInducingEffect.value)}`
+                    description: "Divide Pressure Interval by +0.01 per level.",
+                    effectDisplay: (): string => `÷${format(anxietyInducingEffect.value)}`
                 },
                 classes: { "normal-repeatable": true },
                 clickableDataAttributes: {

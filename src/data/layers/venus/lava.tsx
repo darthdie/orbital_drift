@@ -452,7 +452,7 @@ const lavaLayer = createLayer(id, baseLayer => {
 
     const allSevensEffect = computed(() => {
         if (Decimal.gt(tephraBuyables.allSevens.amount.value, 0)) {
-            return Decimal.times(tephraBuyables.allSevens.amount.value, 0.25);
+            return Decimal.times(tephraBuyables.allSevens.amount.value, 0.777);
         }
 
         return Decimal.dZero;
@@ -491,7 +491,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                 display: {
                     title: "All Sevens",
                     description: "Increase Lava Pressure Build effect by +0.777 per level.",
-                    effectDisplay: () => `x${format(allSevensEffect.value)}`
+                    effectDisplay: () => `+${format(allSevensEffect.value)}`
                 },
                 classes: { "normal-repeatable": true },
                 clickableDataAttributes: {
