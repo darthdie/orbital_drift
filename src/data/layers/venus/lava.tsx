@@ -63,10 +63,18 @@ const lavaLayer = createLayer(id, baseLayer => {
         const increaseCap = createClickable(() => ({
             canClick: () => Decimal.eq(resource.value, resourceCap.value),
             classes: { "squashed-clickable": true, flex: true, "increase-lava-cap": true },
-            display: {
-                title: "Increase Cap",
-                description: <>Reset {resource.displayName} to double cap & max effect.</>
-            },
+            display: (
+                <>
+                    <div class="p-2">
+                        <h3>Increase Cap</h3>
+
+                        <div>
+                            Reset {resource.displayName} to increase cap, max effect, and max
+                            Effusive Eruption.
+                        </div>
+                    </div>
+                </>
+            ),
             onClick: () => {
                 if (unref(increaseCap.canClick) === false) {
                     return;
@@ -114,7 +122,10 @@ const lavaLayer = createLayer(id, baseLayer => {
                         data-augmented-ui="border tl-2-clip-x"
                         id="lava-display"
                     >
-                        <h3 class="title py-6">{resource.displayName}</h3>
+                        <div class="py-2">
+                            <h3 class="title">Molten Lava</h3>
+                            <h5>Level {Decimal.add(capIncreases.value, 1)}</h5>
+                        </div>
                         <div data-augmented-ui="border tl-clip">{render(bar)}</div>
                         <div class="flex flex-col bg-(--raised-background) p-2">
                             <h5>
@@ -125,7 +136,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                             <h5 class="font-semibold">
                                 {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%{" "}
                                 {lavaEffectHardcapped.value ? (
-                                    <h5 class="font-semibold text-red-400">(hardcapped)</h5>
+                                    <h5 class="font-semibold text-red-400">(capped)</h5>
                                 ) : null}
                             </h5>
                         </div>
@@ -133,7 +144,8 @@ const lavaLayer = createLayer(id, baseLayer => {
                     <div class="increase-cap-action">{render(increaseCap)}</div>
                 </>
             )),
-            increaseCap
+            increaseCap,
+            capIncreases
         };
     };
 
@@ -285,13 +297,22 @@ const lavaLayer = createLayer(id, baseLayer => {
             pressureLayer.upgrades.effusiveEruption.bought.value || Decimal.gt(eruptions.value, 0)
     );
 
+    // Add a tephra upgrade to increase this
+    const passiveLavaGainCap = computed(() =>
+        Decimal.add(lavaDisplay.capIncreases.value, 1).times(0.05)
+    );
+    const isPassiveLavaGainCapped = computed(() =>
+        Decimal.gte(passiveLavaGain.value, passiveLavaGainCap.value)
+    );
+
     const passiveLavaGain = computed((): DecimalSource => {
         if (pressureLayer.upgrades.effusiveEruption.bought.value) {
             return Decimal.fromNumber(0.01)
                 .add(milestonesLayer.oneMilestoneEffect.value)
                 .times(itsGettingHotInHereEffect.value)
                 .times(pressureLayer.lavaFlowffect.value)
-                .times(theStreamsAreAliveEffect.value);
+                .times(theStreamsAreAliveEffect.value)
+                .clampMax(passiveLavaGainCap.value);
         }
 
         return Decimal.dZero;
@@ -531,6 +552,9 @@ const lavaLayer = createLayer(id, baseLayer => {
                                             You are gaining {format(passiveLavaGain.value)}{" "}
                                             {lava.displayName}/s
                                         </h5>
+                                        {isPassiveLavaGainCapped.value ? (
+                                            <h5 class="font-semibold m-0">(capped)</h5>
+                                        ) : null}
                                     </div>
                                 </div>
                                 <div class="m-0 flex-1">{render(explosiveEruptionButton)}</div>
