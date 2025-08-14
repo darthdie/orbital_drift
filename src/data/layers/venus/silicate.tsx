@@ -35,14 +35,12 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .step(1500, f => f.times(9)),
         maxEffectFormula: () => Formula.variable(ultramafic.capIncreases).pow_base(2).times(1.1),
         effectFormula: () => createLavaEffectFormula(ultramafic, 1, scalingExponent),
-        effectDisplayBuilder: (effect, maxEffect) =>
-            `x${format(effect.value)}/x${format(maxEffect.value)}`,
+        effectFormatter: effect => `x${format(effect)}`,
         effectDisplayTitle: "Increase to other Silicate Effects",
         effectDisplayAugmentedUi: "border",
         augmentedUi: "border tr-clip tl-clip"
     }));
 
-    // 50 -> 100 -> 200 -> (400)800
     const felsic: LavaSubtype = createLavaSubtype("Felsic", () => ({
         capCostFormula: () =>
             Formula.variable(felsic.capIncreases)
@@ -50,11 +48,10 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .times(50)
                 .step(350, f => f.times(9)),
         maxEffectFormula: () =>
-            Formula.variable(felsic.capIncreases).pow_base(2).times(5).times(ultramafic.effect),
+            Formula.variable(felsic.capIncreases).pow_base(1.5).times(10).times(ultramafic.effect),
         effectFormula: () =>
             createLavaEffectFormula(felsic, 0, scalingExponent).times(ultramafic.effect),
-        effectDisplayBuilder: (effect, maxEffect) =>
-            `+${format(effect.value)}%/+${format(maxEffect.value)}%`,
+        effectFormatter: effect => `+${format(effect)}%`,
         effectDisplayTitle: "Pressure Build Chance",
         effectDisplayAugmentedUi: "border br-clip",
         augmentedUi: "border tl-2-round-inset tr-clip"
@@ -74,8 +71,7 @@ const silicateLayer = createLayer(id, baseLayer => {
                 .times(ultramafic.effect),
         effectFormula: () =>
             createLavaEffectFormula(intermediate, 1, scalingExponent).times(ultramafic.effect),
-        effectDisplayBuilder: (effect, maxEffect) =>
-            `x${format(effect.value)}/x${format(maxEffect.value)}`,
+        effectFormatter: effect => `x${format(effect)}`,
         effectDisplayTitle: "Pressure Build Mult",
         effectDisplayAugmentedUi: "border br-clip bl-clip",
         augmentedUi: "border tl-clip tr-scoop-x"
@@ -92,8 +88,7 @@ const silicateLayer = createLayer(id, baseLayer => {
             Formula.variable(mafic.capIncreases).pow_base(2).times(1.5).times(ultramafic.effect),
         effectFormula: () =>
             createLavaEffectFormula(mafic, 1, scalingExponent).times(ultramafic.effect),
-        effectDisplayBuilder: (effect, maxEffect) =>
-            `÷${format(effect.value)}/÷${format(maxEffect.value)}`,
+        effectFormatter: effect => `÷${format(effect)}`,
         effectDisplayTitle: "Pressure Interval",
         effectDisplayAugmentedUi: "border bl-clip",
         augmentedUi: "border tl-scoop-x tr-2-clip-y"

@@ -28,30 +28,31 @@ const id = "VL";
 const lavaLayer = createLayer(id, baseLayer => {
     const lavaCapIncreases = createResource<DecimalSource>(0);
     const lava = createResource<DecimalSource>(0, "Lava");
-    const lavaCap = computed(() =>
-        Formula.variable(lavaCapIncreases)
-            .pow_base(2)
-            .times(250)
-            .step(1500, f => f.times(9))
-            .evaluate()
-    );
+    const lavaCapFormula = Formula.variable(lavaCapIncreases)
+        .pow_base(2)
+        .times(250)
+        .step(1500, f => f.times(9));
+    const lavaCap = computed(() => lavaCapFormula.evaluate());
 
     const eruptions = createResource<DecimalSource>(0);
 
     const lavaMaxHardCap = computed(() => 50);
-    const lavaMaxEffect = computed(() =>
-        Formula.variable(lavaCapIncreases.value)
-            .pow_base(2)
-            .times(10)
-            .clampMax(lavaMaxHardCap.value)
-            .evaluate()
-    );
+    const lavaMaxEffectFormula = Formula.variable(lavaCapIncreases)
+        .pow_base(2)
+        .times(10)
+        .clampMax(lavaMaxHardCap.value);
     const lavaEffectHardcapped = computed(() =>
         Decimal.gte(lavaEffect.value, lavaMaxHardCap.value)
     );
     const lavaEffect = computed(() => {
         const exponent = Decimal.sub(0.8, Decimal.times(lavaCapIncreases.value, 0.01));
-        return calculateLavaEffect(lava.value, lavaCap.value, 0, lavaMaxEffect.value, exponent);
+        return calculateLavaEffect(
+            lava.value,
+            lavaCap.value,
+            0,
+            lavaMaxEffectFormula.evaluate(),
+            exponent
+        );
     });
 
     const lavaEffectBuildAmount = computed(() => Decimal.add(5, allSevensEffect.value));
@@ -63,18 +64,25 @@ const lavaLayer = createLayer(id, baseLayer => {
         const increaseCap = createClickable(() => ({
             canClick: () => Decimal.eq(resource.value, resourceCap.value),
             classes: { "squashed-clickable": true, flex: true, "increase-lava-cap": true },
-            display: (
-                <>
-                    <div class="p-2">
-                        <h3>Increase Cap</h3>
+            display: () => {
+                const nextCap = Decimal.add(lavaCapIncreases.value, 1);
+                const nextPassiveGainCap = passiveLavaGainCapFormula.evaluate(nextCap);
+                const nextLavaCap = lavaCapFormula.evaluate(nextCap);
+                const nextMaxEffect = lavaMaxEffectFormula.evaluate(nextCap);
+                return (
+                    <>
+                        <div class="p-2 px-10">
+                            <h3>Increase Cap</h3>
 
-                        <div>
-                            Reset {resource.displayName} to increase cap, max effect, and max
-                            Effusive Eruption.
+                            <div>
+                                Reset {resource.displayName} to increase: cap ({format(nextLavaCap)}
+                                ), max effect ({format(nextMaxEffect)}%), and max Effusive Eruption
+                                ({format(nextPassiveGainCap)}/s).
+                            </div>
                         </div>
-                    </div>
-                </>
-            ),
+                    </>
+                );
+            },
             onClick: () => {
                 if (unref(increaseCap.canClick) === false) {
                     return;
@@ -134,7 +142,8 @@ const lavaLayer = createLayer(id, baseLayer => {
                             </h5>
                             <br />
                             <h5 class="font-semibold">
-                                {format(lavaEffect.value)}%/{format(lavaMaxEffect.value)}%{" "}
+                                {format(lavaEffect.value)}%/
+                                {format(lavaMaxEffectFormula.evaluate())}%{" "}
                                 {lavaEffectHardcapped.value ? (
                                     <h5 class="font-semibold text-red-400">(capped)</h5>
                                 ) : null}
@@ -144,8 +153,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                     <div class="increase-cap-action">{render(increaseCap)}</div>
                 </>
             )),
-            increaseCap,
-            capIncreases
+            increaseCap
         };
     };
 
@@ -298,11 +306,10 @@ const lavaLayer = createLayer(id, baseLayer => {
     );
 
     // Add a tephra upgrade to increase this
-    const passiveLavaGainCap = computed(() =>
-        Decimal.add(lavaDisplay.capIncreases.value, 1).times(0.05)
-    );
+    const passiveLavaGainCapFormula = Formula.variable(lavaCapIncreases).add(1).times(0.05);
+    // const passiveLavaGainCap = computed(() => Decimal.add(lavaCapIncreases.value, 1).times(0.05));
     const isPassiveLavaGainCapped = computed(() =>
-        Decimal.gte(passiveLavaGain.value, passiveLavaGainCap.value)
+        Decimal.gte(passiveLavaGain.value, passiveLavaGainCapFormula.evaluate())
     );
 
     const passiveLavaGain = computed((): DecimalSource => {
@@ -312,7 +319,7 @@ const lavaLayer = createLayer(id, baseLayer => {
                 .times(itsGettingHotInHereEffect.value)
                 .times(pressureLayer.lavaFlowffect.value)
                 .times(theStreamsAreAliveEffect.value)
-                .clampMax(passiveLavaGainCap.value);
+                .clampMax(passiveLavaGainCapFormula.evaluate());
         }
 
         return Decimal.dZero;

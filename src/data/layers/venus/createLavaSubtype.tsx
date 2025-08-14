@@ -25,10 +25,11 @@ export interface LavaSubtypeOptions extends VueFeatureOptions {
     effectFormula: MaybeRefOrGetter<InvertibleFormula>;
     maxEffectFormula: MaybeRefOrGetter<InvertibleFormula>;
     capCostFormula: MaybeRefOrGetter<InvertibleFormula>;
-    effectDisplayBuilder: (
-        effect: ComputedRef<DecimalSource>,
-        maxEffect: ComputedRef<DecimalSource>
-    ) => string;
+    // effectDisplayBuilder: (
+    //     effect: ComputedRef<DecimalSource>,
+    //     maxEffect: ComputedRef<DecimalSource>
+    // ) => string;
+    effectFormatter: (effect: DecimalSource) => string;
     augmentedUi: MaybeRefOrGetter<string>;
     effectDisplayAugmentedUi: MaybeRefOrGetter<string>;
     effectDisplayTitle: MaybeRefOrGetter<string>;
@@ -47,7 +48,8 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             capCostFormula: _capCostFormula,
             effectFormula: _effectFormula,
             maxEffectFormula: _maxEffectFormula,
-            effectDisplayBuilder,
+            // effectDisplayBuilder,
+            effectFormatter,
             effectDisplayTitle,
             augmentedUi,
             effectDisplayAugmentedUi,
@@ -62,7 +64,9 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
         const maxEffect = computed(() => unref(maxEffectFormula).evaluate());
         const effect = computed(() => unref(effectFormula).evaluate());
 
-        const effectDisplay = computed(() => effectDisplayBuilder(effect, maxEffect));
+        const effectDisplay = computed(
+            () => `${effectFormatter(effect.value)}/${effectFormatter(maxEffect.value)}`
+        );
 
         const bar = createBar(() => ({
             direction: Direction.Up,
@@ -87,7 +91,18 @@ export function createLavaSubtype<T extends LavaSubtypeOptions>(
             classes: { "squashed-clickable": true, flex: true },
             display: {
                 title: "Increase Cap",
-                description: <>Reset {resource.displayName} to increase cap & double max effect.</>
+                description: () => {
+                    const nextCapLevel = Decimal.add(capIncreases.value, 1);
+                    const nextCap = unref(capCostFormula).evaluate(nextCapLevel);
+                    const nextMaxEffect = unref(maxEffectFormula).evaluate(nextCapLevel);
+
+                    return (
+                        <>
+                            Reset {resource.displayName} to increase cap ({format(nextCap)}) & max
+                            effect ({effectFormatter(nextMaxEffect)}).
+                        </>
+                    );
+                }
             },
             onClick: () => {
                 if (unref(increaseCap.canClick) === false) {
